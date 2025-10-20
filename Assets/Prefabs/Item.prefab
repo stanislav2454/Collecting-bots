@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 8077147032583680341}
   - component: {fileID: 589419226284879517}
   - component: {fileID: 1762044928646761028}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Item
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -118,12 +118,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf18059942d0f4c48a8995bf2c15f689, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemData:
-    itemId: 
-    itemName: 
-    itemType: 0
-    value: 0
-    respawnTime: 0
-    visualPrefab: {fileID: 0}
+  itemData: {fileID: 0}
   itemRenderer: {fileID: 8077147032583680341}
   itemCollider: {fileID: 589419226284879517}
