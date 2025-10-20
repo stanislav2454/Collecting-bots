@@ -7,7 +7,7 @@ public class SimpleCameraController : MonoBehaviour
     private const string MouseAxisY = "Mouse Y";
     private const string HorizontalAxis = "Horizontal";
     private const string VerticalAxis = "Vertical";
-    private const int MouseButtonRight = 2;
+    private const int MouseButtonScrollWheel = 2;
 
     [Header("InputKeys")]
     [SerializeField] private KeyCode _cameraViewReset = KeyCode.R;
@@ -45,7 +45,7 @@ public class SimpleCameraController : MonoBehaviour
 
     private void HandleRotation()
     {
-        if (Input.GetMouseButton(MouseButtonRight)) 
+        if (Input.GetMouseButton(MouseButtonScrollWheel)) 
         {
             float mouseX = Input.GetAxis(MouseAxisX) * rotationSpeed * Time.deltaTime;
             float mouseY = Input.GetAxis(MouseAxisY) * rotationSpeed * Time.deltaTime;

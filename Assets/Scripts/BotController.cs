@@ -5,6 +5,7 @@ public class BotController : MonoBehaviour
 {
     [Header("Bot Components")]
     public NavMeshAgent navMeshAgent;
+    public BotInventory botInventory;
 
     [Header("Debug")]
     public bool showMovementGizmos = true;
@@ -13,17 +14,30 @@ public class BotController : MonoBehaviour
     private bool hasTarget = false;
 
     private void Awake()
-    {// Получаем или добавляем необходимые компоненты
-        if (navMeshAgent == null)
-            navMeshAgent = GetComponent<NavMeshAgent>();
-
-        if (navMeshAgent == null)
-            navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
+    {
+        InitializeComponents();
     }
 
     private void Start()
     {
         InitializeBot();
+    }
+
+    private void InitializeComponents()
+    {
+        // NavMeshAgent
+        if (navMeshAgent == null)
+            navMeshAgent = GetComponent<NavMeshAgent>();
+
+        if (navMeshAgent == null)
+            navMeshAgent = gameObject.AddComponent<NavMeshAgent>();
+
+        // Inventory
+        if (botInventory == null)
+            botInventory = GetComponent<BotInventory>();
+
+        if (botInventory == null)
+            botInventory = gameObject.AddComponent<BotInventory>();
     }
 
     private void InitializeBot()
@@ -60,23 +74,37 @@ public class BotController : MonoBehaviour
         if (hasTarget == false || navMeshAgent == null)
             return false;
 
-        return !navMeshAgent.pathPending &&
+        return navMeshAgent.pathPending == false &&
                navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance;
+    }
+
+    public bool TryCollectItem(Item item)
+    {    // Новый метод для сбора предмета
+        if (item == null || !item.CanBeCollected)
+            return false;
+
+        return botInventory.TryAddItem(item);
     }
 
     // Для отладки в редакторе
     private void OnDrawGizmos()
     {
-        if (showMovementGizmos == false) 
+        const float Radius = 0.5f;
+
+        if (showMovementGizmos == false)
             return;
 
         // Показываем целеую позицию
         if (hasTarget)
         {
             Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(targetPosition, 0.3f);
+            Gizmos.DrawWireSphere(targetPosition, Radius);
             Gizmos.DrawLine(transform.position, targetPosition);
         }
+
+        // Показываем инвентарь
+        Gizmos.color = botInventory.IsFull ? Color.red : Color.green;
+        Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.5f);
 
         // Показываем текущий путь
         if (navMeshAgent != null && navMeshAgent.hasPath)

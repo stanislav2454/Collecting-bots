@@ -2,13 +2,16 @@
 
 public class TestInputHandler : MonoBehaviour
 {
+    private const int MouseButtonRight = 1;
+    private const int MouseButtonLeft = 0;
+
     [Header("InputKeys")]
     [SerializeField] private KeyCode _botSpawn = KeyCode.B;
     [SerializeField] private KeyCode _botDeselection = KeyCode.Escape;
 
     [Header("Testing")]
     public LayerMask groundLayer = 1;
-    public LayerMask botLayer = 1 << 6; // Новый слой для ботов
+    public LayerMask botLayer = 1 << 6;
 
     [Header("Selection Visual")]
     public Material selectedMaterial;
@@ -28,7 +31,7 @@ public class TestInputHandler : MonoBehaviour
 
     private void HandleBotSelection()
     {
-        if (Input.GetMouseButtonDown(0)) // Левая кнопка мыши
+        if (Input.GetMouseButtonDown(MouseButtonLeft)) // Левая кнопка мыши
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -54,7 +57,7 @@ public class TestInputHandler : MonoBehaviour
 
     private void HandleBotMovement()
     {
-        if (Input.GetMouseButtonDown(1) && selectedBot != null) // Правая кнопка мыши
+        if (Input.GetMouseButtonDown(MouseButtonRight) && selectedBot != null) // Правая кнопка мыши
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -70,17 +73,13 @@ public class TestInputHandler : MonoBehaviour
     private void HandleBotSpawning()
     {
         if (Input.GetKeyDown(_botSpawn))
-        //if (Input.GetKeyDown(KeyCode.B))
         {
             BotManager botManager = FindObjectOfType<BotManager>();// todo
             if (botManager != null)
             {
                 GameObject newBot = botManager.SpawnBot();
                 if (newBot != null)
-                {
-                    // Добавляем коллайдер новому боту
                     AddColliderToBot(newBot);
-                }
             }
         }
     }
