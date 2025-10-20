@@ -16,6 +16,6 @@ MonoBehaviour:
   itemName: Stone
   itemType: 0
   value: 2
-  respawnTime: 5
+  respawnTime: 9
   visualPrefab: {fileID: 0}
   itemColor: {r: 0.35714486, g: 0.37723184, b: 0.3886792, a: 1}

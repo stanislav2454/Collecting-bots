@@ -6,14 +6,14 @@ public class BotSearchState : BotBaseState
 
     public override void Enter()
     {
-        Debug.Log($"{botController.gameObject.name} started searching for items");
+       // Debug.Log($"{BotController.gameObject.name} started searching for items");
         SearchForItem();
     }
 
     public override void Update()
     {
         // Если инвентарь полный, идем сдавать предметы
-        if (botController.botInventory.IsFull)
+        if (BotController.BotInventory.IsFull)
         {
             ChangeState(BotState.MoveToDeposit);
             return;
@@ -28,13 +28,11 @@ public class BotSearchState : BotBaseState
 
     private void SearchForItem()
     {
-        Item nearestItem = ItemManager.Instance.GetNearestItem(botController.transform.position);
+        Item nearestItem = ItemManager.Instance.GetNearestItem(BotController.transform.position);
 
-        if (nearestItem != null)
-            // Нашли предмет - переходим к движению к нему
-            stateMachine.ChangeState(BotState.MoveToItem);
-        else
-            // Не нашли предмет - ждем немного и снова ищем
+        if (nearestItem != null) // Нашли предмет - переходим к движению к нему
+            StateMachine.ChangeState(BotState.MoveToItem);
+        else // Не нашли предмет - ждем немного и снова ищем
             ChangeState(BotState.Wait);
     }
 }

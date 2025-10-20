@@ -13,7 +13,7 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+           // DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -25,7 +25,7 @@ public class GameManager : MonoBehaviour
 
     private void InitializeGame()
     {
-        Debug.Log("Game Manager Initialized");
+       // Debug.Log("Game Manager Initialized");
 
         if (gameSettings == null)
             Debug.LogWarning("GameSettings not assigned in GameManager!");

@@ -8,6 +8,7 @@ public class BotInventory : MonoBehaviour
 
     private List<IItem> collectedItems = new List<IItem>();
 
+    public int MaxCapacity => maxCapacity;
     public int CurrentCount => collectedItems.Count;
     public bool IsFull => CurrentCount >= maxCapacity;
     public bool IsEmpty => CurrentCount == 0;
@@ -20,7 +21,7 @@ public class BotInventory : MonoBehaviour
         collectedItems.Add(item);
         item.OnCollected();
 
-        Debug.Log($"Item added to inventory. Current count: {CurrentCount}/{maxCapacity}");
+        //  Debug.Log($"Item added to inventory. Current count: {CurrentCount}/{maxCapacity}");
         return true;
     }
 

@@ -1,12 +1,12 @@
 public abstract class BotBaseState
 {
-    protected BotStateMachine stateMachine;
-    protected BotController botController;
+    protected BotStateMachine StateMachine;
+    protected BotController BotController;
 
     public BotBaseState(BotStateMachine stateMachine)
     {
-        this.stateMachine = stateMachine;
-        this.botController = stateMachine.BotController;
+        this.StateMachine = stateMachine;
+        this.BotController = stateMachine.BotController;
     }
 
     public abstract void Enter();
@@ -16,7 +16,7 @@ public abstract class BotBaseState
 
     protected void ChangeState(BotState newState)
     {
-        stateMachine.ChangeState(newState);
+        StateMachine.ChangeState(newState);
     }
 }
 public enum BotState

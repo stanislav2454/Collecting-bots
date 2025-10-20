@@ -36,7 +36,7 @@ public class BotStateMachine
         CurrentStateType = newState;
         currentState.Enter();
 
-        Debug.Log($"{BotController.gameObject.name} changed state to: {newState}");
+       // Debug.Log($"{BotController.gameObject.name} changed state to: {newState}");
     }
 
     public void Update()=>

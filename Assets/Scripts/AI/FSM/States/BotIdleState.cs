@@ -12,8 +12,8 @@ public class BotIdleState : BotBaseState
         idleTime = Random.Range(1f, 3f); // Случайное время ожидания
         currentIdleTime = 0f;
 
-        botController.StopMovement();
-        Debug.Log($"{botController.gameObject.name} is idling for {idleTime} seconds");
+        BotController.StopMovement();
+       // Debug.Log($"{BotController.gameObject.name} is idling for {idleTime} seconds");
     }
 
     public override void Update()

@@ -44,8 +44,7 @@ public class BotManager : MonoBehaviour
             collider.center = new Vector3(0, 1f, 0);
         }
 
-        // Устанавливаем слой бота
-        bot.layer = 6; // Bot layer
+        bot.layer = 6; // Bot layer// Устанавливаем слой бота
 
         Debug.Log($"Spawned bot: {bot.name} at position {spawnPosition}");
         return bot;
@@ -56,16 +55,14 @@ public class BotManager : MonoBehaviour
         Vector3 randomPoint = new Vector3(
             Random.Range(-spawnArea.x, spawnArea.x),
             0,
-            Random.Range(-spawnArea.z, spawnArea.z)        );
+            Random.Range(-spawnArea.z, spawnArea.z));
 
-        // Используем NavMesh чтобы найти валидную позицию
-        if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 10f, NavMesh.AllAreas))        
-            return hit.position;        
+        if (NavMesh.SamplePosition(randomPoint, out NavMeshHit hit, 10f, NavMesh.AllAreas))
+            return hit.position;
 
         return Vector3.zero;
     }
 
-    // Для отладки в редакторе
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.green;

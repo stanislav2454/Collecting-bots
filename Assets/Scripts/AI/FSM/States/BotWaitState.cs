@@ -12,8 +12,8 @@ public class BotWaitState : BotBaseState
         waitTime = Random.Range(0.5f, 1.5f);
         currentWaitTime = 0f;
 
-        botController.StopMovement();
-        Debug.Log($"{botController.gameObject.name} waiting for {waitTime} seconds");
+        BotController.StopMovement();
+        Debug.Log($"{BotController.gameObject.name} waiting for {waitTime} seconds");
     }
 
     public override void Update()

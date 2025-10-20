@@ -17,8 +17,8 @@ public class BotMoveToDepositState : BotBaseState
             return;
         }
 
-        Debug.Log($"{botController.gameObject.name} moving to deposit zone");
-        botController.MoveToPosition(depositZone.transform.position);
+      //  Debug.Log($"{BotController.gameObject.name} moving to deposit zone");
+        BotController.MoveToPosition(depositZone.transform.position);
     }
 
     public override void Update()
@@ -29,7 +29,7 @@ public class BotMoveToDepositState : BotBaseState
             return;
         }
 
-        if (botController.HasReachedDestination())
+        if (BotController.HasReachedDestination())
         {
             ChangeState(BotState.Deposit);
         }

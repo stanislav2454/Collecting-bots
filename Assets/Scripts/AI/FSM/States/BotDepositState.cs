@@ -3,14 +3,14 @@
 public class BotDepositState : BotBaseState
 {
     private float depositTimer = 0f;
-    private const float depositDuration = 1f; // Время "сдачи"
+    private const float depositDuration = 1f; // Время "разгрузки"
 
     public BotDepositState(BotStateMachine stateMachine) : base(stateMachine) { }
 
     public override void Enter()
     {
         depositTimer = 0f;
-        Debug.Log($"{botController.gameObject.name} depositing items");
+        //Debug.Log($"{BotController.gameObject.name} depositing items");
     }
 
     public override void Update()
@@ -20,13 +20,11 @@ public class BotDepositState : BotBaseState
         // Имитируем процесс сдачи предметов
         if (depositTimer >= depositDuration)
         {
-            // Очищаем инвентарь
-            int itemsCount = botController.botInventory.GetItemCount();
-            botController.botInventory.ClearInventory();
+            int itemsCount = BotController.BotInventory.GetItemCount();
+            BotController.BotInventory.ClearInventory();
 
-            Debug.Log($"{botController.gameObject.name} deposited {itemsCount} items");
+            //Debug.Log($"{BotController.gameObject.name} deposited {itemsCount} items");
 
-            // Возвращаемся к поиску предметов
             ChangeState(BotState.Search);
         }
     }

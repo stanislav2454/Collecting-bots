@@ -16,6 +16,6 @@ MonoBehaviour:
   itemName: Gem
   itemType: 1
   value: 10
-  respawnTime: 15
+  respawnTime: 30
   visualPrefab: {fileID: 0}
   itemColor: {r: 0, g: 0.91103655, b: 0.9245283, a: 1}

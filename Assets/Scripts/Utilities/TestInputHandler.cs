@@ -10,16 +10,16 @@ public class TestInputHandler : MonoBehaviour
     [SerializeField] private KeyCode _botDeselection = KeyCode.Escape;
 
     [Header("Testing")]
-    public LayerMask groundLayer = 1;
-    public LayerMask botLayer = 1 << 6;
+    public LayerMask groundLayer = 1;// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    public LayerMask botLayer = 1 << 6;// модификаторДоступа+именаСчертойИлиБольшойБуквы
 
     [Header("Selection Visual")]
-    public Material selectedMaterial;
-    public Material defaultMaterial;
+    public Material selectedMaterial;// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    public Material defaultMaterial;// модификаторДоступа+именаСчертойИлиБольшойБуквы
 
-    private BotController selectedBot;
-    private Renderer selectedBotRenderer;
-    private Material originalBotMaterial;
+    private BotController selectedBot;// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    private Renderer selectedBotRenderer;// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    private Material originalBotMaterial;// модификаторДоступа+именаСчертойИлиБольшойБуквы
 
     private void Update()
     {
@@ -65,7 +65,7 @@ public class TestInputHandler : MonoBehaviour
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundLayer))
             {
                 selectedBot.MoveToPosition(hit.point);
-                Debug.Log($"Moving {selectedBot.gameObject.name} to: {hit.point}");
+              //  Debug.Log($"Moving {selectedBot.gameObject.name} to: {hit.point}");
             }
         }
     }
@@ -104,7 +104,7 @@ public class TestInputHandler : MonoBehaviour
             selectedBotRenderer.material = selectedMaterial;
         }
 
-        Debug.Log($"Selected bot: {bot.gameObject.name}");
+      //  Debug.Log($"Selected bot: {bot.gameObject.name}");
     }
 
     private void DeselectBot()
@@ -118,7 +118,7 @@ public class TestInputHandler : MonoBehaviour
         selectedBotRenderer = null;
         originalBotMaterial = null;
 
-        Debug.Log("Bot deselected");
+        // Debug.Log("Bot deselected");
     }
 
     // Метод для добавления коллайдера боту
@@ -138,6 +138,8 @@ public class TestInputHandler : MonoBehaviour
 
     private void OnGUI()
     {
+        Color originalColor = GUI.color;
+        GUI.color = Color.red;
         GUILayout.BeginArea(new Rect(10, 10, 300, 200));
 
         GUILayout.Label("=== BOT COLLECTOR TEST ===");
@@ -151,5 +153,7 @@ public class TestInputHandler : MonoBehaviour
             GUILayout.Label($"Selected: {selectedBot.gameObject.name}");
 
         GUILayout.EndArea();
+
+        GUI.color = originalColor;
     }
 }

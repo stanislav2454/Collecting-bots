@@ -6,16 +6,16 @@ public class ItemManager : MonoBehaviour
     public static ItemManager Instance { get; private set; }
 
     [Header("Item Settings")]
-    public GameObject itemPrefab;
-    public List<ItemData> availableItems;
+    public GameObject itemPrefab;// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    public List<ItemData> availableItems;// модификаторДоступа+именаСчертойИлиБольшойБуквы
 
     [Header("Spawn Settings")]
-    public int initialItemsCount = 10;
-    public Vector3 spawnArea = new Vector3(10f, 0f, 10f);
-    public LayerMask spawnLayerMask = 1;
+    public int initialItemsCount = 10;// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    public Vector3 spawnArea = new Vector3(10f, 0f, 10f);// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    public LayerMask spawnLayerMask = 1;// модификаторДоступа+именаСчертойИлиБольшойБуквы
 
-    private List<Item> spawnedItems = new List<Item>();
-    private List<Transform> spawnPoints = new List<Transform>();
+    private List<Item> _spawnedItems = new List<Item>();
+    private List<Transform> _spawnPoints = new List<Transform>();
 
     private void Awake()
     {
@@ -35,9 +35,9 @@ public class ItemManager : MonoBehaviour
     { // Ищем все точки спавна на сцене
         ItemSpawnPoint[] points = FindObjectsOfType<ItemSpawnPoint>();
         foreach (var point in points)
-            spawnPoints.Add(point.transform);
+            _spawnPoints.Add(point.transform);
 
-        Debug.Log($"Found {spawnPoints.Count} spawn points");
+        Debug.Log($"Found {_spawnPoints.Count} spawn points");
     }
 
     private void SpawnInitialItems()
@@ -62,24 +62,71 @@ public class ItemManager : MonoBehaviour
         Item item = itemObj.GetComponent<Item>();
 
         if (item != null)
-        { // Выбираем случайные данные предмета
-            ItemData randomData = availableItems[Random.Range(0, availableItems.Count)];
-            item.itemData = randomData;
+        { // НОВАЯ ЛОГИКА: Выбираем предмет с учетом точки спавна
+            ItemData itemData = GetItemDataForSpawn(spawnPosition);
+            if (itemData != null)
+            {
+                item.ItemData = itemData;
+                itemObj.name = $"Item_{itemData.itemName}_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
+                _spawnedItems.Add(item);
 
-            itemObj.name = $"Item_{randomData.itemName}_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
-            spawnedItems.Add(item);
-
-            Debug.Log($"Spawned item: {itemObj.name} at {spawnPosition}");
+                Debug.Log($"Spawned item: {itemObj.name} at {spawnPosition}");
+            }
+            else
+            {
+                Destroy(itemObj);
+                return null;
+            }
         }
 
         return item;
     }
 
+    private ItemData GetItemDataForSpawn(Vector3 spawnPosition)
+    {
+        // Проверяем есть ли точка спавна в этой позиции
+        ItemSpawnPoint spawnPoint = FindSpawnPointAtPosition(spawnPosition);
+
+        if (spawnPoint != null)
+        {
+            // Если точка спавна требует конкретный ItemData
+            ItemData preferredItem = spawnPoint.GetPreferredItemData();
+            if (preferredItem != null)
+                return preferredItem;
+
+            // Ищем предмет соответствующий требованиям точки спавна
+            List<ItemData> matchingItems = new List<ItemData>();
+            foreach (var itemData in availableItems)
+                if (spawnPoint.CanSpawnItem(itemData))
+                    //return itemData;
+                    matchingItems.Add(itemData);
+
+            if (matchingItems.Count > 0)
+                return matchingItems[Random.Range(0, matchingItems.Count)];
+
+            Debug.LogWarning($"No matching items found for spawn point at {spawnPosition}");
+        }
+
+        // Старая логика - случайный предмет
+        return availableItems[Random.Range(0, availableItems.Count)];
+    }
+
+    private ItemSpawnPoint FindSpawnPointAtPosition(Vector3 position)
+    {
+        foreach (var spawnPointTransform in _spawnPoints)
+        {
+            ItemSpawnPoint spawnPoint = spawnPointTransform.GetComponent<ItemSpawnPoint>();
+            if (spawnPoint != null && Vector3.Distance(spawnPoint.Position, position) < 0.1f)
+                return spawnPoint;
+        }
+        return null;
+    }
+
     private Vector3 GetSpawnPosition()
     { // Пытаемся использовать точки спавна
-        if (spawnPoints.Count > 0)
+        if (_spawnPoints.Count > 0)
         {
-            Transform randomSpawnPoint = spawnPoints[Random.Range(0, spawnPoints.Count)];
+            Transform randomSpawnPoint = _spawnPoints[Random.Range(0, _spawnPoints.Count)];
             return randomSpawnPoint.position;
         }
 
@@ -99,7 +146,7 @@ public class ItemManager : MonoBehaviour
     public List<Item> GetAvailableItems()
     {
         List<Item> available = new List<Item>();
-        foreach (var item in spawnedItems)
+        foreach (var item in _spawnedItems)
         {
             if (item != null && item.CanBeCollected)
                 available.Add(item);
@@ -114,7 +161,7 @@ public class ItemManager : MonoBehaviour
         float nearestDistance = float.MaxValue;
 
         foreach (var item in availableItems)
-        {
+        {// remake Vector3.Distance !
             float distance = Vector3.Distance(position, item.transform.position);
             if (distance < nearestDistance)
             {

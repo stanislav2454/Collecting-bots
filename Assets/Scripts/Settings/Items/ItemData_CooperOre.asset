@@ -16,6 +16,6 @@ MonoBehaviour:
   itemName: CooperOre
   itemType: 0
   value: 1
-  respawnTime: 3
+  respawnTime: 16
   visualPrefab: {fileID: 0}
   itemColor: {r: 0.8113208, g: 0.4184089, b: 0, a: 1}

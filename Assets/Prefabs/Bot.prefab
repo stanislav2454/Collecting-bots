@@ -13,8 +13,9 @@ GameObject:
   - component: {fileID: 6579848006767706690}
   - component: {fileID: 5078654663406317450}
   - component: {fileID: 357538259168064287}
-  - component: {fileID: 6547183769993788536}
   - component: {fileID: 8039361809418053208}
+  - component: {fileID: 6547183769993788536}
+  - component: {fileID: 110187738637228671}
   m_Layer: 6
   m_Name: Bot
   m_TagString: Untagged
@@ -120,11 +121,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed2911faae94b124cb47732635b11d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  navMeshAgent: {fileID: 6547183769993788536}
-  botInventory: {fileID: 8039361809418053208}
-  enableAI: 1
-  showMovementGizmos: 1
-  showStateDebug: 1
+  _navMeshAgent: {fileID: 0}
+  _botInventory: {fileID: 0}
+  _enableAI: 1
+  _showMovementGizmos: 1
+  _showStateDebug: 1
+--- !u!114 &8039361809418053208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861847553803959124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fe6497109eb74f4bb44869dea12a8b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxCapacity: 5
 --- !u!195 &6547183769993788536
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -146,8 +160,8 @@ NavMeshAgent:
   m_Height: 1
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 2
---- !u!114 &8039361809418053208
+  m_ObstacleAvoidanceType: 1
+--- !u!114 &110187738637228671
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -156,7 +170,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 861847553803959124}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4fe6497109eb74f4bb44869dea12a8b1, type: 3}
+  m_Script: {fileID: 11500000, guid: 33a65d82a2d2e314aa9d978a842a87fd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxCapacity: 5
+  _iconSize: 0.4
+  _fontSize: 191

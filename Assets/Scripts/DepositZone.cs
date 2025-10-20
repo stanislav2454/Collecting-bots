@@ -3,8 +3,8 @@
 public class DepositZone : MonoBehaviour
 {
     [Header("Deposit Zone Settings")]
-    public float depositRadius = 2f;
-    public bool debugVisual = true;
+    [SerializeField] private float depositRadius = 2f;
+    [SerializeField] private bool debugVisual = true;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -14,9 +14,8 @@ public class DepositZone : MonoBehaviour
             Debug.Log($"Bot {bot.gameObject.name} entered deposit zone");
         }
     }
-
-    // Для отладки
-    private void OnDrawGizmos()
+    
+    private void OnDrawGizmos()// Для отладки
     {
         if (debugVisual == false)
             return;

@@ -18,8 +18,8 @@ public class BotMoveToItemState : BotBaseState
             return;
         }
 
-        Debug.Log($"{botController.gameObject.name} moving to item: {targetItem.ItemName}");
-        botController.MoveToPosition(targetItem.transform.position);
+     //   Debug.Log($"{BotController.gameObject.name} moving to item: {targetItem.ItemName}");
+        BotController.MoveToPosition(targetItem.transform.position);
     }
 
     public override void Update()
@@ -39,7 +39,7 @@ public class BotMoveToItemState : BotBaseState
         }
 
         // Проверяем достигли ли мы предмета
-        if (botController.HasReachedDestination())
+        if (BotController.HasReachedDestination())
         {
             ChangeState(BotState.Collect);
         }
@@ -51,12 +51,12 @@ public class BotMoveToItemState : BotBaseState
 
     private void FindNearestItem()
     {
-        Item newTarget = ItemManager.Instance.GetNearestItem(botController.transform.position);
+        Item newTarget = ItemManager.Instance.GetNearestItem(BotController.transform.position);
 
         if (newTarget != null && newTarget != targetItem)
         {
             targetItem = newTarget;
-            botController.MoveToPosition(targetItem.transform.position);
+            BotController.MoveToPosition(targetItem.transform.position);
         }
     }
 }
