@@ -139,6 +139,8 @@ public class Item : MonoBehaviour, IItem
         if (Application.isPlaying == false)
             return;
 
+        Color originalColor = GUI.color;
+
         if (CanBeCollected)
         {
             Gizmos.color = Color.green;
@@ -152,8 +154,12 @@ public class Item : MonoBehaviour, IItem
 
         // Показываем информацию о предмете
 #if UNITY_EDITOR
+        GUI.color = new Color(1f, 0.5f, 0f);
+
         string info = $"{ItemName}\nValue: {GetValue()}\nType: {GetItemType()}";
         UnityEditor.Handles.Label(transform.position + Vector3.up * 1.5f, info);
+
+        GUI.color = originalColor;
 #endif
     }
 }

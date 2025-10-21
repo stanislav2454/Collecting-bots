@@ -13,6 +13,10 @@ public class ItemManager : MonoBehaviour
     public int initialItemsCount = 10;// модификаторДоступа+именаСчертойИлиБольшойБуквы
     public Vector3 spawnArea = new Vector3(10f, 0f, 10f);// модификаторДоступа+именаСчертойИлиБольшойБуквы
     public LayerMask spawnLayerMask = 1;// модификаторДоступа+именаСчертойИлиБольшойБуквы
+    //.layer = LayerMask.NameToLayer("Items");
+    [Header("Respawn Overrides")]
+    [SerializeField] private bool _overrideRespawnTimes = false;
+    [SerializeField] private float _globalRespawnTime = 10f;
 
     private List<Item> _spawnedItems = new List<Item>();
     private List<Transform> _spawnPoints = new List<Transform>();
@@ -29,21 +33,6 @@ public class ItemManager : MonoBehaviour
     {
         FindSpawnPoints();
         SpawnInitialItems();
-    }
-
-    private void FindSpawnPoints()
-    { // Ищем все точки спавна на сцене
-        ItemSpawnPoint[] points = FindObjectsOfType<ItemSpawnPoint>();
-        foreach (var point in points)
-            _spawnPoints.Add(point.transform);
-
-        Debug.Log($"Found {_spawnPoints.Count} spawn points");
-    }
-
-    private void SpawnInitialItems()
-    {
-        for (int i = 0; i < initialItemsCount; i++)
-            SpawnItem();
     }
 
     public Item SpawnItem()
@@ -82,6 +71,59 @@ public class ItemManager : MonoBehaviour
         return item;
     }
 
+    public float GetRespawnTime(ItemData itemData)
+    {
+        if (_overrideRespawnTimes)
+            return _globalRespawnTime;
+        else
+            return itemData.respawnTime;
+    }
+
+    public List<Item> GetAvailableItems()
+    {
+        List<Item> available = new List<Item>();
+
+        foreach (var item in _spawnedItems)
+            if (item != null && item.CanBeCollected)
+                available.Add(item);
+        
+        return available;
+    }
+
+    public Item GetNearestItem(Vector3 position)
+    {
+        List<Item> availableItems = GetAvailableItems();
+        Item nearestItem = null;
+        float nearestDistance = float.MaxValue;
+
+        foreach (var item in availableItems)
+        {// remake Vector3.Distance !
+            float distance = Vector3.Distance(position, item.transform.position);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestItem = item;
+            }
+        }
+
+        return nearestItem;
+    }
+
+    private void FindSpawnPoints()
+    { // Ищем все точки спавна на сцене
+        ItemSpawnPoint[] points = FindObjectsOfType<ItemSpawnPoint>();// todo
+        foreach (var point in points)
+            _spawnPoints.Add(point.transform);
+
+        Debug.Log($"Found {_spawnPoints.Count} spawn points");
+    }
+
+    private void SpawnInitialItems()
+    {
+        for (int i = 0; i < initialItemsCount; i++)
+            SpawnItem();
+    }
+
     private ItemData GetItemDataForSpawn(Vector3 spawnPosition)
     {
         // Проверяем есть ли точка спавна в этой позиции
@@ -96,6 +138,7 @@ public class ItemManager : MonoBehaviour
 
             // Ищем предмет соответствующий требованиям точки спавна
             List<ItemData> matchingItems = new List<ItemData>();
+
             foreach (var itemData in availableItems)
                 if (spawnPoint.CanSpawnItem(itemData))
                     //return itemData;
@@ -117,7 +160,7 @@ public class ItemManager : MonoBehaviour
         {
             ItemSpawnPoint spawnPoint = spawnPointTransform.GetComponent<ItemSpawnPoint>();
             if (spawnPoint != null && Vector3.Distance(spawnPoint.Position, position) < 0.1f)
-                return spawnPoint;
+                return spawnPoint;//todo Vector3.Distance()
         }
         return null;
     }
@@ -141,36 +184,6 @@ public class ItemManager : MonoBehaviour
             return hit.position;
 
         return Vector3.zero;
-    }
-
-    public List<Item> GetAvailableItems()
-    {
-        List<Item> available = new List<Item>();
-        foreach (var item in _spawnedItems)
-        {
-            if (item != null && item.CanBeCollected)
-                available.Add(item);
-        }
-        return available;
-    }
-
-    public Item GetNearestItem(Vector3 position)
-    {
-        List<Item> availableItems = GetAvailableItems();
-        Item nearestItem = null;
-        float nearestDistance = float.MaxValue;
-
-        foreach (var item in availableItems)
-        {// remake Vector3.Distance !
-            float distance = Vector3.Distance(position, item.transform.position);
-            if (distance < nearestDistance)
-            {
-                nearestDistance = distance;
-                nearestItem = item;
-            }
-        }
-
-        return nearestItem;
     }
 
     // Для отладки

@@ -168,9 +168,8 @@ public class SimpleCameraController : MonoBehaviour
     {
         if (Application.isPlaying == false)
             return;
-        // Сохраняем оригинальный цвет
+
         Color originalColor = GUI.color;
-        // Устанавливаем красный цвет для всего последующего GUI
         GUI.color = Color.red;
 
         GUILayout.BeginArea(new Rect(10, 560, 300, 150));

@@ -5,6 +5,7 @@ public class BotVisualIndicator : MonoBehaviour
     [Header("Visual Settings")]
     [SerializeField] private float _iconSize = 0.3f;
     [SerializeField] private int _fontSize = 50;
+    [SerializeField] private bool _showStateText = true;
 
     private GameObject _statusIcon;
     private TextMesh _statusText;
@@ -48,10 +49,14 @@ public class BotVisualIndicator : MonoBehaviour
             if (aiEnabled)
             {
                 iconRenderer.material.color = GetStateColor(state);
-                if (_statusText != null)
+                if (_statusText != null && _showStateText) // Теперь используется
                 {
                     _statusText.text = state.ToString();
                     _statusText.color = Color.white;
+                }
+                else if (_statusText != null)
+                {
+                    _statusText.text = ""; // Скрываем текст если отключено
                 }
             }
             else
@@ -59,7 +64,7 @@ public class BotVisualIndicator : MonoBehaviour
                 iconRenderer.material.color = Color.gray;
                 if (_statusText != null)
                 {
-                    _statusText.text = "DISABLED";
+                    _statusText.text = _showStateText ? "DISABLED" : ""; // Теперь используется
                     _statusText.color = Color.red;
                 }
             }
@@ -87,9 +92,8 @@ public class BotVisualIndicator : MonoBehaviour
         _statusText.alignment = TextAlignment.Center;
         _statusText.fontSize = _fontSize;
         _statusText.characterSize = 0.1f;
-
         // Важно: устанавливаем материал для текста
-        _statusText.color = Color.white;
+        _statusText.color = Color.red;
 
         // Убедимся что есть шрифт
         if (_statusText.font == null)// Используем дефолтный шрифт        

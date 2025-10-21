@@ -1,10 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class BotStateMachine
 {
-    private Dictionary<BotState, BotBaseState> states = new Dictionary<BotState, BotBaseState>();
-    private BotBaseState currentState;
+    private Dictionary<BotState, BotBaseState> _states = new Dictionary<BotState, BotBaseState>();
+    private BotBaseState _currentState;
+    private Item _targetItem; // Храним целевой предмет
 
     public BotState CurrentStateType { get; private set; }
     public BotController BotController { get; private set; }
@@ -17,31 +18,40 @@ public class BotStateMachine
 
     private void InitializeStates()
     {
-        states[BotState.Idle] = new BotIdleState(this);
-        states[BotState.Search] = new BotSearchState(this);
-        states[BotState.MoveToItem] = new BotMoveToItemState(this);
-        states[BotState.Collect] = new BotCollectState(this);
-        states[BotState.MoveToDeposit] = new BotMoveToDepositState(this);
-        states[BotState.Deposit] = new BotDepositState(this);
-        states[BotState.Wait] = new BotWaitState(this);
+        _states[BotState.Idle] = new BotIdleState(this);
+        _states[BotState.Search] = new BotSearchState(this);
+        _states[BotState.MoveToItem] = new BotMoveToItemState(this);
+        _states[BotState.Collect] = new BotCollectState(this);
+        _states[BotState.MoveToDeposit] = new BotMoveToDepositState(this);
+        _states[BotState.Deposit] = new BotDepositState(this);
+        _states[BotState.Wait] = new BotWaitState(this);
 
         ChangeState(BotState.Idle);
     }
 
     public void ChangeState(BotState newState)
     {
-        currentState?.Exit();
-
-        currentState = states[newState];
+        _currentState?.Exit();
+        _currentState = _states[newState];
         CurrentStateType = newState;
-        currentState.Enter();
+        _currentState.Enter();
 
-       // Debug.Log($"{BotController.gameObject.name} changed state to: {newState}");
+        Debug.Log($"{BotController.gameObject.name} changed state to: {newState}");
     }
 
-    public void Update()=>
-        currentState?.Update();
+    public void Update() =>
+        _currentState?.Update();
 
-    public void FixedUpdate()=>
-        currentState?.FixedUpdate();
+    public void FixedUpdate() =>
+        _currentState?.FixedUpdate();
+
+    // Методы для работы с целевым предметом
+    public void SetTargetItem(Item item) =>
+        _targetItem = item;
+
+    public Item GetTargetItem() =>
+        _targetItem;
+
+    public void ClearTargetItem() =>
+        _targetItem = null;
 }

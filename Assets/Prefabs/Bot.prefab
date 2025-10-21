@@ -121,8 +121,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed2911faae94b124cb47732635b11d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _navMeshAgent: {fileID: 0}
-  _botInventory: {fileID: 0}
+  _targetItem: {fileID: 0}
+  _navMeshAgent: {fileID: 6547183769993788536}
+  _botInventory: {fileID: 8039361809418053208}
   _enableAI: 1
   _showMovementGizmos: 1
   _showStateDebug: 1
@@ -153,14 +154,14 @@ NavMeshAgent:
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
-  m_StoppingDistance: 0
+  m_StoppingDistance: 0.2
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1
   m_BaseOffset: 0.5
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 1
+  m_ObstacleAvoidanceType: 2
 --- !u!114 &110187738637228671
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,4 +175,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _iconSize: 0.4
-  _fontSize: 191
+  _fontSize: 33
+  _showStateText: 1

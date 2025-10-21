@@ -5,6 +5,9 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent), typeof(BotInventory))]
 public class BotController : MonoBehaviour
 {
+    [Header("Bot Coordination")]
+    [SerializeField] private Item _targetItem;
+
     [Header("Bot Components")]
     [SerializeField] private NavMeshAgent _navMeshAgent;
     [SerializeField] private BotInventory _botInventory;
@@ -24,6 +27,7 @@ public class BotController : MonoBehaviour
     public bool EnableAI => _enableAI;
     public BotInventory BotInventory => _botInventory;
     public NavMeshAgent NavMeshAgent => _navMeshAgent;
+    public Item TargetItem => _targetItem;
 
     private void Awake()
     {
@@ -91,6 +95,22 @@ public class BotController : MonoBehaviour
             StopMovement();
 
         UpdateVisuals();
+    }
+
+    public void SetTargetItem(Item item) =>
+        _targetItem = item;
+
+    public void ClearTargetItem()
+    {
+        if (_targetItem != null)
+        {
+            // Освобождаем предмет в менеджере
+            BotManager botManager = FindObjectOfType<BotManager>();
+            if (botManager != null)
+                botManager.ReleaseItem(_targetItem);
+
+            _targetItem = null;
+        }
     }
 
     public void UpdateVisuals()

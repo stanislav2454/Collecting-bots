@@ -12,7 +12,7 @@ public class TestInputHandler : MonoBehaviour
     [Header("Testing")]
     public LayerMask groundLayer = 1;// модификаторДоступа+именаСчертойИлиБольшойБуквы
     public LayerMask botLayer = 1 << 6;// модификаторДоступа+именаСчертойИлиБольшойБуквы
-
+    //.layer = LayerMask.NameToLayer("Items");
     [Header("Selection Visual")]
     public Material selectedMaterial;// модификаторДоступа+именаСчертойИлиБольшойБуквы
     public Material defaultMaterial;// модификаторДоступа+именаСчертойИлиБольшойБуквы
@@ -49,9 +49,7 @@ public class TestInputHandler : MonoBehaviour
 
             // Если не попали в бота, проверяем землю для сброса выделения
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundLayer))
-            {
                 DeselectBot();
-            }
         }
     }
 
@@ -65,7 +63,7 @@ public class TestInputHandler : MonoBehaviour
             if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundLayer))
             {
                 selectedBot.MoveToPosition(hit.point);
-              //  Debug.Log($"Moving {selectedBot.gameObject.name} to: {hit.point}");
+                //  Debug.Log($"Moving {selectedBot.gameObject.name} to: {hit.point}");
             }
         }
     }
@@ -104,15 +102,13 @@ public class TestInputHandler : MonoBehaviour
             selectedBotRenderer.material = selectedMaterial;
         }
 
-      //  Debug.Log($"Selected bot: {bot.gameObject.name}");
+        //  Debug.Log($"Selected bot: {bot.gameObject.name}");
     }
 
     private void DeselectBot()
     {
-        if (selectedBot != null && selectedBotRenderer != null && originalBotMaterial != null)
-        {
-            selectedBotRenderer.material = originalBotMaterial;
-        }
+        if (selectedBot != null && selectedBotRenderer != null && originalBotMaterial != null)        
+            selectedBotRenderer.material = originalBotMaterial;        
 
         selectedBot = null;
         selectedBotRenderer = null;
@@ -132,7 +128,8 @@ public class TestInputHandler : MonoBehaviour
             collider.center = new Vector3(0, 1f, 0);
 
             // Устанавливаем слой бота
-            bot.layer = 6; // Bot layer
+            bot.layer = 6; // Bot layer// todo remake
+           //.layer = LayerMask.NameToLayer("Items");
         }
     }
 

@@ -64,11 +64,18 @@ public class ItemSpawnPoint : MonoBehaviour
 
         // Рисуем иконку в зависимости от типа предмета
         string iconName = GetIconName();
-        Gizmos.DrawIcon(transform.position + Vector3.up * 2, iconName, true);
+        Gizmos.DrawIcon(transform.position + Vector3.up * 4, iconName, true, _gizmoColor);
 
 #if UNITY_EDITOR
         string label = GetSpawnPointLabel();
-        UnityEditor.Handles.Label(transform.position + Vector3.up * 1.5f, label);
+
+        Color originalColor = GUI.color;
+        GUI.color = Color.blue;
+
+        // РИСУЕМ текст
+        UnityEditor.Handles.Label(transform.position + Vector3.up * 3f, label);
+
+        GUI.color = originalColor;
 #endif
     }
 }
