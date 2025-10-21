@@ -60,7 +60,21 @@ public class BotDepositState : BotBaseState
 
     private void CompleteDeposit()
     {
-        bool success = _depositZone.ProcessDeposit(BotController.BotInventory);
+        //bool success = _depositZone.ProcessDeposit(BotController.BotInventory);
+        bool success = false;
+
+        // Используем DepositService если доступен
+        if (ServiceLocator.TryGet<IDepositService>(out var depositService))
+        {
+            success = depositService.ProcessDeposit(
+                BotController.BotInventory,
+                BotController.transform.position);
+        }
+        else
+        {
+            // Fallback на прямую работу с DepositZone
+            success = _depositZone.ProcessDeposit(BotController.BotInventory);
+        }
 
         if (success)
         {
@@ -75,6 +89,42 @@ public class BotDepositState : BotBaseState
     }
 
     private void FindDepositZone()
+    {
+        // Используем DepositService если доступен
+        if (ServiceLocator.TryGet<IDepositService>(out var depositService))
+        {
+            _depositZone = depositService.GetNearestDepositZone(BotController.transform.position);
+        }
+        else
+        {
+            // Fallback на старую систему
+            FindDepositZoneFallback();
+        }
+        //DepositZone[] depositZones = Object.FindObjectsOfType<DepositZone>();
+
+        //if (depositZones.Length == 0)
+        //{
+        //    _depositZone = null;
+        //    return;
+        //}
+
+        //DepositZone closestZone = null;
+        //float closestDistance = Mathf.Infinity;
+
+        //foreach (var zone in depositZones)
+        //{
+        //    float distance = Vector3.Distance(BotController.transform.position, zone.transform.position);
+        //    if (distance <= 3f && distance < closestDistance)
+        //    {
+        //        closestDistance = distance;
+        //        closestZone = zone;
+        //    }
+        //}
+
+        //_depositZone = closestZone;
+    }
+
+    private void FindDepositZoneFallback()
     {
         DepositZone[] depositZones = Object.FindObjectsOfType<DepositZone>();
 

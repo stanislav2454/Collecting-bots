@@ -39,17 +39,47 @@ public class BotInputHandler : MonoBehaviour
     private LayerMask _groundLayer;
     private LayerMask _botLayer;
 
+    // Ссылки на сервисы
+    private IBotService _botService;
+    private IItemService _itemService;
+    private IDepositService _depositService;
+
     private void Start()
     {
-        // Правильно инициализируем LayerMask из имен слоев
+        // Инициализируем LayerMask
         _groundLayer = 1 << LayerMask.NameToLayer(_groundLayerName);
         _botLayer = 1 << LayerMask.NameToLayer(_botLayerName);
 
-        // Проверяем, что слои существуют
+        // Проверяем слои
         if (LayerMask.NameToLayer(_groundLayerName) == -1)
             Debug.LogError($"Layer '{_groundLayerName}' not found! Please create this layer in Project Settings.");
         if (LayerMask.NameToLayer(_botLayerName) == -1)
             Debug.LogError($"Layer '{_botLayerName}' not found! Please create this layer in Project Settings.");
+
+        // Получаем сервисы
+        InitializeServices();
+
+        Debug.Log("BotInputHandler initialized with services");
+    }
+
+    private void InitializeServices()
+    {
+        // Пытаемся получить сервисы безопасно
+        if (ServiceLocator.TryGet<IBotService>(out _botService))
+        {
+            Debug.Log("BotService connected successfully");
+
+            // Подписываемся на события BotService
+            _botService.OnBotSelected += OnBotSelected;
+            _botService.OnBotDeselected += OnBotDeselected;
+        }
+        else
+        {
+            Debug.LogWarning("BotService not available - using fallback mode");
+        }
+
+        ServiceLocator.TryGet<IItemService>(out _itemService);
+        ServiceLocator.TryGet<IDepositService>(out _depositService);
     }
 
     private void Update()
@@ -60,7 +90,7 @@ public class BotInputHandler : MonoBehaviour
         HandleBotSpawning();
         HandleBotDeselection();
         HandleAITesting();
-        HandleCameraReset(); // Теперь используется
+        HandleCameraReset();
     }
 
     #region Control Mode
@@ -189,7 +219,7 @@ public class BotInputHandler : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(1) && _selectedBot != null)
         {
-            // В ручном режиме принудительно выключаем AI для выделенного бота
+            // В ручном режиме принудительно выключаем AI у выделенного бота
             if (_manualControlMode)
             {
                 _selectedBot.SetAIEnabled(false);
@@ -218,13 +248,7 @@ public class BotInputHandler : MonoBehaviour
     {
         if (Input.GetKeyDown(_botSpawnKey))
         {
-            BotManager botManager = FindObjectOfType<BotManager>();
-            if (botManager != null)
-            {
-                GameObject newBot = botManager.SpawnBot();
-                if (newBot != null)
-                    AddColliderToBot(newBot);
-            }
+            SpawnBotAtRandomPosition();
         }
     }
 
@@ -232,6 +256,14 @@ public class BotInputHandler : MonoBehaviour
     {
         if (Input.GetKeyDown(_botDeselectionKey))
             DeselectAllBots();
+    }
+
+    private void HandleCameraReset()
+    {
+        if (Input.GetKeyDown(_cameraResetKey))
+        {
+            ResetCamera();
+        }
     }
     #endregion
 
@@ -253,7 +285,37 @@ public class BotInputHandler : MonoBehaviour
 
     private void ToggleAI()
     {
-        // В ручном режиме переключаем AI только у НЕвыделенных ботов
+        // Используем BotService если доступен
+        if (_botService != null)
+        {
+            BotController[] bots = _botService.GetAllBots();
+            bool anyAIEnabled = false;
+
+            foreach (var bot in bots)
+            {
+                if (_manualControlMode && bot == _selectedBot)
+                {
+                    // В ручном режиме выделенный бот управляется вручную
+                    continue;
+                }
+
+                bot.SetAIEnabled(!bot.EnableAI);
+                UpdateBotVisual(bot);
+
+                if (bot.EnableAI) anyAIEnabled = true;
+            }
+
+            Debug.Log($"All bots AI: {(anyAIEnabled ? "ENABLED" : "DISABLED")}");
+        }
+        else
+        {
+            // Fallback на старую систему
+            ToggleAIFallback();
+        }
+    }
+
+    private void ToggleAIFallback()
+    {
         BotController[] bots = FindObjectsOfType<BotController>();
         bool anyAIEnabled = false;
 
@@ -261,7 +323,6 @@ public class BotInputHandler : MonoBehaviour
         {
             if (_manualControlMode && bot == _selectedBot)
             {
-                // В ручном режиме выделенный бот управляется вручную
                 continue;
             }
 
@@ -271,12 +332,12 @@ public class BotInputHandler : MonoBehaviour
             if (bot.EnableAI) anyAIEnabled = true;
         }
 
-        Debug.Log($"All bots AI: {(anyAIEnabled ? "ENABLED" : "DISABLED")}");
+        Debug.Log($"All bots AI (fallback): {(anyAIEnabled ? "ENABLED" : "DISABLED")}");
     }
 
     private void ShowBotStatus()
     {
-        BotController[] bots = FindObjectsOfType<BotController>();
+        BotController[] bots = _botService?.GetAllBots() ?? FindObjectsOfType<BotController>();
         Debug.Log("=== BOT STATUS ===");
 
         foreach (var bot in bots)
@@ -288,19 +349,28 @@ public class BotInputHandler : MonoBehaviour
         DeselectAllBots();
         _originalBotMaterials.Clear();
 
-        BotController[] bots = FindObjectsOfType<BotController>();
-        foreach (var bot in bots)
+        // Используем BotService если доступен
+        if (_botService != null)
         {
-            bot.SetAIEnabled(true);
-            UpdateBotVisual(bot);
-            bot.StopMovement();
+            _botService.ResetAllBots();
         }
-        Debug.Log("All bots reset to default state");
+        else
+        {
+            // Fallback на старую систему
+            BotController[] bots = FindObjectsOfType<BotController>();
+            foreach (var bot in bots)
+            {
+                bot.SetAIEnabled(true);
+                UpdateBotVisual(bot);
+                bot.StopMovement();
+            }
+            Debug.Log("All bots reset to default state (fallback)");
+        }
     }
 
     private void TestFullCycle()
     {
-        BotController[] bots = FindObjectsOfType<BotController>();
+        BotController[] bots = _botService?.GetAllBots() ?? FindObjectsOfType<BotController>();
         Debug.Log($"=== FULL CYCLE TEST ({bots.Length} bots) ===");
 
         int botsWithItems = 0;
@@ -326,23 +396,71 @@ public class BotInputHandler : MonoBehaviour
         Debug.Log($"Bot Renderer: {bot?.GetComponent<Renderer>()}");
         Debug.Log($"Manual Control Mode: {_manualControlMode}");
 
-        DeselectAllBots();
+        // Используем BotService если доступен
+        if (_botService != null)
+        {
+            _botService.SelectBot(bot);
+        }
+        else
+        {
+            // Fallback на прямую работу
+            DeselectAllBots();
+            _selectedBot = bot;
+
+            // В ручном режиме выключаем AI у выделенного бота
+            if (_manualControlMode)
+            {
+                Debug.Log($"Setting AI disabled for manual control");
+                _selectedBot.SetAIEnabled(false);
+            }
+
+            UpdateSelectedBotVisual();
+            Debug.Log($"Selected bot: {bot.gameObject.name} | Control: {(_manualControlMode ? "MANUAL" : "AUTO")}");
+        }
+    }
+
+    private void DeselectAllBots()
+    {
+        // Используем BotService если доступен
+        if (_botService != null)
+        {
+            _botService.DeselectAllBots();
+        }
+        else
+        {
+            // Fallback на прямую работу
+            if (_selectedBot != null)
+            {
+                // При снятии выделения возвращаем стандартное управление
+                if (_manualControlMode)
+                {
+                    _selectedBot.SetAIEnabled(true);
+                }
+
+                ResetBotVisual(_selectedBot);
+                _selectedBot = null;
+            }
+        }
+    }
+
+    // Обработчики событий от BotService
+    private void OnBotSelected(BotController bot)
+    {
         _selectedBot = bot;
 
         // В ручном режиме выключаем AI у выделенного бота
         if (_manualControlMode)
         {
-            Debug.Log($"Setting AI disabled for manual control");
             _selectedBot.SetAIEnabled(false);
         }
 
         UpdateSelectedBotVisual();
-        Debug.Log($"Selected bot: {bot.gameObject.name} | Control: {(_manualControlMode ? "MANUAL" : "AUTO")}");
+        Debug.Log($"Bot selected via service: {bot.gameObject.name}");
     }
 
-    private void DeselectAllBots()
+    private void OnBotDeselected(BotController bot)
     {
-        if (_selectedBot != null)
+        if (_selectedBot == bot)
         {
             // При снятии выделения возвращаем стандартное управление
             if (_manualControlMode)
@@ -353,6 +471,7 @@ public class BotInputHandler : MonoBehaviour
             ResetBotVisual(_selectedBot);
             _selectedBot = null;
         }
+        Debug.Log($"Bot deselected via service: {bot.gameObject.name}");
     }
 
     private void ResetBotVisual(BotController bot)
@@ -362,7 +481,6 @@ public class BotInputHandler : MonoBehaviour
             Renderer botRenderer = bot.GetComponent<Renderer>();
             if (botRenderer != null && _originalBotMaterials.ContainsKey(bot))
             {
-                Debug.Log($"Resetting visual for bot: {bot.gameObject.name}");
                 botRenderer.material = _originalBotMaterials[bot];
                 _originalBotMaterials.Remove(bot);
             }
@@ -400,6 +518,38 @@ public class BotInputHandler : MonoBehaviour
     #endregion
 
     #region Utility Methods
+    private void SpawnBotAtRandomPosition()
+    {
+        Vector3 spawnPosition = GetRandomSpawnPosition();
+
+        // Используем BotService если доступен
+        if (_botService != null)
+        {
+            _botService.SpawnBot(spawnPosition);
+        }
+        else
+        {
+            // Fallback на старую систему
+            BotManager botManager = FindObjectOfType<BotManager>();
+            if (botManager != null)
+            {
+                GameObject newBot = botManager.SpawnBot();
+                if (newBot != null)
+                    AddColliderToBot(newBot);
+            }
+        }
+    }
+
+    private Vector3 GetRandomSpawnPosition()
+    {
+        // Простая реализация случайной позиции
+        return new Vector3(
+            Random.Range(-5f, 5f),
+            0,
+            Random.Range(-5f, 5f)
+        );
+    }
+
     private void AddColliderToBot(GameObject bot)
     {
         if (bot.GetComponent<Collider>() == null)
@@ -412,10 +562,16 @@ public class BotInputHandler : MonoBehaviour
         }
     }
 
+    private void ResetCamera()
+    {
+        Camera.main.transform.position = new Vector3(0, 15, -10);
+        Camera.main.transform.rotation = Quaternion.Euler(45, 0, 0);
+        Debug.Log("Camera reset to default position");
+    }
+
     private string GetBotCycleInfo(BotController bot)
     {
-        string inventoryStatus = bot.BotInventory.IsFull ?
-            "FULL" : $"{bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}";
+        string inventoryStatus = bot.BotInventory.IsFull ? "FULL" : $"{bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}";
         return $"Bot: {bot.gameObject.name} | State: {bot.CurrentState} | Inventory: {inventoryStatus}";
     }
 
@@ -423,28 +579,427 @@ public class BotInputHandler : MonoBehaviour
     {
         string aiStatus = bot.EnableAI ? "ON" : "OFF";
         string controlStatus = (bot == _selectedBot && _manualControlMode) ? "MANUAL" : "AUTO";
-        return $"Bot: {bot.gameObject.name} | AI: {aiStatus} | Control: {controlStatus}" +
-            $" | State: {bot.CurrentState} | Inventory: {bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}";
+        return $"Bot: {bot.gameObject.name} | AI: {aiStatus} | Control: {controlStatus} | State: {bot.CurrentState} | Inventory: {bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}";
     }
     #endregion
 
-    #region Camera Controls
-    private void HandleCameraReset()
+    #region Cleanup
+    private void OnDestroy()
     {
-        if (Input.GetKeyDown(_cameraResetKey))
+        // Отписываемся от событий
+        if (_botService != null)
         {
-            ResetCamera();
+            _botService.OnBotSelected -= OnBotSelected;
+            _botService.OnBotDeselected -= OnBotDeselected;
         }
     }
-
-    private void ResetCamera()
-    {
-        // Сброс камеры в начальную позицию
-        Camera.main.transform.position = new Vector3(0, 15, -10);
-        Camera.main.transform.rotation = Quaternion.Euler(45, 0, 0);
-        Debug.Log("Camera reset to default position");
-    }
     #endregion
+    //private void Start()
+    //{
+    //    // Правильно инициализируем LayerMask из имен слоев
+    //    _groundLayer = 1 << LayerMask.NameToLayer(_groundLayerName);
+    //    _botLayer = 1 << LayerMask.NameToLayer(_botLayerName);
+
+    //    // Проверяем, что слои существуют
+    //    if (LayerMask.NameToLayer(_groundLayerName) == -1)
+    //        Debug.LogError($"Layer '{_groundLayerName}' not found! Please create this layer in Project Settings.");
+    //    if (LayerMask.NameToLayer(_botLayerName) == -1)
+    //        Debug.LogError($"Layer '{_botLayerName}' not found! Please create this layer in Project Settings.");
+    //}
+
+    //private void Update()
+    //{
+    //    HandleControlModeToggle();
+    //    HandleBotSelection();
+    //    HandleBotMovement();
+    //    HandleBotSpawning();
+    //    HandleBotDeselection();
+    //    HandleAITesting();
+    //    HandleCameraReset(); // Теперь используется
+    //}
+
+    //#region Control Mode
+    //private void HandleControlModeToggle()
+    //{
+    //    if (Input.GetKeyDown(_toggleControlModeKey))
+    //    {
+    //        _manualControlMode = !_manualControlMode;
+    //        Debug.Log($"Control mode: {(_manualControlMode ? "MANUAL" : "AUTO")}");
+
+    //        // При переключении режима обновляем визуал выделенного бота
+    //        if (_selectedBot != null)
+    //        {
+    //            UpdateSelectedBotVisual();
+    //        }
+    //    }
+    //}
+
+    //private void UpdateSelectedBotVisual()
+    //{
+    //    Debug.Log($"=== UPDATE VISUAL START ===");
+    //    Debug.Log($"Selected Bot: {_selectedBot?.gameObject.name}");
+    //    Debug.Log($"Selected Bot Material: {_selectedBotMaterial}");
+    //    Debug.Log($"Manual Control Material: {_manualControlMaterial}");
+
+    //    if (_selectedBot == null)
+    //    {
+    //        Debug.LogWarning("No selected bot!");
+    //        return;
+    //    }
+
+    //    Renderer botRenderer = _selectedBot.GetComponent<Renderer>();
+    //    Debug.Log($"Renderer: {botRenderer}");
+
+    //    if (botRenderer != null)
+    //    {
+    //        if (_manualControlMode)
+    //        {
+    //            // РУЧНОЙ РЕЖИМ: используем manual control material
+    //            Debug.Log($"Applying MANUAL CONTROL material");
+    //            if (!_originalBotMaterials.ContainsKey(_selectedBot))
+    //            {
+    //                _originalBotMaterials[_selectedBot] = botRenderer.material;
+    //                Debug.Log($"Saved original material: {botRenderer.material.name}");
+    //            }
+
+    //            if (_manualControlMaterial != null)
+    //            {
+    //                botRenderer.material = _manualControlMaterial;
+    //                Debug.Log($"New material: {botRenderer.material.name}");
+    //            }
+    //            else
+    //            {
+    //                Debug.LogError("Manual Control Material is not assigned!");
+    //            }
+    //        }
+    //        else
+    //        {
+    //            // АВТО РЕЖИМ: используем selected bot material
+    //            Debug.Log($"Applying SELECTED BOT material");
+    //            if (!_originalBotMaterials.ContainsKey(_selectedBot))
+    //            {
+    //                _originalBotMaterials[_selectedBot] = botRenderer.material;
+    //                Debug.Log($"Saved original material: {botRenderer.material.name}");
+    //            }
+
+    //            if (_selectedBotMaterial != null)
+    //            {
+    //                botRenderer.material = _selectedBotMaterial;
+    //                Debug.Log($"New material: {botRenderer.material.name}");
+    //            }
+    //            else
+    //            {
+    //                Debug.LogError("Selected Bot Material is not assigned!");
+    //            }
+    //        }
+    //    }
+    //    else
+    //    {
+    //        Debug.LogError($"Missing Renderer! Renderer: {botRenderer}");
+    //    }
+    //    Debug.Log($"=== UPDATE VISUAL END ===");
+    //}
+    //#endregion
+
+    //#region Basic Bot Controls
+    //private void HandleBotSelection()
+    //{
+    //    if (Input.GetMouseButtonDown(0))
+    //    {
+    //        Debug.Log($"=== MOUSE CLICK START ===");
+    //        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+    //        RaycastHit hit;
+    //        Debug.Log($"Bot Layer: {_botLayer.value} (name: {_botLayerName})");
+
+    //        // Используем правильный LayerMask для ботов
+    //        if (Physics.Raycast(ray, out hit, Mathf.Infinity, _botLayer))
+    //        {
+    //            Debug.Log($"Hit object: {hit.collider.gameObject.name}");
+    //            Debug.Log($"Hit layer: {hit.collider.gameObject.layer} ({LayerMask.LayerToName(hit.collider.gameObject.layer)})");
+
+    //            BotController bot = hit.collider.GetComponent<BotController>();
+    //            Debug.Log($"Bot Controller: {bot}");
+
+    //            if (bot != null)
+    //            {
+    //                SelectBot(bot);
+    //                return;
+    //            }
+    //        }
+    //        else
+    //        {
+    //            Debug.Log($"No bot hit with layer mask: {_botLayer.value}");
+    //        }
+
+    //        if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
+    //        {
+    //            Debug.Log($"Ground hit - deselecting bots");
+    //            DeselectAllBots();
+    //        }
+    //        Debug.Log($"=== MOUSE CLICK END ===");
+    //    }
+    //}
+
+    //private void HandleBotMovement()
+    //{
+    //    if (Input.GetMouseButtonDown(1) && _selectedBot != null)
+    //    {
+    //        // В ручном режиме принудительно выключаем AI для выделенного бота
+    //        if (_manualControlMode)
+    //        {
+    //            _selectedBot.SetAIEnabled(false);
+    //        }
+
+    //        // Двигаем только если AI выключен (вручную или через режим)
+    //        if (!_selectedBot.EnableAI)
+    //        {
+    //            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+    //            RaycastHit hit;
+
+    //            if (Physics.Raycast(ray, out hit, Mathf.Infinity, _groundLayer))
+    //            {
+    //                _selectedBot.MoveToPosition(hit.point);
+    //                Debug.Log($"Manual move: {_selectedBot.gameObject.name} to {hit.point}");
+    //            }
+    //        }
+    //        else
+    //        {
+    //            Debug.Log($"Cannot move - {_selectedBot.gameObject.name} AI is enabled");
+    //        }
+    //    }
+    //}
+
+    //private void HandleBotSpawning()
+    //{
+    //    if (Input.GetKeyDown(_botSpawnKey))
+    //    {
+    //        BotManager botManager = FindObjectOfType<BotManager>();
+    //        if (botManager != null)
+    //        {
+    //            GameObject newBot = botManager.SpawnBot();
+    //            if (newBot != null)
+    //                AddColliderToBot(newBot);
+    //        }
+    //    }
+    //}
+
+    //private void HandleBotDeselection()
+    //{
+    //    if (Input.GetKeyDown(_botDeselectionKey))
+    //        DeselectAllBots();
+    //}
+    //#endregion
+
+    //#region AI Controls
+    //private void HandleAITesting()
+    //{
+    //    if (Input.GetKeyDown(_toggleAIKey))
+    //        ToggleAI();
+
+    //    if (Input.GetKeyDown(_botStatusKey))
+    //        ShowBotStatus();
+
+    //    if (Input.GetKeyDown(_resetAllBotsKey))
+    //        ResetAllBots();
+
+    //    if (Input.GetKeyDown(_cycleTestKey))
+    //        TestFullCycle();
+    //}
+
+    //private void ToggleAI()
+    //{
+    //    // В ручном режиме переключаем AI только у НЕвыделенных ботов
+    //    BotController[] bots = FindObjectsOfType<BotController>();
+    //    bool anyAIEnabled = false;
+
+    //    foreach (var bot in bots)
+    //    {
+    //        if (_manualControlMode && bot == _selectedBot)
+    //        {
+    //            // В ручном режиме выделенный бот управляется вручную
+    //            continue;
+    //        }
+
+    //        bot.SetAIEnabled(!bot.EnableAI);
+    //        UpdateBotVisual(bot);
+
+    //        if (bot.EnableAI) anyAIEnabled = true;
+    //    }
+
+    //    Debug.Log($"All bots AI: {(anyAIEnabled ? "ENABLED" : "DISABLED")}");
+    //}
+
+    //private void ShowBotStatus()
+    //{
+    //    BotController[] bots = FindObjectsOfType<BotController>();
+    //    Debug.Log("=== BOT STATUS ===");
+
+    //    foreach (var bot in bots)
+    //        Debug.Log(GetEnhancedBotInfo(bot));
+    //}
+
+    //private void ResetAllBots()
+    //{
+    //    DeselectAllBots();
+    //    _originalBotMaterials.Clear();
+
+    //    BotController[] bots = FindObjectsOfType<BotController>();
+    //    foreach (var bot in bots)
+    //    {
+    //        bot.SetAIEnabled(true);
+    //        UpdateBotVisual(bot);
+    //        bot.StopMovement();
+    //    }
+    //    Debug.Log("All bots reset to default state");
+    //}
+
+    //private void TestFullCycle()
+    //{
+    //    BotController[] bots = FindObjectsOfType<BotController>();
+    //    Debug.Log($"=== FULL CYCLE TEST ({bots.Length} bots) ===");
+
+    //    int botsWithItems = 0;
+    //    int botsInCycle = 0;
+
+    //    foreach (var bot in bots)
+    //    {
+    //        if (bot.BotInventory.CurrentCount > 0) botsWithItems++;
+    //        if (bot.EnableAI && bot.CurrentState != BotState.Idle) botsInCycle++;
+
+    //        Debug.Log(GetBotCycleInfo(bot));
+    //    }
+
+    //    Debug.Log($"Bots in cycle: {botsInCycle}, Bots with items: {botsWithItems}");
+    //}
+    //#endregion
+
+    //#region Bot Selection Visuals
+    //private void SelectBot(BotController bot)
+    //{
+    //    Debug.Log($"=== SELECT BOT START ===");
+    //    Debug.Log($"Bot: {bot?.gameObject.name}");
+    //    Debug.Log($"Bot Renderer: {bot?.GetComponent<Renderer>()}");
+    //    Debug.Log($"Manual Control Mode: {_manualControlMode}");
+
+    //    DeselectAllBots();
+    //    _selectedBot = bot;
+
+    //    // В ручном режиме выключаем AI у выделенного бота
+    //    if (_manualControlMode)
+    //    {
+    //        Debug.Log($"Setting AI disabled for manual control");
+    //        _selectedBot.SetAIEnabled(false);
+    //    }
+
+    //    UpdateSelectedBotVisual();
+    //    Debug.Log($"Selected bot: {bot.gameObject.name} | Control: {(_manualControlMode ? "MANUAL" : "AUTO")}");
+    //}
+
+    //private void DeselectAllBots()
+    //{
+    //    if (_selectedBot != null)
+    //    {
+    //        // При снятии выделения возвращаем стандартное управление
+    //        if (_manualControlMode)
+    //        {
+    //            _selectedBot.SetAIEnabled(true);
+    //        }
+
+    //        ResetBotVisual(_selectedBot);
+    //        _selectedBot = null;
+    //    }
+    //}
+
+    //private void ResetBotVisual(BotController bot)
+    //{
+    //    if (bot != null)
+    //    {
+    //        Renderer botRenderer = bot.GetComponent<Renderer>();
+    //        if (botRenderer != null && _originalBotMaterials.ContainsKey(bot))
+    //        {
+    //            Debug.Log($"Resetting visual for bot: {bot.gameObject.name}");
+    //            botRenderer.material = _originalBotMaterials[bot];
+    //            _originalBotMaterials.Remove(bot);
+    //        }
+    //        else if (botRenderer != null)
+    //        {
+    //            UpdateBotVisual(bot);
+    //        }
+    //    }
+    //}
+
+    //private void UpdateBotVisual(BotController bot)
+    //{
+    //    if (bot == _selectedBot && _manualControlMode) return;
+
+    //    Renderer botRenderer = bot.GetComponent<Renderer>();
+    //    if (botRenderer != null)
+    //    {
+    //        if (_aiDisabledMaterial != null && _aiEnabledMaterial != null)
+    //        {
+    //            botRenderer.material = bot.EnableAI ? _aiEnabledMaterial : _aiDisabledMaterial;
+    //        }
+    //        else
+    //        {
+    //            botRenderer.material.color = bot.EnableAI ? Color.blue : Color.gray;
+    //        }
+    //    }
+
+    //    BotVisualIndicator indicator = bot.GetComponent<BotVisualIndicator>();
+    //    if (indicator == null)
+    //    {
+    //        indicator = bot.gameObject.AddComponent<BotVisualIndicator>();
+    //    }
+    //    indicator.UpdateAIStatus(bot.EnableAI, bot.CurrentState);
+    //}
+    //#endregion
+
+    //#region Utility Methods
+    //private void AddColliderToBot(GameObject bot)
+    //{
+    //    if (bot.GetComponent<Collider>() == null)
+    //    {
+    //        CapsuleCollider collider = bot.AddComponent<CapsuleCollider>();
+    //        collider.height = 2f;
+    //        collider.radius = 0.5f;
+    //        collider.center = new Vector3(0, 1f, 0);
+    //        bot.layer = LayerMask.NameToLayer(_botLayerName);
+    //    }
+    //}
+
+    //private string GetBotCycleInfo(BotController bot)
+    //{
+    //    string inventoryStatus = bot.BotInventory.IsFull ?
+    //        "FULL" : $"{bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}";
+    //    return $"Bot: {bot.gameObject.name} | State: {bot.CurrentState} | Inventory: {inventoryStatus}";
+    //}
+
+    //private string GetEnhancedBotInfo(BotController bot)
+    //{
+    //    string aiStatus = bot.EnableAI ? "ON" : "OFF";
+    //    string controlStatus = (bot == _selectedBot && _manualControlMode) ? "MANUAL" : "AUTO";
+    //    return $"Bot: {bot.gameObject.name} | AI: {aiStatus} | Control: {controlStatus}" +
+    //        $" | State: {bot.CurrentState} | Inventory: {bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}";
+    //}
+    //#endregion
+
+    //#region Camera Controls
+    //private void HandleCameraReset()
+    //{
+    //    if (Input.GetKeyDown(_cameraResetKey))
+    //    {
+    //        ResetCamera();
+    //    }
+    //}
+
+    //private void ResetCamera()
+    //{
+    //    // Сброс камеры в начальную позицию
+    //    Camera.main.transform.position = new Vector3(0, 15, -10);
+    //    Camera.main.transform.rotation = Quaternion.Euler(45, 0, 0);
+    //    Debug.Log("Camera reset to default position");
+    //}
+    //#endregion
 
     private void OnGUI()
     {

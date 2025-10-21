@@ -3,7 +3,7 @@
 public class BotSearchState : BotBaseState
 {
     private float _searchCooldown = 0f;
-    private const float _searchCooldownTime = 2f;
+    private float _searchCooldownTime = 2f;
     private int _failedSearchAttempts = 0;
     private const int MaxFailedAttempts = 3;
 
@@ -37,11 +37,12 @@ public class BotSearchState : BotBaseState
         // Освобождаем зарезервированный предмет при выходе из поиска
         if (BotController.TargetItem != null)
         {
-            BotManager botManager = Object.FindObjectOfType<BotManager>();
-            if (botManager != null)
-            {
-                botManager.ReleaseItem(BotController.TargetItem);
-            }
+            ReleaseItemReservation(BotController.TargetItem);
+            //BotManager botManager = Object.FindObjectOfType<BotManager>();
+            //if (botManager != null)
+            //{
+            //    botManager.ReleaseItem(BotController.TargetItem);
+            //}
         }
     }
 
@@ -55,38 +56,75 @@ public class BotSearchState : BotBaseState
             return;
         }
 
-        BotManager botManager = Object.FindObjectOfType<BotManager>();
-        if (botManager == null)
+        // Используем ItemService для поиска предмета
+        if (ServiceLocator.TryGet<IItemService>(out var itemService))
         {
-            // Fallback к старой системе если менеджера нет
-            SearchForItemFallback();
-            return;
-        }
+            Item availableItem = itemService.FindBestItemForBot(
+                BotController.transform.position,
+                20f,
+                BotController
+            );
 
-        // Используем менеджер для поиска доступного предмета
-        Item availableItem = botManager.FindAvailableItemForBot(
-            BotController,
-            BotController.transform.position,
-            20f
-        );
-
-        if (availableItem != null)
-        {
-            BotController.SetTargetItem(availableItem);
-            _failedSearchAttempts = 0;
-            Debug.Log($"{BotController.gameObject.name} found available item: {availableItem.ItemName}");
-            ChangeState(BotState.MoveToItem);
+            if (availableItem != null && itemService.TryReserveItem(availableItem, BotController))
+            {
+                BotController.SetTargetItem(availableItem);
+                _failedSearchAttempts = 0;
+                Debug.Log($"{BotController.gameObject.name} found available item: {availableItem.ItemName}");
+                ChangeState(BotState.MoveToItem);
+            }
+            else
+            {
+                HandleSearchFailure();
+            }
         }
         else
         {
-            _failedSearchAttempts++;
-            Debug.Log($"{BotController.gameObject.name} no available items found (attempt {_failedSearchAttempts})");
+            // Fallback на старую систему если сервис не доступен
+            SearchForItemFallback();
+        }
+        //BotManager botManager = Object.FindObjectOfType<BotManager>();
+        //if (botManager == null)
+        //{
+        //    // Fallback к старой системе если менеджера нет
+        //    SearchForItemFallback();
+        //    return;
+        //}
 
-            if (_failedSearchAttempts >= MaxFailedAttempts)
-            {
-                Debug.Log($"{BotController.gameObject.name} too many failed searches, waiting...");
-                ChangeState(BotState.Wait);
-            }
+        //// Используем менеджер для поиска доступного предмета
+        //Item availableItem = botManager.FindAvailableItemForBot(
+        //    BotController,
+        //    BotController.transform.position,
+        //    20f);
+
+        //if (availableItem != null)
+        //{
+        //    BotController.SetTargetItem(availableItem);
+        //    _failedSearchAttempts = 0;
+        //    Debug.Log($"{BotController.gameObject.name} found available item: {availableItem.ItemName}");
+        //    ChangeState(BotState.MoveToItem);
+        //}
+        //else
+        //{
+        //    _failedSearchAttempts++;
+        //    Debug.Log($"{BotController.gameObject.name} no available items found (attempt {_failedSearchAttempts})");
+
+        //    if (_failedSearchAttempts >= MaxFailedAttempts)
+        //    {
+        //        Debug.Log($"{BotController.gameObject.name} too many failed searches, waiting...");
+        //        ChangeState(BotState.Wait);
+        //    }
+        //}
+    }
+
+    private void HandleSearchFailure()
+    {
+        _failedSearchAttempts++;
+        Debug.Log($"{BotController.gameObject.name} no available items found (attempt {_failedSearchAttempts})");
+
+        if (_failedSearchAttempts >= MaxFailedAttempts)
+        {
+            Debug.Log($"{BotController.gameObject.name} too many failed searches, waiting...");
+            ChangeState(BotState.Wait);
         }
     }
 
@@ -121,6 +159,14 @@ public class BotSearchState : BotBaseState
             {
                 ChangeState(BotState.Wait);
             }
+        }
+    }
+
+    private void ReleaseItemReservation(Item item)
+    {
+        if (ServiceLocator.TryGet<IItemService>(out var itemService))
+        {
+            itemService.ReleaseItem(item);
         }
     }
 }

@@ -75,26 +75,66 @@ public class BotMoveToDepositState : BotBaseState
             return;
         }
 
+        // Используем DepositService если доступен
+        if (ServiceLocator.TryGet<IDepositService>(out var depositService))
+        {
+            _depositZone = depositService.GetNearestDepositZone(BotController.transform.position);
+        }
+        else
+        { // Fallback на старую систему
+            FindDepositZoneFallback();
+        }
+
+        if (_depositZone == null)
+        {
+            Debug.LogWarning("No deposit zone found in scene!");
+        }
+        //DepositZone closestZone = null;
+        //float closestDistance = Mathf.Infinity;
+
+        //foreach (var zone in depositZones)
+        //{
+        //    // ПРОВЕРЯЕМ ДОСТУПНОСТЬ ЧЕРЕЗ NAVMESH
+        //    if (IsPositionReachable(zone.transform.position))
+        //    {
+        //        float distance = Vector3.Distance(BotController.transform.position, zone.transform.position);
+        //        if (distance < closestDistance)
+        //        {
+        //            closestDistance = distance;
+        //            closestZone = zone;
+        //        }
+        //    }
+        //}
+
+        //if (closestZone == null)
+        //{
+        //     Debug.LogWarning($"{BotController.gameObject.name} no reachable deposit zone found!");
+        //}
+
+        //_depositZone = closestZone;
+    }
+
+    private void FindDepositZoneFallback()
+    {
+        DepositZone[] depositZones = Object.FindObjectsOfType<DepositZone>();
+
+        if (depositZones.Length == 0)
+        {
+            _depositZone = null;
+            return;
+        }
+
         DepositZone closestZone = null;
         float closestDistance = Mathf.Infinity;
 
         foreach (var zone in depositZones)
         {
-            // ПРОВЕРЯЕМ ДОСТУПНОСТЬ ЧЕРЕЗ NAVMESH
-            if (IsPositionReachable(zone.transform.position))
+            float distance = Vector3.Distance(BotController.transform.position, zone.transform.position);
+            if (distance < closestDistance)
             {
-                float distance = Vector3.Distance(BotController.transform.position, zone.transform.position);
-                if (distance < closestDistance)
-                {
-                    closestDistance = distance;
-                    closestZone = zone;
-                }
+                closestDistance = distance;
+                closestZone = zone;
             }
-        }
-
-        if (closestZone == null)
-        {
-            Debug.LogWarning($"{BotController.gameObject.name} no reachable deposit zone found!");
         }
 
         _depositZone = closestZone;
