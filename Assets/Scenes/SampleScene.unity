@@ -200,15 +200,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea3ac8d33ec0ae34a881322521c6f41b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _manualControlMode: 0
+  _manualControlMode: 1
   _toggleControlModeKey: 9
   _botSpawnKey: 98
   _botDeselectionKey: 27
   _cameraResetKey: 114
   _toggleAIKey: 282
-  _botStatusKey: 283
   _resetAllBotsKey: 284
-  _cycleTestKey: 289
   _groundLayerName: Ground
   _botLayerName: Bot
   _selectedBotMaterial: {fileID: 2100000, guid: c55b85dbc88e0aa46a611ce225fe6dcc, type: 2}
@@ -229,7 +227,6 @@ GameObject:
   m_Component:
   - component: {fileID: 187976280}
   - component: {fileID: 187976282}
-  - component: {fileID: 187976281}
   m_Layer: 0
   m_Name: BotManager
   m_TagString: Untagged
@@ -252,24 +249,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 896728814}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &187976281
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 187976279}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46b3ec40a79d87e45955e3fd65330b4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _botPrefab: {fileID: 861847553803959124, guid: 5d0b0d834525a224c83acf4854c91ec6, type: 3}
-  _initialBotsCount: 3
-  _maxSize: 50
-  _botSpawnContainer: {fileID: 2122070369}
-  _spawnArea: {x: 10, y: 0, z: 10}
-  _autoSpawnInitialBots: 1
 --- !u!114 &187976282
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1091,8 +1070,8 @@ SceneRoots:
   - {fileID: 2038152648}
   - {fileID: 896728814}
   - {fileID: 1034017052}
+  - {fileID: 952887898}
   - {fileID: 1981481165}
   - {fileID: 712729491}
   - {fileID: 933098719}
   - {fileID: 2122070369}
-  - {fileID: 952887898}

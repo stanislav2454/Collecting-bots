@@ -5,8 +5,8 @@ public abstract class BotBaseState
 
     public BotBaseState(BotStateMachine stateMachine)
     {
-        this.StateMachine = stateMachine;
-        this.BotController = stateMachine.BotController;
+        StateMachine = stateMachine;
+        BotController = stateMachine.BotController;
     }
 
     public abstract void Enter();

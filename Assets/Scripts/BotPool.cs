@@ -14,13 +14,13 @@ public class BotPool : MonoBehaviour
     private int _createdBotsCount = 0;
 
     private void Start()
-    {// Авто-инициализация если префаб назначен в инспекторе
+    {
         if (_botPrefab != null)
             InitializePool();
     }
 
     public void Initialize(GameObject botPrefab, int initialSize, int maxSize, Transform container = null)
-    {// Публичный метод для инициализации извне
+    {
         _botPrefab = botPrefab;
         _initialPoolSize = initialSize;
         _maxPoolSize = maxSize;
@@ -33,7 +33,6 @@ public class BotPool : MonoBehaviour
     {
         GameObject bot = null;
 
-        // Берем бота из пула или создаем нового
         if (_availableBots.Count > 0)
         {
             bot = _availableBots.Dequeue();
@@ -48,19 +47,16 @@ public class BotPool : MonoBehaviour
             return null;
         }
 
-        // Активируем и позиционируем бота
         if (bot != null)
         {
             bot.transform.position = position;
             bot.SetActive(true);
             _activeBots.Add(bot);
 
-            // Инициализируем бота
             BotController botController = bot.GetComponent<BotController>();
+
             if (botController != null)
                 botController.SetAIEnabled(true);
-
-            Debug.Log($"Spawned bot from pool: {bot.name} at {position}");
         }
 
         return bot;
@@ -71,26 +67,23 @@ public class BotPool : MonoBehaviour
         if (bot == null)
             return;
 
-        // Деактивируем и возвращаем в пул
         bot.SetActive(false);
         bot.transform.SetParent(_poolContainer);
 
-        // Сбрасываем состояние бота
         BotController botController = bot.GetComponent<BotController>();
+
         if (botController != null)
         {
             botController.StopMovement();
             botController.SetAIEnabled(false);
-            botController.ClearTargetItem(); // Очищаем цель
+            botController.ClearTargetItem();
         }
 
         _activeBots.Remove(bot);
         _availableBots.Enqueue(bot);
-
-        Debug.Log($"Returned bot to pool: {bot.name}");
     }
 
-    public void ReturnAllBots()
+    public void ReturnAllBots()// зачем нужен ? если не используется - удалить !
     {
         for (int i = _activeBots.Count - 1; i >= 0; i--)
             ReturnBot(_activeBots[i]);
@@ -117,7 +110,6 @@ public class BotPool : MonoBehaviour
             return;
         }
 
-        // Создаем контейнер для пула если не назначен
         if (_poolContainer == null)
         {
             GameObject container = new GameObject("BotPool");
@@ -125,20 +117,13 @@ public class BotPool : MonoBehaviour
         }
 
         for (int i = 0; i < _initialPoolSize; i++)
-        {
             CreateNewBot();
-        }
-
-        Debug.Log($"Bot pool initialized with {_availableBots.Count} bots");
     }
 
     private GameObject CreateNewBot()
     {
         if (_createdBotsCount >= _maxPoolSize)
-        {
-            Debug.LogWarning("Max pool size reached!");
             return null;
-        }
 
         GameObject bot = Instantiate(_botPrefab, _poolContainer);
         bot.name = $"Bot_{System.Guid.NewGuid().ToString().Substring(0, 8)}";

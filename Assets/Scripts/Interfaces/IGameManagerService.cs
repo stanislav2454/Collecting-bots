@@ -1,28 +1,22 @@
 ﻿using System;
 
-public interface IGameManagerService
+public interface IGameManagerService// зачем нужен ? если не используется - удалить !
 {
-    // Управление состоянием игры
-    bool IsGameRunning { get; }
-    void StartGame();
-    void PauseGame();
-    void ResumeGame();
-    void ResetGame();
+    public event Action GameStarted;
+    public event Action GamePaused;
+    public event Action GameResumed;
+    public event Action GameReset;
+    public event Action<int> PointsEarned;
 
-    // Настройки
-    GameSettings GetGameSettings();
-    void UpdateGameSettings(GameSettings settings);
-
-    // Статистика игры
-    int GetTotalBotsSpawned();
-    int GetTotalItemsCollected();
-    int GetTotalPointsEarned();
-    float GetGameTime();
-
-    // События
-    event Action OnGameStarted;
-    event Action OnGamePaused;
-    event Action OnGameResumed;
-    event Action OnGameReset;
-    event Action<int> OnPointsEarned; // points
+    public bool IsGameRunning { get; }
+    public void StartGame();
+    public void PauseGame();
+    public void ResumeGame();
+    public void ResetGame();
+    public GameSettings GetGameSettings();
+    public void UpdateGameSettings(GameSettings settings);
+    public int GetTotalBotsSpawned();
+    public int GetTotalItemsCollected();
+    public int GetTotalPointsEarned();
+    public float GetGameTime();
 }

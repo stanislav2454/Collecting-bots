@@ -13,15 +13,23 @@ public class ItemService : MonoBehaviour, IItemService
     private float _lastCacheTime;
     private bool _isInitialized = false;
 
-    // События
-    public event Action<Item> OnItemReserved;
-    public event Action<Item> OnItemReleased;
-    public event Action<Item> OnItemCollected;
-    public event Action<Item> OnItemSpawned;
+    public event Action<Item> ItemReserved;
+    public event Action<Item> ItemReleased;
+    public event Action<Item> ItemCollected;
+    public event Action<Item> ItemSpawned;
 
     private void Start()
     {
         Initialize();
+    }
+
+    private void Update()
+    {
+        if (_isInitialized == false)
+            return;
+
+        if (Time.time - _lastCacheTime >= _cacheUpdateInterval)
+            UpdateItemCache();
     }
 
     private void Initialize()
@@ -29,39 +37,23 @@ public class ItemService : MonoBehaviour, IItemService
         UpdateItemCache();
         ServiceLocator.Register<IItemService>(this);
         _isInitialized = true;
-
-        Debug.Log("ItemService initialized and registered");
-    }
-
-    private void Update()
-    {
-        if (!_isInitialized) return;
-
-        // Обновляем кэш с интервалом
-        if (Time.time - _lastCacheTime >= _cacheUpdateInterval)
-        {
-            UpdateItemCache();
-        }
     }
 
     private void UpdateItemCache()
     {
         _cachedItems = FindObjectsOfType<Item>();
         _lastCacheTime = Time.time;
-
-        Debug.Log($"Item cache updated: {_cachedItems.Length} items total");
     }
 
-    #region IItemService Implementation
-
-    public Item[] GetAllItems() => _cachedItems;
+    public Item[] GetAllItems() =>
+        _cachedItems;
 
     public Item[] GetAvailableItems() =>
         _cachedItems.Where(item =>
             item != null &&
             item.isActiveAndEnabled &&
             item.CanBeCollected &&
-            !_reservedItems.Contains(item)
+            _reservedItems.Contains(item) == false
         ).ToArray();
 
     public Item FindNearestAvailableItem(Vector3 position, float radius)
@@ -72,7 +64,8 @@ public class ItemService : MonoBehaviour, IItemService
 
         foreach (var item in availableItems)
         {
-            float distance = Vector3.Distance(position, item.transform.position);
+            float distance = Vector3.Distance(position, item.transform.position); // Vector3.Distance - ресурсозатратно => переделать
+
             if (distance <= radius && distance < nearestDistance)
             {
                 nearestDistance = distance;
@@ -91,11 +84,13 @@ public class ItemService : MonoBehaviour, IItemService
 
         foreach (var item in availableItems)
         {
-            float distance = Vector3.Distance(position, item.transform.position);
-            if (distance > radius) continue;
+            float distance = Vector3.Distance(position, item.transform.position); // Vector3.Distance - ресурсозатратно => переделать
 
-            // Более сложная система оценки приоритета
+            if (distance > radius)
+                continue;
+
             float score = CalculateItemScore(item, distance, bot);
+
             if (score > bestScore)
             {
                 bestScore = score;
@@ -112,9 +107,8 @@ public class ItemService : MonoBehaviour, IItemService
             return false;
 
         _reservedItems.Add(item);
-        OnItemReserved?.Invoke(item);
+        ItemReserved?.Invoke(item);
 
-        Debug.Log($"Item reserved: {item.ItemName} by {requester.gameObject.name}");
         return true;
     }
 
@@ -123,33 +117,27 @@ public class ItemService : MonoBehaviour, IItemService
         if (item != null && _reservedItems.Contains(item))
         {
             _reservedItems.Remove(item);
-            OnItemReleased?.Invoke(item);
-
-            Debug.Log($"Item released: {item.ItemName}");
+            ItemReleased?.Invoke(item);
         }
     }
 
-    public bool IsItemReserved(Item item) => item != null && _reservedItems.Contains(item);
+    public bool IsItemReserved(Item item) =>
+        item != null && _reservedItems.Contains(item);
 
-    public void ReleaseAllReservations()
-    {
+    public void ReleaseAllReservations() =>
         _reservedItems.Clear();
-        Debug.Log("All item reservations released");
-    }
 
-    public int GetTotalItemsCount() => _cachedItems.Length;
+    public int GetTotalItemsCount() =>
+        _cachedItems.Length;
 
-    public int GetAvailableItemsCount() => GetAvailableItems().Length;
+    public int GetAvailableItemsCount() =>
+        GetAvailableItems().Length;
 
-    public int GetReservedItemsCount() => _reservedItems.Count;
-
-    #endregion
-
-    #region Utility Methods
+    public int GetReservedItemsCount() =>
+        _reservedItems.Count;
 
     private float CalculateItemScore(Item item, float distance, BotController bot)
     {
-        // Базовая оценка на основе расстояния
         float score = 1f / (distance + 0.1f);
 
         // Можно добавить дополнительные факторы:
@@ -160,17 +148,11 @@ public class ItemService : MonoBehaviour, IItemService
         return score;
     }
 
-    #endregion
-
-    #region Cleanup
-
     private void OnDestroy()
     {
-        OnItemReserved = null;
-        OnItemReleased = null;
-        OnItemCollected = null;
-        OnItemSpawned = null;
+        ItemReserved = null;
+        ItemReleased = null;
+        ItemCollected = null;
+        ItemSpawned = null;
     }
-
-    #endregion
 }

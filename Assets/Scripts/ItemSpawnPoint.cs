@@ -5,15 +5,15 @@ public class ItemSpawnPoint : MonoBehaviour
     [Header("Spawn Settings")]
     [SerializeField] private ItemType _spawnItemType = ItemType.Resource;
     [SerializeField] private bool _useSpecificItem = false;
-    [SerializeField] private ItemData _specificItemData; // Ссылка на конкретный ItemData asset
+    [SerializeField] private ItemData _specificItemData;
 
     [Header("Visual Settings")]
     [SerializeField] private bool _debugVisual = true;
     [SerializeField] private Color _gizmoColor = Color.yellow;
 
-    public ItemType SpawnItemType => _spawnItemType;
-    public bool UseSpecificItem => _useSpecificItem;
-    public ItemData SpecificItemData => _specificItemData;
+    public ItemType SpawnItemType => _spawnItemType;// зачем нужен ? если не используется - удалить !
+    public bool UseSpecificItem => _useSpecificItem;// зачем нужен ? если не используется - удалить !
+    public ItemData SpecificItemData => _specificItemData;// зачем нужен ? если не используется - удалить !
     public Vector3 Position => transform.position;
 
     public bool CanSpawnItem(ItemData itemData)
@@ -29,7 +29,7 @@ public class ItemSpawnPoint : MonoBehaviour
         if (_useSpecificItem && _specificItemData != null)
             return _specificItemData;
 
-        return null; // Возвращаем null если нет конкретного предпочтения
+        return null;
     }
 
     private string GetIconName()
@@ -62,7 +62,6 @@ public class ItemSpawnPoint : MonoBehaviour
         Gizmos.color = _gizmoColor;
         Gizmos.DrawWireSphere(transform.position, 0.5f);
 
-        // Рисуем иконку в зависимости от типа предмета
         string iconName = GetIconName();
         Gizmos.DrawIcon(transform.position + Vector3.up * 4, iconName, true, _gizmoColor);
 
@@ -72,7 +71,6 @@ public class ItemSpawnPoint : MonoBehaviour
         Color originalColor = GUI.color;
         GUI.color = Color.blue;
 
-        // РИСУЕМ текст
         UnityEditor.Handles.Label(transform.position + Vector3.up * 3f, label);
 
         GUI.color = originalColor;

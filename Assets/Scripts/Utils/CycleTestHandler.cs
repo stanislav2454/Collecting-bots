@@ -9,15 +9,12 @@ public class CycleTestHandler : MonoBehaviour
     private void Update()
     {
         if (Input.GetKeyDown(_testCycleKey))
-        {
             TestFullCycle();
-        }
     }
 
     private void TestFullCycle()
     {
-        BotController[] bots = FindObjectsOfType<BotController>();
-        Debug.Log($"=== FULL CYCLE TEST ({bots.Length} bots) ===");
+        BotController[] bots = FindObjectsOfType<BotController>();//
 
         int botsWithItems = 0;
         int botsInCycle = 0;
@@ -34,7 +31,6 @@ public class CycleTestHandler : MonoBehaviour
             if (bot.EnableAI && bot.CurrentState != BotState.Idle)
                 botsInCycle++;
 
-            // Подсчет ботов по состояниям (теперь используется)
             if (_logDetailedCycle)
             {
                 switch (bot.CurrentState)
@@ -51,43 +47,14 @@ public class CycleTestHandler : MonoBehaviour
                         collectingBots++;
                         break;
 
-                    case BotState.MoveToItem:
+                    case BotState.MoveToItem://?
+
                     case BotState.MoveToDeposit:
                         movingBots++;
                         break;
                 }
             }
-
-            Debug.Log(GetBotCycleInfo(bot));
         }
-
-        Debug.Log($"Bots in cycle: {botsInCycle}, Bots with items: {botsWithItems}");
-
-        // Детальная статистика (теперь используется)
-        if (_logDetailedCycle)
-        {
-            Debug.Log($"Detailed: {idleBots} idle, {searchingBots} searching, {collectingBots} collecting, {movingBots} moving");
-        }
-
-        //// Статистика по предметам
-        //Item[] allItems = FindObjectsOfType<Item>();//todo
-        //int availableItems = 0;
-        //foreach (var item in allItems)
-        //{
-        //    if (item.CanBeCollected) availableItems++;
-        //}
-
-        //Debug.Log($"Available items: {availableItems}/{allItems.Length}");
-    }
-
-    private string GetBotCycleInfo(BotController bot)
-    {
-        string inventoryStatus = bot.BotInventory.IsFull ?
-            "FULL" : $"{bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}";
-
-        string aiStatus = bot.EnableAI ? "ACTIVE" : "DISABLED";
-
-        return $"Bot: {bot.gameObject.name} | AI: {aiStatus} | State: {bot.CurrentState} | Inventory: {inventoryStatus}";
     }
 
     private void OnGUI()

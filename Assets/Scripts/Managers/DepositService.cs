@@ -6,55 +6,42 @@ public class DepositService : MonoBehaviour, IDepositService
 {
     private DepositZone[] _depositZones = new DepositZone[0];
     private float _lastCacheTime;
-    private const float CACHE_UPDATE_INTERVAL = 2f;
+    private const float CACHE_UPDATE_INTERVAL = 2f;//todo to Pascal case
 
     private int _totalItemsDeposited = 0;
     private int _totalPointsEarned = 0;
 
-    // События
-    public event Action<DepositZone, int, int> OnDepositProcessed;
-    public event Action<DepositZone> OnDepositZoneAdded;
-    public event Action<DepositZone> OnDepositZoneRemoved;
+    public event Action<DepositZone, int, int> DepositProcessed;
+    public event Action<DepositZone> DepositZoneAdded;
+    public event Action<DepositZone> DepositZoneRemoved;
 
     private void Start()
     {
         UpdateDepositZonesCache();
         ServiceLocator.Register<IDepositService>(this);
-
-        Debug.Log("DepositService initialized and registered");
     }
 
     private void Update()
     {
-        // Обновляем кэш зон сдачи с интервалом
         if (Time.time - _lastCacheTime >= CACHE_UPDATE_INTERVAL)
-        {
             UpdateDepositZonesCache();
-        }
     }
-
-    private void UpdateDepositZonesCache()
-    {
-        _depositZones = FindObjectsOfType<DepositZone>();
-        _lastCacheTime = Time.time;
-
-        Debug.Log($"Deposit zones cache updated: {_depositZones.Length} zones");
-    }
-
-    #region IDepositService Implementation
 
     public DepositZone GetNearestDepositZone(Vector3 position)
     {
-        if (_depositZones.Length == 0) return null;
+        if (_depositZones.Length == 0)
+            return null;
 
         DepositZone nearestZone = null;
         float nearestDistance = float.MaxValue;
 
         foreach (var zone in _depositZones)
         {
-            if (zone == null) continue;
+            if (zone == null)
+                continue;
 
-            float distance = Vector3.Distance(position, zone.transform.position);
+            float distance = Vector3.Distance(position, zone.transform.position);// Vector3.Distance - ресурсозатратно => переделать
+
             if (distance < nearestDistance)
             {
                 nearestDistance = distance;
@@ -71,8 +58,7 @@ public class DepositService : MonoBehaviour, IDepositService
     public bool IsPositionNearDepositZone(Vector3 position, float radius = 3f)
     {
         return _depositZones.Any(zone =>
-            zone != null &&
-            Vector3.Distance(position, zone.transform.position) <= radius);
+            zone != null && Vector3.Distance(position, zone.transform.position) <= radius);// Vector3.Distance - ресурсозатратно => переделать
     }
 
     public bool ProcessDeposit(BotInventory inventory, Vector3 depositPosition)
@@ -80,36 +66,26 @@ public class DepositService : MonoBehaviour, IDepositService
         if (inventory == null || inventory.CurrentCount == 0)
             return false;
 
-        // Находим ближайшую зону для обработки депозита
         var nearestZone = GetNearestDepositZone(depositPosition);
-        if (nearestZone == null)
-        {
-            Debug.LogWarning("No deposit zone found for processing deposit");
-            return false;
-        }
 
-        // Обрабатываем депозит через зону
+        if (nearestZone == null)
+            return false;
+
         int itemsToDeposit = inventory.CurrentCount;
-        int pointsEarned = itemsToDeposit * 10; // Базовая стоимость
+        int pointsEarned = itemsToDeposit * 10;
 
         _totalItemsDeposited += itemsToDeposit;
         _totalPointsEarned += pointsEarned;
 
-        // Очищаем инвентарь
         inventory.ClearInventory();
 
-        // Вызываем событие
-        OnDepositProcessed?.Invoke(nearestZone, itemsToDeposit, pointsEarned);
-
-        Debug.Log($"Deposit processed: {itemsToDeposit} items, {pointsEarned} points");
+        DepositProcessed?.Invoke(nearestZone, itemsToDeposit, pointsEarned);
 
         return true;
     }
 
-    public bool CanProcessDeposit(Vector3 position)
-    {
-        return IsPositionNearDepositZone(position, 3f);
-    }
+    public bool CanProcessDeposit(Vector3 position) =>
+         IsPositionNearDepositZone(position, 3f);
 
     public int GetTotalDepositZonesCount() =>
         _depositZones.Length;
@@ -120,21 +96,20 @@ public class DepositService : MonoBehaviour, IDepositService
     public int GetTotalPointsEarned() =>
         _totalPointsEarned;
 
-    public string GetDepositZoneInfo()
+    public string GetDepositZoneInfo() =>
+         $"Deposit Zones: {_depositZones.Length}, Items Deposited: {_totalItemsDeposited}" +
+        $", Points: {_totalPointsEarned}";
+
+    private void UpdateDepositZonesCache()
     {
-        return $"Deposit Zones: {_depositZones.Length}, Items Deposited: {_totalItemsDeposited}, Points: {_totalPointsEarned}";
+        _depositZones = FindObjectsOfType<DepositZone>();
+        _lastCacheTime = Time.time;
     }
-
-    #endregion
-
-    #region Cleanup
 
     private void OnDestroy()
     {
-        OnDepositProcessed = null;
-        OnDepositZoneAdded = null;
-        OnDepositZoneRemoved = null;
+        DepositProcessed = null;
+        DepositZoneAdded = null;
+        DepositZoneRemoved = null;
     }
-
-    #endregion
 }

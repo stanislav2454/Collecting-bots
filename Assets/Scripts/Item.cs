@@ -18,7 +18,7 @@ public class Item : MonoBehaviour, IItem
         get => _itemData;
         set
         {
-            _itemData = value;// ? инкапсуляция ?
+            _itemData = value;// зачем прямой доступ? - нарушение инкапсуляции !
             UpdateItemVisuals();
         }
     }
@@ -29,13 +29,13 @@ public class Item : MonoBehaviour, IItem
     }
 
     private void OnValidate()
-    {// Автоматическое обновление в редакторе при изменении ItemData
+    {
         if (_itemData != null && _itemRenderer != null)
             UpdateItemVisuals();
     }
 
     private void OnDestroy()
-    { // Очистка созданных материалов
+    {
         if (_itemRenderer != null && _itemRenderer.material != null)
             DestroyImmediate(_itemRenderer.material);
     }
@@ -47,51 +47,43 @@ public class Item : MonoBehaviour, IItem
 
         CanBeCollected = false;
 
-        // Визуально скрываем предмет
         if (_itemRenderer != null)
             _itemRenderer.enabled = false;
 
         if (_itemCollider != null)
             _itemCollider.enabled = false;
 
-        Debug.Log($"Item {ItemName} collected");
-
-        // Запускаем респаун через некоторое время
         if (_itemData != null && _itemData.respawnTime > 0)
-            Invoke(nameof(OnRespawn), _itemData.respawnTime);// переделать через корутину!
+            Invoke(nameof(OnRespawn), _itemData.respawnTime);// переделать на корутину!
     }
 
-    public int GetValue() =>// ? why ?
+    public int GetValue() =>// зачем прямой доступ? - нарушение инкапсуляции !
         _itemData?.value ?? 1;
 
-    public ItemType GetItemType() =>// ? why ?
+    public ItemType GetItemType() =>// зачем прямой доступ? - нарушение инкапсуляции !
          _itemData?.itemType ?? ItemType.Resource;
 
     public void OnRespawn()
     {
         CanBeCollected = true;
 
-        // Восстанавливаем визуал
         if (_itemRenderer != null)
             _itemRenderer.enabled = true;
 
         if (_itemCollider != null)
             _itemCollider.enabled = true;
-
-        Debug.Log($"Item {ItemName} respawned");
     }
 
     private void InitializeItem()
     {
         if (_itemRenderer == null)
-            _itemRenderer = GetComponent<Renderer>();// доделать
+            _itemRenderer = GetComponent<Renderer>();// доделать с атрибутом или переделать на Debug.LogError()
 
         if (_itemCollider == null)
-            _itemCollider = GetComponent<Collider>();// доделать
+            _itemCollider = GetComponent<Collider>();// доделать с атрибутом или переделать на Debug.LogError()
 
         UpdateItemVisuals();
 
-        // Устанавливаем цвет предмета из ItemData
         if (_itemData != null && _itemRenderer != null)
         {
             Material material = _itemRenderer.material;
@@ -99,8 +91,6 @@ public class Item : MonoBehaviour, IItem
                 material.color = _itemData.itemColor;
         }
 
-        //// Устанавливаем слой для предметов
-        //gameObject.layer = 7; // Item layer
         gameObject.layer = LayerMask.NameToLayer("Items");
     }
 
@@ -108,32 +98,27 @@ public class Item : MonoBehaviour, IItem
     {
         if (_itemData != null && _itemRenderer != null)
         {
-            // Создаем новый материал чтобы не менять оригинальный asset
             Material material = new Material(_itemRenderer.material);
             material.color = _itemData.itemColor;
             _itemRenderer.material = material;
 
-            // Если есть префаб для визуала - можно его инстанциировать
             if (_itemData.visualPrefab != null)
-                InstantiateVisualPrefab(); // Дополнительная логика для кастомных визуалов
+                InstantiateVisualPrefab();
         }
     }
 
     private void InstantiateVisualPrefab()
     {
-        // Очищаем старые визуальные children
         foreach (Transform child in transform)
             if (child.CompareTag("Visual"))
                 Destroy(child.gameObject);
 
-        // Создаем новый визуал
         GameObject visual = Instantiate(_itemData.visualPrefab, transform);
         visual.tag = "Visual";
         visual.transform.localPosition = Vector3.zero;
         visual.transform.localRotation = Quaternion.identity;
     }
 
-    // Для отладки
     private void OnDrawGizmos()
     {
         if (Application.isPlaying == false)
@@ -152,7 +137,6 @@ public class Item : MonoBehaviour, IItem
             Gizmos.DrawWireSphere(transform.position, 0.3f);
         }
 
-        // Показываем информацию о предмете
 #if UNITY_EDITOR
         GUI.color = new Color(1f, 0.5f, 0f);
 

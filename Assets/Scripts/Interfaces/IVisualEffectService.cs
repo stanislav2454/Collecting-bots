@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public interface IVisualEffectService
+public interface IVisualEffectService// зачем нужен ? если не используется - удалить !
 {
     //// Эффекты для различных действий
     //void PlayCollectionEffect(Vector3 position, string itemName);

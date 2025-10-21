@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class BotInventory : MonoBehaviour
@@ -21,23 +21,15 @@ public class BotInventory : MonoBehaviour
         collectedItems.Add(item);
         item.OnCollected();
 
-        //  Debug.Log($"Item added to inventory. Current count: {CurrentCount}/{maxCapacity}");
         return true;
     }
 
-    public void ClearInventory()
-    {
+    public void ClearInventory() =>
         collectedItems.Clear();
-        Debug.Log("Inventory cleared");
-    }
 
-    public int GetItemCount()
-    {
-        return collectedItems.Count;
-    }
+    public int GetItemCount() =>// зачем нужен ? если не используется - удалить !
+         collectedItems.Count;
 
-    public bool HasItems()
-    {
-        return IsEmpty == false;
-    }
+    public bool HasItems() =>// зачем нужен ? если не используется - удалить !
+         IsEmpty == false;
 }

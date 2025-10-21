@@ -14,7 +14,6 @@ public class AITestHandler : MonoBehaviour
     [SerializeField] private Material _selectedBotMaterial;
 
     private BotController _selectedBot;
-    //private Material _originalBotMaterial;
     private Dictionary<BotController, Material> _originalBotMaterials = new Dictionary<BotController, Material>();
 
     private void Update()
@@ -38,9 +37,10 @@ public class AITestHandler : MonoBehaviour
 
     private void HandleBotSelection()
     {
-        if (Input.GetMouseButtonDown(0))//todo
+        if (Input.GetMouseButtonDown(0))//todo magic number
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 BotController bot = hit.collider.GetComponent<BotController>();
@@ -51,26 +51,20 @@ public class AITestHandler : MonoBehaviour
     }
 
     private void SelectBot(BotController bot)
-    {// Сбрасываем предыдущее выделение
+    {
         DeselectAllBots();
-        //// Сбрасываем предыдущее выделение
-        //if (_selectedBot != null)
-        //    ResetBotVisual(_selectedBot);
 
         _selectedBot = bot;
 
-        // Применяем материал выделения
         Renderer botRenderer = _selectedBot.GetComponent<Renderer>();
+
         if (botRenderer != null && _selectedBotMaterial != null)
-        {            // Сохраняем оригинальный материал в словарь
+        {
             if (_originalBotMaterials.ContainsKey(_selectedBot) == false)
                 _originalBotMaterials[_selectedBot] = botRenderer.material;
 
-            // _originalBotMaterial = botRenderer.material;
             botRenderer.material = _selectedBotMaterial;
         }
-
-        Debug.Log($"Selected bot: {bot.gameObject.name}");
     }
 
     private void DeselectAllBots()
@@ -84,7 +78,7 @@ public class AITestHandler : MonoBehaviour
 
     private void HandleBotDeselection()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))//todo
+        if (Input.GetKeyDown(KeyCode.Escape)) //todo magic string
             DeselectAllBots();
     }
 
@@ -93,15 +87,14 @@ public class AITestHandler : MonoBehaviour
         if (bot != null)
         {
             Renderer botRenderer = bot.GetComponent<Renderer>();
-            //if (botRenderer != null && _originalBotMaterial != null)
-            //    botRenderer.material = _originalBotMaterial;
+
             if (botRenderer != null && _originalBotMaterials.ContainsKey(bot))
-            {// Возвращаем оригинальный материал
+            {
                 botRenderer.material = _originalBotMaterials[bot];
                 _originalBotMaterials.Remove(bot);
             }
             else if (botRenderer != null)
-            { // Fallback: если материала нет в словаре, используем стандартную логику
+            {
                 UpdateBotVisual(bot);
             }
         }
@@ -109,11 +102,12 @@ public class AITestHandler : MonoBehaviour
 
     private void ToggleAI()
     {
-        BotController[] bots = FindObjectsOfType<BotController>();//todo
+        BotController[] bots = FindObjectsOfType<BotController>();//todo //ресурсозатратно и ненадежно => переделать на передачу ссылки напрямую
+
         bool anyAIEnabled = false;
 
         foreach (var bot in bots)
-        { // Пропускаем выделенного бота чтобы не сбрасывать его материал
+        {
             if (bot != _selectedBot)
             {
                 bot.SetAIEnabled(!bot.EnableAI);
@@ -121,50 +115,36 @@ public class AITestHandler : MonoBehaviour
             }
 
             if (bot.EnableAI)
-                //if (bot._enableAI)
                 anyAIEnabled = true;
         }
-        string status = anyAIEnabled ? "ENABLED" : "DISABLED";
-        Debug.Log($"All bots AI: {status}");
     }
 
     private void UpdateBotVisual(BotController bot)
     {
-        // Не обновляем визуал если бот выделен
-        if (bot == _selectedBot) 
+        if (bot == _selectedBot)
             return;
-        
+
         Renderer botRenderer = bot.GetComponent<Renderer>();
 
         if (botRenderer != null)
-        { 
+        {
             if (_aiDisabledMaterial != null && _aiEnabledMaterial != null)
-            {
                 botRenderer.material = bot.EnableAI ? _aiEnabledMaterial : _aiDisabledMaterial;
-                //  Debug.Log($"Changed material for {bot.gameObject.name} to {(bot.EnableAI ? "ENABLED" : "DISABLED")}");
-            }
             else
-            {
                 botRenderer.material.color = bot.EnableAI ? Color.blue : Color.gray;
-                Debug.Log($"Changed color for {bot.gameObject.name} to {(bot.EnableAI ? "BLUE" : "GRAY")}");
-            }
         }
 
-        // Добавляем дополнительную визуализацию - текстовый элемент
         BotVisualIndicator indicator = bot.GetComponent<BotVisualIndicator>();
+
         if (indicator == null)
-        {
             indicator = bot.gameObject.AddComponent<BotVisualIndicator>();
-            Debug.Log($"✅ Added BotVisualIndicator to {bot.gameObject.name}");
-        }
 
         indicator.UpdateAIStatus(bot.EnableAI, bot.CurrentState);
     }
 
     private void ShowBotStatus()
     {
-        BotController[] bots = FindObjectsOfType<BotController>();//todo
-        Debug.Log("=== BOT STATUS ===");
+        BotController[] bots = FindObjectsOfType<BotController>();//todo возможно стоит отказаться от этой функции, зачем она ?
 
         if (bots.Length == 0)
         {
@@ -174,29 +154,27 @@ public class AITestHandler : MonoBehaviour
 
         foreach (var bot in bots)
             Debug.Log(bot.GetBotInfo());
-        //{string aiStatus = bot.EnableAI ? "ACTIVE" : "DISABLED";
-        //    Debug.Log($"Bot: {bot.gameObject.name} | AI: {aiStatus} | State: {bot.CurrentState} | Inventory: {bot.botInventory.CurrentCount}/{bot.botInventory.maxCapacity}");}
     }
 
     private void ResetAllBots()
-    {// Сбрасываем выделение перед сбросом всех ботов
+    {
         DeselectAllBots();
         _originalBotMaterials.Clear();
 
-        BotController[] bots = FindObjectsOfType<BotController>();//todo
+        BotController[] bots = FindObjectsOfType<BotController>();//todo //ресурсозатратно и ненадежно => переделать на передачу ссылки напрямую
+
         foreach (var bot in bots)
         {
-            bot.SetAIEnabled(true); // Используем метод
+            bot.SetAIEnabled(true);
             UpdateBotVisual(bot);
             bot.StopMovement();
         }
-        Debug.Log("All bots reset to default state");
     }
 
     private void OnGUI()
     {
         Color originalColor = GUI.color;
-        GUI.color = Color.red; // Устанавливаем красный цвет для всего последующего GUI
+        GUI.color = Color.red;
 
         GUILayout.BeginArea(new Rect(10, 410, 300, 120));
 
@@ -207,7 +185,7 @@ public class AITestHandler : MonoBehaviour
         GUILayout.Label("LMB: Select bot");
         GUILayout.Label("ESC: Deselect bot");
 
-        BotController[] bots = FindObjectsOfType<BotController>();// todo
+        BotController[] bots = FindObjectsOfType<BotController>();// todo//ресурсозатратно и ненадежно => переделать на передачу ссылки напрямую
 
         if (bots.Length > 0)
         {

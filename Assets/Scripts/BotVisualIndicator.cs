@@ -23,7 +23,7 @@ public class BotVisualIndicator : MonoBehaviour
         {
             UpdateAIStatus(_botController.EnableAI, _botController.CurrentState);
 
-            if (Camera.main != null)// Поворачиваем индикатор к камере
+            if (Camera.main != null)
             {
                 _statusIcon.transform.LookAt(Camera.main.transform);
                 _statusIcon.transform.Rotate(0, 180, 0);
@@ -49,14 +49,14 @@ public class BotVisualIndicator : MonoBehaviour
             if (aiEnabled)
             {
                 iconRenderer.material.color = GetStateColor(state);
-                if (_statusText != null && _showStateText) // Теперь используется
+                if (_statusText != null && _showStateText)
                 {
                     _statusText.text = state.ToString();
                     _statusText.color = Color.white;
                 }
                 else if (_statusText != null)
                 {
-                    _statusText.text = ""; // Скрываем текст если отключено
+                    _statusText.text = "";
                 }
             }
             else
@@ -72,7 +72,7 @@ public class BotVisualIndicator : MonoBehaviour
     }
 
     private void CreateStatusIndicator()
-    {// Создаем индикатор статуса
+    {
         _statusIcon = GameObject.CreatePrimitive(PrimitiveType.Quad);
         _statusIcon.name = "StatusIndicator";
         _statusIcon.transform.SetParent(transform);
@@ -81,7 +81,6 @@ public class BotVisualIndicator : MonoBehaviour
 
         DestroyImmediate(_statusIcon.GetComponent<Collider>());
 
-        // Создаем текстовый элемент
         GameObject textObject = new GameObject("StatusText");
         textObject.transform.SetParent(_statusIcon.transform);
         textObject.transform.localPosition = new Vector3(0, -0.6f, 0);
@@ -92,11 +91,9 @@ public class BotVisualIndicator : MonoBehaviour
         _statusText.alignment = TextAlignment.Center;
         _statusText.fontSize = _fontSize;
         _statusText.characterSize = 0.1f;
-        // Важно: устанавливаем материал для текста
         _statusText.color = Color.red;
 
-        // Убедимся что есть шрифт
-        if (_statusText.font == null)// Используем дефолтный шрифт        
+        if (_statusText.font == null)
             _statusText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
 
         UpdateAIStatus(_botController.EnableAI, _botController.CurrentState);
@@ -105,7 +102,7 @@ public class BotVisualIndicator : MonoBehaviour
     private Color GetStateColor(BotState state)
     {
         switch (state)
-        {//.color = new Color(1f, 0.5f, 0f); // оранжевый
+        {
             case BotState.Idle: return Color.yellow;
             case BotState.Search: return Color.cyan;
             case BotState.MoveToItem: return Color.blue;

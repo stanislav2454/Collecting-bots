@@ -102,12 +102,12 @@ public class BotController : MonoBehaviour
 
     public void ClearTargetItem()
     {
-        if (_targetItem != null)
+        if (_targetItem != null)// зачем нужен ? если не используется - удалить !
         {
             // Освобождаем предмет в менеджере
-            BotManager botManager = FindObjectOfType<BotManager>();
-            if (botManager != null)
-                botManager.ReleaseItem(_targetItem);
+            // BotManager botManager = FindObjectOfType<BotManager>();
+            //if (botManager != null)
+            //    botManager.ReleaseItem(_targetItem);
 
             _targetItem = null;
         }
@@ -150,32 +150,25 @@ public class BotController : MonoBehaviour
             _navMeshAgent.angularSpeed = settings.botRotationSpeed;
             _navMeshAgent.stoppingDistance = settings.botStoppingDistance;
         }
-
-        Debug.Log($"Bot {gameObject.name} initialized. Inventory: {_botInventory.maxCapacity} slots");
     }
 
-    private void OnDrawGizmos() // Для отладки в редакторе
+    private void OnDrawGizmos()
     {
         const float Radius = 0.5f;
 
         if (_showMovementGizmos == false)
             return;
-        // УБРАТЬ: GUI.color не работает в OnDrawGizmos!
-        //Color originalColor = GUI.color;
-        //GUI.color = Color.red;// Устанавливаем красный цвет для всего последующего GUI
 
-        if (_hasTarget)// Показываем целеую позицию        
+        if (_hasTarget)
         {
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(_targetPosition, Radius);
             Gizmos.DrawLine(transform.position, _targetPosition);
         }
 
-        // Показываем инвентарь
         Gizmos.color = _botInventory.IsFull ? Color.red : Color.green;
         Gizmos.DrawWireSphere(transform.position + Vector3.up * 2f, 0.5f);
 
-        // Показываем состояние
         if (_showStateDebug)
         {
 #if UNITY_EDITOR
@@ -183,13 +176,11 @@ public class BotController : MonoBehaviour
 #endif
         }
 
-        // Показываем текущий путь
         if (_navMeshAgent != null && _navMeshAgent.hasPath)
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawLine(transform.position, _navMeshAgent.destination);
 
-            // Рисуем точки пути
             for (int i = 0; i < _navMeshAgent.path.corners.Length - 1; i++)
             {
                 Gizmos.DrawSphere(_navMeshAgent.path.corners[i], 0.1f);

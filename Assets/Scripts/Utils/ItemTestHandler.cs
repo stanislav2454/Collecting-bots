@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 
 public class ItemTestHandler : MonoBehaviour
-{// пока не понятно где и для чего этот класс => todo: потом спросить у DeepSeek
+{
     [Header("Test Settings")]
     [SerializeField] private KeyCode _spawnItemKey = KeyCode.I;
     [SerializeField] private KeyCode _spawnBulkItemsKey = KeyCode.O;
@@ -18,7 +18,6 @@ public class ItemTestHandler : MonoBehaviour
     private void Update()
     {
         HandleItemSpawning();
-        HandleInventoryTesting();
         HandleCleanup();
     }
 
@@ -31,12 +30,6 @@ public class ItemTestHandler : MonoBehaviour
             SpawnBulkItems(_bulkSpawnCount);
     }
 
-    private void HandleInventoryTesting()
-    {
-        if (Input.GetKeyDown(_checkInventoryKey))
-            CheckAllBotInventories();
-    }
-
     private void HandleCleanup()
     {
         if (Input.GetKeyDown(_clearAllItemsKey))
@@ -46,20 +39,17 @@ public class ItemTestHandler : MonoBehaviour
     private void SpawnSingleItem()
     {
         ItemManager itemManager = ItemManager.Instance;
+
         if (itemManager != null)
         {
-            Item newItem = itemManager.SpawnItem();
-
-            if (newItem != null)
-                Debug.Log($"Spawned item: {newItem.ItemName} at {newItem.transform.position}");
-            else
-                Debug.LogWarning("Failed to spawn item");
+            Item newItem = itemManager.SpawnItem();// зачем ?
         }
     }
 
     private void SpawnBulkItems(int count)
     {
         ItemManager itemManager = ItemManager.Instance;
+
         if (itemManager != null)
         {
             int successCount = 0;
@@ -68,38 +58,16 @@ public class ItemTestHandler : MonoBehaviour
                 Item newItem = itemManager.SpawnItem();
                 if (newItem != null) successCount++;
             }
-            Debug.Log($"Spawned {successCount}/{count} items in bulk");
-        }
-    }
-
-    private void CheckAllBotInventories()
-    {
-        BotController[] bots = FindObjectsOfType<BotController>();//todo
-        Debug.Log("=== BOT INVENTORIES ===");
-
-        if (bots.Length == 0)
-        {
-            Debug.Log("No bots found in scene");
-            return;
-        }
-
-        foreach (var bot in bots)
-        {
-            string status = bot.BotInventory.IsFull ? "FULL" : "HAS SPACE";
-            Debug.Log($"Bot: {bot.gameObject.name} | {status} | Items: " +
-                $"{bot.BotInventory.CurrentCount}/{bot.BotInventory.MaxCapacity}");
         }
     }
 
     private void ClearAllItems()
     {
-        Item[] allItems = FindObjectsOfType<Item>();//todo
+        Item[] allItems = FindObjectsOfType<Item>();//todo //ресурсозатратно и ненадежно => переделать на передачу ссылки напрямую
         int count = allItems.Length;
 
         foreach (var item in allItems)
             Destroy(item.gameObject);
-
-        Debug.Log($"Cleared {count} items from scene");
     }
 
     private void OnGUI()
@@ -107,7 +75,6 @@ public class ItemTestHandler : MonoBehaviour
         Color originalColor = GUI.color;
         GUI.color = Color.cyan;
 
-        // Создаем стили с настраиваемыми размерами шрифта
         GUIStyle headerStyle = new GUIStyle(GUI.skin.label);
         headerStyle.fontStyle = FontStyle.Bold;
         headerStyle.fontSize = _headerFontSize;
@@ -115,7 +82,6 @@ public class ItemTestHandler : MonoBehaviour
         GUIStyle normalStyle = new GUIStyle(GUI.skin.label);
         normalStyle.fontSize = _normalFontSize;
 
-        // ПРАВАЯ ЧАСТЬ ЭКРАНА - под панелью режима управления
         GUILayout.BeginArea(new Rect(Screen.width - 310, 100, 300, 250));
 
         GUILayout.Label("=== ITEM TEST CONTROLS ===");
@@ -126,9 +92,10 @@ public class ItemTestHandler : MonoBehaviour
 
         GUILayout.Space(10);
 
-        // Статистика предметов
-        Item[] allItems = FindObjectsOfType<Item>();//todo
+        Item[] allItems = FindObjectsOfType<Item>();//todo //ресурсозатратно и ненадежно => переделать на передачу ссылки напрямую
+
         int availableItems = 0;
+
         foreach (var item in allItems)
             if (item.CanBeCollected) availableItems++;
 
@@ -138,8 +105,8 @@ public class ItemTestHandler : MonoBehaviour
 
         GUILayout.Space(5);
 
-        // Статистика ботов
-        BotController[] bots = FindObjectsOfType<BotController>();//todo
+        BotController[] bots = FindObjectsOfType<BotController>();//todo //ресурсозатратно и ненадежно => переделать на передачу ссылки напрямую
+
         int botsWithItems = 0;
         int fullBots = 0;
 
