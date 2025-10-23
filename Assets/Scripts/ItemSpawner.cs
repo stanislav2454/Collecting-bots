@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
 
@@ -51,9 +51,17 @@ public class ItemSpawner : MonoBehaviour
 
     private void SpawnItemAtPosition(Vector3 position)
     {
-        if (_itemPrefab == null) return;
 
-        GameObject itemObject = Instantiate(_itemPrefab, position, Quaternion.identity, transform);
+        if (_itemPrefab == null)
+            return;
+
+        //Vector3? nullablePos = null;        // ✅ Работает
+        //Vector3 nonNullablePos = null;      // ❌ Ошибка компиляции
+        //Vector3 nonNullablePos = default;   // ✅ (0,0,0)
+        Vector3 adjustPosition = new Vector3(0, 0.5f, 0);
+
+        GameObject itemObject = Instantiate(_itemPrefab, position + adjustPosition, Quaternion.identity, transform);
+       
         if (itemObject.TryGetComponent(out Item item))
         {
             _spawnedItems.Add(item);
@@ -73,7 +81,7 @@ public class ItemSpawner : MonoBehaviour
         Vector3 randomPoint = transform.position + new Vector3(
             UnityEngine.Random.Range(-_spawnAreaSize.x / 2f, _spawnAreaSize.x / 2f),
             GroundYPosition,
-            UnityEngine.Random.Range(-_spawnAreaSize.z / 2f, _spawnAreaSize.z / 2f)        );
+            UnityEngine.Random.Range(-_spawnAreaSize.z / 2f, _spawnAreaSize.z / 2f));
 
         return randomPoint;
     }

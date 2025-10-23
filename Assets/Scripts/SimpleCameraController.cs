@@ -2,12 +2,14 @@
 
 public class SimpleCameraController : MonoBehaviour
 {
-    private const string MouseAxisHandleZoom = "Mouse ScrollWheel";
-    private const string MouseAxisX = "Mouse X";
-    private const string MouseAxisY = "Mouse Y";
+    private const string MouseScrollWheelAxis = "Mouse ScrollWheel";
+    private const string MouseXAxis = "Mouse X";
+    private const string MouseYAxis = "Mouse Y";
     private const string HorizontalAxis = "Horizontal";
     private const string VerticalAxis = "Vertical";
+    private const int RightMouseButton = 1;
     private const int MouseButtonScrollWheel = 2;
+    [SerializeField] private KeyCode mouse1 = KeyCode.Mouse1;
 
     [Header("InputKeys Settings")]
     [SerializeField] private KeyCode _cameraRaiseKey = KeyCode.E;
@@ -26,6 +28,7 @@ public class SimpleCameraController : MonoBehaviour
 
     private Vector3 _initialPosition;
     private Quaternion _initialRotation;
+    private bool _isRightMousePressed = false;
 
     private void Start()
     {
@@ -35,12 +38,40 @@ public class SimpleCameraController : MonoBehaviour
 
     private void Update()
     {
-        HandleHorizontalMovement();
-        HandleVerticalMovement();
-        HandleRotation();
-        HandleZoom();
+        HandleMouseInput();
+        HandleCameraMovement();
         HandleReset();
         ClampCameraHeight();
+        //HandleHorizontalMovement();
+        //HandleVerticalMovement();
+        //HandleRotation();
+        //HandleZoom();
+        //HandleReset();
+        //ClampCameraHeight();
+    }
+    private void HandleCameraMovement()
+    {
+        HandleZoom(); // Зум всегда доступен
+
+        // Перемещение и поворот только при зажатой ПКМ
+        if (_isRightMousePressed)
+        {
+            HandleRotation();
+            HandleHorizontalMovement();
+            HandleVerticalMovement();
+        }
+    }
+    private void HandleMouseInput()
+    {
+        if (Input.GetMouseButtonDown(RightMouseButton))
+        {
+            _isRightMousePressed = true;
+        }
+
+        if (Input.GetMouseButtonUp(RightMouseButton))
+        {
+            _isRightMousePressed = false;
+        }
     }
 
     private void HandleHorizontalMovement()
@@ -70,23 +101,24 @@ public class SimpleCameraController : MonoBehaviour
 
     private void HandleRotation()
     {
-        if (Input.GetMouseButton(MouseButtonScrollWheel))
-        {
-            float mouseX = Input.GetAxis(MouseAxisX) * _rotationSpeed * Time.deltaTime;
-            float mouseY = Input.GetAxis(MouseAxisY) * _rotationSpeed * Time.deltaTime;
+        // if (Input.GetKey(mouse1))
+        // //if (Input.GetMouseButton(MouseButtonScrollWheel))
+        // {
+        float mouseX = Input.GetAxis(MouseXAxis) * _rotationSpeed * Time.deltaTime;
+        float mouseY = Input.GetAxis(MouseYAxis) * _rotationSpeed * Time.deltaTime;
 
-            transform.Rotate(Vector3.up, mouseX, Space.World);
-            transform.Rotate(Vector3.left, mouseY, Space.Self);
+        transform.Rotate(Vector3.up, mouseX, Space.World);
+        transform.Rotate(Vector3.left, mouseY, Space.Self);
 
-            Vector3 currentRotation = transform.eulerAngles;
-            currentRotation.z = 0;
-            transform.eulerAngles = currentRotation;
-        }
+        Vector3 currentRotation = transform.eulerAngles;
+        currentRotation.z = 0;
+        transform.eulerAngles = currentRotation;
+        // }
     }
 
     private void HandleZoom()
     {
-        float scroll = Input.GetAxis(MouseAxisHandleZoom);
+        float scroll = Input.GetAxis(MouseScrollWheelAxis);
 
         if (scroll != 0f)
         {
@@ -111,38 +143,61 @@ public class SimpleCameraController : MonoBehaviour
         transform.position = position;
     }
 
-    private void OnDrawGizmos()
-    {
-#if UNITY_EDITOR
-        string heightInfo = $"Height: {transform.position.y:F1}\nMin: {_minHeight} Max: {_maxHeight}";
-        UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, heightInfo);
-
-        Gizmos.color = Color.cyan;
-        Vector3 groundPosition = new Vector3(transform.position.x, 0, transform.position.z);
-        Gizmos.DrawLine(transform.position, groundPosition);
-        Gizmos.DrawWireCube(groundPosition + Vector3.up * 0.1f, new Vector3(0.5f, 0.1f, 0.5f));
-#endif
-    }
-
     private void OnGUI()
     {
         if (Application.isPlaying == false)
             return;
 
         Color originalColor = GUI.color;
-        GUI.color = Color.red;
+        GUI.color = _isRightMousePressed ? Color.green : Color.red;
 
-        GUILayout.BeginArea(new Rect(10, 560, 300, 150));
+        GUILayout.BeginArea(new Rect(20, 20, 300, 150));
 
         GUILayout.Label("=== CAMERA CONTROLS ===");
-        GUILayout.Label("WASD: Horizontal movement");
-        GUILayout.Label($"{_cameraRaiseKey}/Q: Vertical movement");
-        GUILayout.Label("RMB + Mouse: Rotate");
-        GUILayout.Label("Mouse Wheel: Zoom");
+        GUILayout.Label("ПКМ + WASD: Horizontal movement");
+        GUILayout.Label("ПКМ + E/Q: Vertical movement");
+        GUILayout.Label("ПКМ + Mouse: Rotate camera");
+        GUILayout.Label("Mouse Wheel: Zoom (always)");
         GUILayout.Label($"{_cameraViewReset}: Reset camera");
         GUILayout.Label($"Height: {transform.position.y:F1}/{_maxHeight}");
+        GUILayout.Label($"Camera Active: {_isRightMousePressed}");
 
         GUILayout.EndArea();
         GUI.color = originalColor;
     }
+
+    //    private void OnDrawGizmos()
+    //    {
+    //#if UNITY_EDITOR
+    //        string heightInfo = $"Height: {transform.position.y:F1}\nMin: {_minHeight} Max: {_maxHeight}";
+    //        UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, heightInfo);
+
+    //        Gizmos.color = Color.cyan;
+    //        Vector3 groundPosition = new Vector3(transform.position.x, 0, transform.position.z);
+    //        Gizmos.DrawLine(transform.position, groundPosition);
+    //        Gizmos.DrawWireCube(groundPosition + Vector3.up * 0.1f, new Vector3(0.5f, 0.1f, 0.5f));
+    //#endif
+    //    }
+
+    //    private void OnGUI()
+    //    {
+    //        if (Application.isPlaying == false)
+    //            return;
+
+    //        Color originalColor = GUI.color;
+    //        GUI.color = Color.red;
+
+    //        GUILayout.BeginArea(new Rect(10, 560, 300, 150));
+
+    //        GUILayout.Label("=== CAMERA CONTROLS ===");
+    //        GUILayout.Label("WASD: Horizontal movement");
+    //        GUILayout.Label($"{_cameraRaiseKey}/Q: Vertical movement");
+    //        GUILayout.Label("RMB + Mouse: Rotate");
+    //        GUILayout.Label("Mouse Wheel: Zoom");
+    //        GUILayout.Label($"{_cameraViewReset}: Reset camera");
+    //        GUILayout.Label($"Height: {transform.position.y:F1}/{_maxHeight}");
+
+    //        GUILayout.EndArea();
+    //        GUI.color = originalColor;
+    //    }
 }

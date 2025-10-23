@@ -1,11 +1,12 @@
 ﻿using UnityEngine;
 
-public class GameIntegrationController : MonoBehaviour
+public class GameIntegrationController : MonoBehaviour// переименовать
 {
     [Header("References")]
     [SerializeField] private BaseController _baseController;
     [SerializeField] private ItemSpawner _itemSpawner;
     [SerializeField] private SimpleCameraController _cameraController;
+    [SerializeField] private Counter _counter;
 
     [Header("UI Debug")]
     [SerializeField] private bool _showDebugUI = true;

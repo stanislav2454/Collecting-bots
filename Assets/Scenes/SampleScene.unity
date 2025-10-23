@@ -133,8 +133,9 @@ GameObject:
   - component: {fileID: 57956006}
   - component: {fileID: 57956008}
   - component: {fileID: 57956007}
+  - component: {fileID: 57956009}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: CounterViewText (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -190,8 +191,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278583487
-  m_fontColor: {r: 0.7509433, g: 0, b: 0.024944048, a: 1}
+    rgba: 4278255386
+  m_fontColor: {r: 0.102565646, g: 1, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -258,6 +259,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 57956005}
   m_CullTransparentMesh: 1
+--- !u!114 &57956009
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 57956005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df96f4d33e52c8241ba6ce0b99563b7b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _counterText: {fileID: 57956007}
+  _counter: {fileID: 978571042}
 --- !u!1 &143175562
 GameObject:
   m_ObjectHideFlags: 0
@@ -302,9 +317,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da73bd2d0de43364eaa43e68d73453ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _baseController: {fileID: 978571039}
+  _baseController: {fileID: 0}
   _itemSpawner: {fileID: 2122070370}
   _cameraController: {fileID: 1406071455}
+  _counter: {fileID: 0}
   _showDebugUI: 1
 --- !u!1 &171885856
 GameObject:
@@ -395,7 +411,7 @@ Canvas:
   m_Enabled: 1
   serializedVersion: 3
   m_RenderMode: 2
-  m_Camera: {fileID: 0}
+  m_Camera: {fileID: 1406071452}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
@@ -417,8 +433,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 978571040}
-  - component: {fileID: 978571039}
   - component: {fileID: 978571038}
+  - component: {fileID: 978571041}
+  - component: {fileID: 978571042}
   m_Layer: 0
   m_Name: BASE
   m_TagString: Untagged
@@ -447,22 +464,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3, y: 0.1, z: 3}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &978571039
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 978571037}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87b68cd7a52a246498089ed01793616c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _initialBotsCount: 3
-  _botPrefab: {fileID: 861847553803959124, guid: 5d0b0d834525a224c83acf4854c91ec6, type: 3}
-  _scanRadius: 20
-  _itemSpawner: {fileID: 2122070370}
 --- !u!4 &978571040
 Transform:
   m_ObjectHideFlags: 0
@@ -480,6 +481,35 @@ Transform:
   - {fileID: 171885857}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &978571041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 978571037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87b68cd7a52a246498089ed01793616c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _initialBotsCount: 3
+  _botPrefab: {fileID: 861847553803959124, guid: 5d0b0d834525a224c83acf4854c91ec6, type: 3}
+  _scanRadius: 20
+  _itemSpawner: {fileID: 2122070370}
+--- !u!114 &978571042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 978571037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1dc3ba2e03524da49b201dcf2070c2cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _baseController: {fileID: 978571041}
 --- !u!1 &1034017047
 GameObject:
   m_ObjectHideFlags: 0
@@ -668,6 +698,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d682196d440c3164ea751170b57a34de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mouse1: 324
   _cameraRaiseKey: 101
   _cameraLowerKey: 113
   _cameraViewReset: 114

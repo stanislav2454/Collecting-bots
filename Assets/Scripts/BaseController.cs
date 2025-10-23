@@ -37,9 +37,7 @@ public class BaseController : MonoBehaviour
     private void OnDestroy()
     {
         if (_itemSpawner != null)
-        {
             _itemSpawner.ItemSpawned -= HandleItemSpawned;
-        }
     }
 
     private void HandleItemSpawned(Item item)
