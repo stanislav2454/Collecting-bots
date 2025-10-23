@@ -4,58 +4,60 @@ using UnityEngine.AI;
 [RequireComponent(typeof(NavMeshAgent))]
 public class BotMovementController : MonoBehaviour
 {
-    private NavMeshAgent _navMeshAgent;
+    [SerializeField] private float _pathRecalculationInterval = 0.5f;
+    [SerializeField] private float _targetChangeThreshold = 0.1f;
 
-    public bool IsMoving => _navMeshAgent.hasPath && !_navMeshAgent.isStopped;
+    private NavMeshAgent _navMeshAgent;
+    private float _lastRecalculationTime;
+    private Vector3 _lastTargetPosition;
+    private float _sqrTargetChangeThreshold;
+
+    public bool IsMoving => _navMeshAgent.hasPath && _navMeshAgent.isStopped == false;
     public float RemainingDistance => _navMeshAgent.remainingDistance;
 
     private void Awake()
     {
         TryGetComponent(out _navMeshAgent);
+        _sqrTargetChangeThreshold = _targetChangeThreshold * _targetChangeThreshold;
     }
 
-    /// <summary>
-    /// Начинает движение к указанной позиции
-    /// </summary>
     public void MoveToPosition(Vector3 position)
     {
         if (_navMeshAgent != null && _navMeshAgent.isActiveAndEnabled)
         {
-            _navMeshAgent.SetDestination(position);
+            bool needsRecalculation = (_lastTargetPosition - position).sqrMagnitude > _sqrTargetChangeThreshold ||
+                                     Time.time - _lastRecalculationTime >= _pathRecalculationInterval;
+
+            if (needsRecalculation)
+            {
+                _navMeshAgent.SetDestination(position);
+                _lastTargetPosition = position;
+                _lastRecalculationTime = Time.time;
+            }
         }
     }
 
-    /// <summary>
-    /// Останавливает движение бота
-    /// </summary>
     public void StopMovement()
     {
         if (_navMeshAgent != null)
-        {
             _navMeshAgent.ResetPath();
-        }
     }
 
-    /// <summary>
-    /// Проверяет, достигнута ли целевая позиция
-    /// </summary>
     public bool HasReachedDestination()
     {
-        return _navMeshAgent != null &&
-               !_navMeshAgent.pathPending &&
-               _navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance;
+        if (_navMeshAgent == null || _navMeshAgent.isActiveAndEnabled == false)
+            return false;
+
+        return _navMeshAgent.pathPending == false &&
+               _navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance &&
+               (_navMeshAgent.hasPath == false || _navMeshAgent.velocity.sqrMagnitude == 0f);
     }
 
-    /// <summary>
-    /// Настраивает параметры движения
-    /// </summary>
-    public void ConfigureMovement(float speed, float angularSpeed, float stoppingDistance)
+#if UNITY_EDITOR
+    private void OnValidate()
     {
-        if (_navMeshAgent != null)
-        {
-            _navMeshAgent.speed = speed;
-            _navMeshAgent.angularSpeed = angularSpeed;
-            _navMeshAgent.stoppingDistance = stoppingDistance;
-        }
+        if (Application.isPlaying)
+            _sqrTargetChangeThreshold = _targetChangeThreshold * _targetChangeThreshold;
     }
+#endif
 }

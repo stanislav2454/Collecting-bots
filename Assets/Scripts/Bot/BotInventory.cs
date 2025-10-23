@@ -12,7 +12,6 @@ public class BotInventory : MonoBehaviour
 
     public bool HasItem => _carriedItem != null;
     public bool IsFull => HasItem;
-    public Item CarriedItem => _carriedItem;
 
     public bool TryAddItem(Item item)
     {
@@ -26,27 +25,28 @@ public class BotInventory : MonoBehaviour
         return true;
     }
 
-    public void ClearInventory()
+    public void ClearInventory(BotController bot = null)
     {
         if (_carriedItem != null)
         {
-            _carriedItem.DetachFromBot();
+            Item itemToReturn = _carriedItem;
             _carriedItem = null;
+
+            if (bot != null && bot.AssignedBase != null)
+                bot.AssignedBase.ReturnResourceToPool(itemToReturn);
+            else
+                itemToReturn.gameObject.SetActive(false);
+
             InventoryCleared?.Invoke();
         }
     }
 
-    /// <summary>
-    /// Освобождает ресурс без доставки на базу (при неудачной миссии)
-    /// </summary>
     public void ReleaseItem()
     {
         if (_carriedItem != null)
         {
-            // Возвращаем ресурс на карту
             _carriedItem.transform.SetParent(null);
-            if (_carriedItem.TryGetComponent<Collider>(out var collider))
-                collider.enabled = true;
+            _carriedItem.PrepareForRespawn();
             _carriedItem = null;
         }
     }
