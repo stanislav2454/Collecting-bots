@@ -1,0 +1,83 @@
+﻿using UnityEngine;
+
+public class BaseZoneVisualizer : MonoBehaviour
+{
+    [Header("Base Zones")]
+    [SerializeField] private bool _showZones = true;
+    [SerializeField] private float _spawnZoneRadius = 3f;
+    [SerializeField] private float _unloadZoneRadius = 1.5f;
+    [SerializeField] private float _heightVisualizationZone = 0.1f;
+    [SerializeField] private Color _spawnZoneColor = Color.blue;
+    [SerializeField] private Color _unloadZoneColor = Color.green;
+
+    private ZoneVisualizer _spawnZoneVisualizer;
+    private ZoneVisualizer _unloadZoneVisualizer;
+
+    public float SpawnZoneRadius => _spawnZoneRadius;
+    public float UnloadZoneRadius => _unloadZoneRadius;
+
+    private void Start()
+    {
+        CreateZoneVisuals();
+        SetZonesVisibility(_showZones);
+    }
+
+    private void OnDestroy()
+    {
+        if (_spawnZoneVisualizer != null)
+            Destroy(_spawnZoneVisualizer);
+
+        if (_unloadZoneVisualizer != null)
+            Destroy(_unloadZoneVisualizer);
+    }
+
+    private void CreateZoneVisuals()
+    {
+        _spawnZoneVisualizer = gameObject.AddComponent<ZoneVisualizer>();
+        _unloadZoneVisualizer = gameObject.AddComponent<ZoneVisualizer>();
+
+        ConfigureZoneVisualizers();
+    }
+
+    private void ConfigureZoneVisualizers()
+    {
+        ApplyZoneVisualizationSettings(_spawnZoneVisualizer, _spawnZoneRadius, _spawnZoneColor);
+        ApplyZoneVisualizationSettings(_unloadZoneVisualizer, _unloadZoneRadius, _unloadZoneColor);
+    }
+
+    private void ApplyZoneVisualizationSettings(ZoneVisualizer visualizer, float radius, Color color)
+    {
+        const float RadiusToDiameterMultiplier = 2f;
+
+        if (visualizer != null)
+        {
+            Vector3 zoneSize = Vector3.one * radius * RadiusToDiameterMultiplier;
+            zoneSize.y = _heightVisualizationZone;
+            visualizer.CreateOrUpdateZone(zoneSize, Vector3.zero);
+            visualizer.SetZoneColor(color);
+        }
+    }
+
+    public void SetZonesVisibility(bool visible)
+    {
+        _showZones = visible;
+
+        if (_spawnZoneVisualizer != null)
+            _spawnZoneVisualizer.SetZoneVisible(_showZones);
+
+        if (_unloadZoneVisualizer != null)
+            _unloadZoneVisualizer.SetZoneVisible(_showZones);
+    }
+
+    public void SetZoneColors(Color spawnZoneColor, Color unloadZoneColor)
+    {
+        _spawnZoneColor = spawnZoneColor;
+        _unloadZoneColor = unloadZoneColor;
+
+        if (_spawnZoneVisualizer != null)
+            _spawnZoneVisualizer.SetZoneColor(_spawnZoneColor);
+
+        if (_unloadZoneVisualizer != null)
+            _unloadZoneVisualizer.SetZoneColor(_unloadZoneColor);
+    }
+}

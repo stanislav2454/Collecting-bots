@@ -8,7 +8,7 @@ public class ItemSpawner : ZoneVisualizer
     [Header("Spawn Settings")]
     [SerializeField] private Item _itemPrefab;
     [SerializeField] private int _initialItemsCount = 5;
-    [SerializeField] private float _spawnInterval = 3f;
+    [SerializeField] private float _autoSpawnInterval = 3f;
     [SerializeField] [Range(0, 60)] private float _respawnDelay = 5f;
 
     [Header("Spawn Area")]
@@ -16,11 +16,13 @@ public class ItemSpawner : ZoneVisualizer
 
     [Header("Dependencies")]
     [SerializeField] private ItemPool _itemPool;
+    [SerializeField] private ResourceManager _resourceManager; // Внедренная зависимость
 
     private int _maxActiveItems = 10;
     private int _maxSize = 50;
     private List<Item> _activeItems = new List<Item>();
-    private Coroutine _spawnCoroutine;
+    private Coroutine _autoSpawnCoroutine;// какой смысл в двух корутинах ?
+    private Coroutine _respawnItemAfterDelayCoroutine;// какой смысл в двух корутинах ? (проблемная т.к спавниться в нулевых координатах)
 
     public event Action<Item> ItemSpawned;
 
@@ -34,6 +36,7 @@ public class ItemSpawner : ZoneVisualizer
     private void OnDestroy()
     {
         StopAutoSpawning();
+       // StopCoroutine(_respawnItemAfterDelayCoroutine);
     }
 
     public void ReturnItemToPool(Item item)
@@ -42,7 +45,7 @@ public class ItemSpawner : ZoneVisualizer
             return;
 
         _activeItems.Remove(item);
-        StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
+        // _respawnItemAfterDelayCoroutine = StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));//где нужно вызывать StopCoroutine(_respawnItemAfterDelayCoroutine); ?
     }
 
     private IEnumerator RespawnItemAfterDelay(Item item, float delay)
@@ -51,18 +54,9 @@ public class ItemSpawner : ZoneVisualizer
 
         if (item != null && _itemPool != null)
         {
-            Debug.Log($"🔄 РЕСПАВН: {item.name}");
             item.PrepareForRespawn();
             _itemPool.ReturnItem(item);
-
-            StartCoroutine(CheckResourceAfterDelay(item, 0.1f));
         }
-    }
-
-    private IEnumerator CheckResourceAfterDelay(Item item, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        ResourceManager.Instance?.DebugResourceState(item);
     }
 
     private void InitializeItemPool()
@@ -76,33 +70,29 @@ public class ItemSpawner : ZoneVisualizer
         if (item.gameObject.activeInHierarchy == false)
             item.gameObject.SetActive(true);
 
-        if (ResourceManager.Instance != null)
-        {
-            ResourceManager.Instance.RegisterResource(item);
-            Debug.Log($"🔄 Ресурс {item.name} ПЕРЕРЕГИСТРИРОВАН. Active: {item.gameObject.activeInHierarchy}");
-        }
-
-        Debug.Log($"✅ Ресурс {item.name} возвращен в пул, готов к использованию");
+        _resourceManager?.RegisterResource(item);
+        //if (ResourceManager.Instance != null)
+        //    ResourceManager.Instance.RegisterResource(item);
     }
 
     private void StartAutoSpawning()
     {
         StopAutoSpawning();
-        _spawnCoroutine = StartCoroutine(AutoSpawnCoroutine());
+        _autoSpawnCoroutine = StartCoroutine(AutoSpawnCoroutine());
     }
 
     private void StopAutoSpawning()
     {
-        if (_spawnCoroutine != null)
+        if (_autoSpawnCoroutine != null)
         {
-            StopCoroutine(_spawnCoroutine);
-            _spawnCoroutine = null;
+            StopCoroutine(_autoSpawnCoroutine);
+            _autoSpawnCoroutine = null;
         }
     }
 
     private IEnumerator AutoSpawnCoroutine()
     {
-        WaitForSeconds wait = new WaitForSeconds(_spawnInterval);
+        WaitForSeconds wait = new WaitForSeconds(_autoSpawnInterval);
 
         while (true)
         {
@@ -123,10 +113,7 @@ public class ItemSpawner : ZoneVisualizer
     private void TrySpawnItem()
     {
         if (_activeItems.Count >= _maxActiveItems)
-        {
-            Debug.Log($"Достигнут лимит активных ресурсов: {_activeItems.Count}/{_maxActiveItems}");
             return;
-        }
 
         Vector3 spawnPosition = GetRandomSpawnPosition();
         SpawnItemAtPosition(spawnPosition);
@@ -141,9 +128,8 @@ public class ItemSpawner : ZoneVisualizer
             item.transform.rotation = Quaternion.identity;
             item.PrepareForRespawn();
             _activeItems.Add(item);
-
-            item.RegisterWithPosition();
-
+            _resourceManager?.RegisterResource(item);
+            //item.RegisterWithPosition();
             ItemSpawned?.Invoke(item);
         }
     }

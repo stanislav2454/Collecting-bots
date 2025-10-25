@@ -2,8 +2,10 @@
 using TMPro;
 using System.Collections.Generic;
 
-public class ResourceDebugUI : MonoBehaviour
+public class ResourceDebugUI : MonoBehaviour// после отладки удалить или поместить в некомпилируемый блок.
 {
+    [SerializeField] private ResourceManager _resourceManager; 
+
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI _debugText;
 
@@ -13,7 +15,6 @@ public class ResourceDebugUI : MonoBehaviour
     private float _timer;
     private ItemSpawner _itemSpawner;
     private ItemPool _itemPool;
-    private ResourceManager _resourceManager;
 
     private void Start()
     {
@@ -25,7 +26,6 @@ public class ResourceDebugUI : MonoBehaviour
             return;
         }
 
-        Debug.Log("ResourceDebugUI initialized");
         UpdateDisplay(); 
     }
 
@@ -33,7 +33,6 @@ public class ResourceDebugUI : MonoBehaviour
     {
         _itemSpawner = FindObjectOfType<ItemSpawner>();
         _itemPool = FindObjectOfType<ItemPool>();
-        _resourceManager = ResourceManager.Instance;
 
         if (_resourceManager == null) Debug.LogWarning("ResourceManager not found!");
         if (_itemSpawner == null) Debug.LogWarning("ItemSpawner not found!");

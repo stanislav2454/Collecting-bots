@@ -10,8 +10,10 @@ public class ZoneVisualizer : MonoBehaviour
 
     private GameObject _zoneVisual;
     private Renderer _zoneRenderer;
-    private Collider _zoneCollider;
-    [SerializeField] private Material _zoneMaterial;
+    private Material _zoneMaterial;
+    private PrimitiveType _currentPrimitiveType;
+
+    public bool IsVisible => _showZone;
 
     private void OnDestroy()
     {
@@ -26,7 +28,7 @@ public class ZoneVisualizer : MonoBehaviour
             return;
         }
 
-        if (_zoneVisual == null || NeedsRecreation())
+        if (_zoneVisual == null || _currentPrimitiveType != _primitiveType)
         {
             DestroyZoneVisual();
             CreateZoneVisual();
@@ -54,21 +56,26 @@ public class ZoneVisualizer : MonoBehaviour
         }
     }
 
-    private bool NeedsRecreation()
+    public void SetZoneColor(Color color)
     {
-        if (_zoneVisual == null || _zoneCollider == null)
-            return false;
+        _zoneColor = color;
+        UpdateZoneColor();
+    }
 
-        return _primitiveType switch
+    public void SetZoneOpacity(float opacity)
+    {
+        _zoneOpacity = Mathf.Clamp01(opacity);
+        UpdateZoneColor();
+    }
+
+    private void UpdateZoneColor()
+    {
+        if (_zoneMaterial != null)
         {
-            PrimitiveType.Sphere when (_zoneCollider is SphereCollider) == false =>
-            true,
-            PrimitiveType.Cube when !(_zoneCollider is BoxCollider) == false =>
-            true,
-            PrimitiveType.Capsule when !(_zoneCollider is CapsuleCollider) == false =>
-            true,
-            _ => false
-        };
+            Color finalColor = _zoneColor;
+            finalColor.a = _zoneOpacity;
+            _zoneMaterial.color = finalColor;
+        }
     }
 
     private void CreateZoneVisual()
@@ -89,17 +96,8 @@ public class ZoneVisualizer : MonoBehaviour
             meshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         }
 
-
-        SetupMaterialForPrimitive();
-    }
-
-    private void SetupMaterialForPrimitive()
-    {
-        if (_zoneMaterial == null)
-            return;
-
-        if (_primitiveType == PrimitiveType.Sphere || _primitiveType == PrimitiveType.Capsule)
-            _zoneMaterial.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+        _currentPrimitiveType = _primitiveType;
+        UpdateZoneColor();
     }
 
     private Material CreateTransparentMaterial()
@@ -122,18 +120,9 @@ public class ZoneVisualizer : MonoBehaviour
             return;
 
         _zoneVisual.transform.localPosition = offset;
-
-        if (_primitiveType == PrimitiveType.Sphere)
-            _zoneVisual.transform.localScale = Vector3.one * size.x;
-        else
-            _zoneVisual.transform.localScale = size;
-
+        _zoneVisual.transform.localScale = _primitiveType == PrimitiveType.Sphere ?
+                                                        Vector3.one * size.x : size;
         _zoneVisual.transform.rotation = Quaternion.identity;
-
-        Color finalColor = _zoneColor;
-        finalColor.a = _zoneOpacity;
-        _zoneMaterial.color = finalColor;
-
         _zoneVisual.SetActive(_showZone);
     }
 
@@ -143,15 +132,15 @@ public class ZoneVisualizer : MonoBehaviour
         {
             DestroyImmediate(_zoneVisual);
             _zoneVisual = null;
+            _zoneMaterial = null;
         }
     }
 
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (Application.isPlaying && _zoneVisual != null)
-            if (NeedsRecreation())
-                DestroyZoneVisual();
+        if (Application.isPlaying && _zoneVisual != null && _currentPrimitiveType != _primitiveType)
+            DestroyZoneVisual();
     }
 #endif
 }

@@ -12,6 +12,8 @@ public class ResourceScanner : ZoneVisualizer
     [Header("Scanner Visualization")]
     [SerializeField] private bool _showScannerZone = true;
     [SerializeField] private PrimitiveType _scannerPrimitiveType = PrimitiveType.Sphere;
+    [SerializeField] private Color _scannerZoneColor = Color.blue;
+    [SerializeField] private float _scannerZoneOpacity = 0.2f;
 
     private List<Item> _detectedResources = new List<Item>();
     private Coroutine _scanningCoroutine;
@@ -29,20 +31,8 @@ public class ResourceScanner : ZoneVisualizer
     private void OnDestroy()
     {
         StopScanning();
+        CleanupScannerZone();
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (Application.isPlaying && _scannerZoneVisualizer != null)
-        {
-            _scannerZoneVisualizer.SetPrimitiveType(_scannerPrimitiveType);
-
-            Vector3 zoneSize = Vector3.one * _scanRadius * 2f;
-            _scannerZoneVisualizer.CreateOrUpdateZone(zoneSize, Vector3.zero);
-        }
-    }
-#endif
 
     public void StartScanning()
     {
@@ -56,6 +46,15 @@ public class ResourceScanner : ZoneVisualizer
         {
             StopCoroutine(_scanningCoroutine);
             _scanningCoroutine = null;
+        }
+    }
+
+    private void CleanupScannerZone()
+    {
+        if (_scannerZoneVisualizer != null)
+        {
+            Destroy(_scannerZoneVisualizer);
+            _scannerZoneVisualizer = null;
         }
     }
 
@@ -73,6 +72,7 @@ public class ResourceScanner : ZoneVisualizer
     private void PerformScan()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position, _scanRadius);
+
         var currentResources = new List<Item>();
 
         foreach (var collider in hitColliders)
@@ -85,9 +85,6 @@ public class ResourceScanner : ZoneVisualizer
                 {
                     _detectedResources.Add(item);
                     ResourceFound?.Invoke(item);
-
-                    BaseController baseController = FindObjectOfType<BaseController>();
-                    baseController?.OnResourceBecameAvailable(item);
                 }
             }
         }
@@ -105,12 +102,33 @@ public class ResourceScanner : ZoneVisualizer
     private void CreateScannerZone()
     {
         _scannerZoneVisualizer = gameObject.AddComponent<ZoneVisualizer>();
-        _scannerZoneVisualizer.SetPrimitiveType(_scannerPrimitiveType);
-
-        Vector3 zoneSize = Vector3.one * _scanRadius * 2f;
-        _scannerZoneVisualizer.CreateOrUpdateZone(zoneSize, Vector3.zero);
-        _scannerZoneVisualizer.SetZoneVisible(_showScannerZone);
+        UpdateScannerZoneVisualization();
     }
+
+    private void UpdateScannerZoneVisualization()
+    {
+        if (_scannerZoneVisualizer != null)
+        {
+            _scannerZoneVisualizer.SetPrimitiveType(_scannerPrimitiveType);
+
+            Color colorWithOpacity = _scannerZoneColor;
+            colorWithOpacity.a = _scannerZoneOpacity;
+            _scannerZoneVisualizer.SetZoneColor(colorWithOpacity);
+
+            Vector3 zoneSize = Vector3.one * _scanRadius * 2f;
+            _scannerZoneVisualizer.CreateOrUpdateZone(zoneSize, Vector3.zero);
+            _scannerZoneVisualizer.SetZoneVisible(_showScannerZone);
+        }
+    }
+
+    public void SetScannerZoneVisible(bool visible)
+    {
+        _showScannerZone = visible;
+
+        if (_scannerZoneVisualizer != null)
+            _scannerZoneVisualizer.SetZoneVisible(_showScannerZone);
+    }
+
 
     private void OnDrawGizmosSelected()
     {

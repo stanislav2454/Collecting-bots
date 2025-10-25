@@ -8,13 +8,13 @@ public class BotManager : MonoBehaviour
     [Header("Bot Settings")]
     [SerializeField] private int _initialBotsCount = 3;
     [SerializeField] private Bot _botPrefab;
-    [SerializeField] private float _spawnZoneRadius = 3f;
 
     [Header("Dependencies")]
     [SerializeField] private BaseController _baseController;
+    [SerializeField] private ResourceManager _resourceManager; 
+    [SerializeField] private ResourceAssignmentManager _assignmentManager; 
 
     private List<Bot> _bots = new List<Bot>();
-    private ResourceAssignmentManager _assignmentManager = new ResourceAssignmentManager();
 
     public event System.Action<Bot> BotCreated;
 
@@ -25,13 +25,23 @@ public class BotManager : MonoBehaviour
 
     private void Start()
     {
-        if (_baseController == null)
-        {
-            Debug.LogError("BaseController not assigned in BotManager!");
-            return;
-        }
-
+        ValidateDependencies();
         SpawnInitialBots();
+    }
+
+    private void ValidateDependencies()
+    {
+        if (_botPrefab == null)
+            Debug.LogError("Prefab Bot not assigned in BotManager!");
+
+        if (_resourceManager == null)
+            Debug.LogError("ResourceManager not assigned in BotManager!");
+
+        if (_assignmentManager == null)
+            Debug.LogError("ResourceAssignmentManager not assigned in BotManager!");
+
+        if (_assignmentManager == null)
+            Debug.LogError("ResourceAssignmentManager not assigned in BotManager!");
     }
 
     private void SpawnInitialBots()
@@ -50,10 +60,11 @@ public class BotManager : MonoBehaviour
     private Vector3 GetRandomSpawnPosition()
     {
         Vector3 basePos = BasePosition;
-        return basePos + new Vector3(
-            Random.Range(-_spawnZoneRadius, _spawnZoneRadius),
-            0,
-            Random.Range(-_spawnZoneRadius, _spawnZoneRadius));
+        float spawnRadius = _baseController != null ? _baseController.SpawnZoneRadius : 3f;
+
+        return basePos + new Vector3(Random.Range(-spawnRadius, spawnRadius),
+                                     0,
+                                     Random.Range(-spawnRadius, spawnRadius));
     }
 
     private void InitializeBot(Bot bot)
@@ -62,7 +73,7 @@ public class BotManager : MonoBehaviour
         _bots.Add(bot);
         BotCreated?.Invoke(bot);
 
-        if (ResourceManager.Instance != null && ResourceManager.Instance.HasAvailableResources)
+        if (_resourceManager != null && _resourceManager.HasAvailableResources)
             AssignResourceToBot(bot);
     }
 
@@ -70,25 +81,20 @@ public class BotManager : MonoBehaviour
     {
         if (bot.IsAvailable && _assignmentManager.IsBotAssigned(bot) == false)
         {
-            Item resource = ResourceManager.Instance.GetNearestAvailableResource(bot.transform.position);
-            if (resource != null && _assignmentManager.TryAssignResourceToBot(resource, bot))
-            {
-                Debug.Log($"Боту назначен ресурс: {resource.name} at {resource.transform.position}");
+            Item resource = _resourceManager?.GetNearestAvailableResource(bot.transform.position);
+
+            if (resource != null && _assignmentManager.TryAssignResourceToBot(resource, bot)) 
                 bot.AssignResource(resource, BasePosition, UnloadZoneRadius);
-            }
         }
     }
 
     public void AssignBotToResource(Item resource)
     {
         if (resource == null || _assignmentManager.IsResourceAssigned(resource))
-        {
-            Debug.Log($"❌ Ресурс {resource?.name ?? "NULL"} не может быть назначен");
             return;
-        }
 
         var nearestBot = _bots
-            .Where(b => b.IsAvailable && !_assignmentManager.IsBotAssigned(b))
+            .Where(b => b.IsAvailable && _assignmentManager.IsBotAssigned(b) == false)
             .OrderBy(b => (b.transform.position - resource.transform.position).sqrMagnitude)
             .FirstOrDefault();
 
@@ -110,7 +116,7 @@ public class BotManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
-        if (ResourceManager.Instance?.FreeResourcesCount > 0)
+        if (_resourceManager?.FreeResourcesCount > 0)
             AssignResourceToBot(bot);
         else
             bot.SetWaiting();

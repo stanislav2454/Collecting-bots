@@ -42,11 +42,7 @@ public class ItemPool : MonoBehaviour
             item.transform.rotation = Quaternion.identity;
             item.gameObject.SetActive(true);
             _activeItems.Add(item);
-
-            Debug.Log($"✅ Ресурс взят из пула: {item.name} at {position}");
         }
-        else
-            Debug.LogWarning($"❌ Не удалось получить ресурс из пула. Достигнут лимит: {_maxPoolSize}");
 
         return item;
     }
@@ -70,37 +66,24 @@ public class ItemPool : MonoBehaviour
             _availableItems.Enqueue(item);
 
         ItemReturned?.Invoke(item);
-
-        Debug.Log($"✅ Ресурс возвращен в пул: {item.name}");
     }
 
     private void InitializePool()
     {
         if (_itemPrefab == null)
-        {
-            Debug.LogError("❌ ItemPrefab не установлен в ItemPool");
             return;
-        }
 
         for (int i = 0; i < _initialPoolSize; i++)
             CreateNewItem();
-
-        Debug.Log($"✅ Пул инициализирован: {_initialPoolSize} элементов");
     }
 
     private Item CreateNewItem()
     {
         if (_createdItemsCount >= _maxPoolSize)
-        {
-            Debug.LogWarning($"❌ Достигнут максимальный размер пула: {_maxPoolSize}");
             return null;
-        }
 
         if (_itemPrefab == null)
-        {
-            Debug.LogError("❌ ItemPrefab не установлен");
             return null;
-        }
 
         Item item = Instantiate(_itemPrefab, _poolContainer);
 
@@ -108,13 +91,10 @@ public class ItemPool : MonoBehaviour
         {
             item.name = $"Item_{System.Guid.NewGuid().ToString().Substring(0, 8)}";
             item.gameObject.SetActive(false);
-
             _availableItems.Enqueue(item);
             _createdItemsCount++;
-
             ItemCreated?.Invoke(item);
-            Debug.Log($"✅ Ресурс создан в пуле: {item.name}. Всего создано: {_createdItemsCount}");
-            
+
             return item;
         }
 
@@ -125,13 +105,12 @@ public class ItemPool : MonoBehaviour
     {
         GameObject container = new GameObject("ItemPool_Container");
         container.transform.SetParent(transform);
-        container.transform.position = Vector3.zero;// Зачем ?
         return container.transform;
     }
 
-    public int GetAvailableItemsCount() => _availableItems.Count;
-    public int GetActiveItemsCount() => _activeItems.Count;
-    public int GetTotalItemsCount() => _createdItemsCount;
+    public int GetAvailableItemsCount() => _availableItems.Count;// Зачем ?
+    public int GetActiveItemsCount() => _activeItems.Count;// Зачем ?
+    public int GetTotalItemsCount() => _createdItemsCount;// Зачем ?
 
     private void OnDestroy()
     {

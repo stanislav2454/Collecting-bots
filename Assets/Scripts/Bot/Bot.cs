@@ -4,7 +4,7 @@ using System;
 
 [RequireComponent(typeof(NavMeshAgent), typeof(BotInventory))]
 public class Bot : MonoBehaviour
-{// (бывший BotController)
+{
     [Header("Bot Settings")]
     [SerializeField] private float _collectionDuration = 1f;
 
@@ -38,12 +38,7 @@ public class Bot : MonoBehaviour
     public void AssignResource(Item resource, Vector3 basePosition, float baseRadius)
     {
         if (IsAvailable == false)
-        {
-            Debug.Log($"❌ Бот {name} недоступен для назначения ресурса");
             return;
-        }
-
-        Debug.Log($"🎯 БОТУ {name} НАЗНАЧЕН РЕСУРС {resource.name} at {resource.transform.position}");
 
         _currentAssignedResource = resource;
         ChangeState(new BotMovingToResourceState(resource, basePosition, baseRadius));
@@ -121,12 +116,12 @@ public class Bot : MonoBehaviour
     // ВИЗУАЛИЗАЦИЯ ДЛЯ GAME VIEW (в мире)
     private void OnGUI()
     {
-        if (Application.isPlaying==false)
+        if (Application.isPlaying == false)
             return;
 
         Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2f);
 
-        if (screenPos.z <= 0) 
+        if (screenPos.z <= 0)
             return;
 
         string stateText = $"{CurrentStateType}";
