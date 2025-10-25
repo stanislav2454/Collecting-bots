@@ -9,6 +9,7 @@ public class ItemSpawner : ZoneVisualizer
     [SerializeField] private Item _itemPrefab;
     [SerializeField] private int _initialItemsCount = 5;
     [SerializeField] private float _spawnInterval = 3f;
+    [SerializeField] [Range(0, 60)] private float _respawnDelay = 5f;
 
     [Header("Spawn Area")]
     [SerializeField] private Vector3 _spawnAreaSize = new Vector3(20f, 0.1f, 20f);
@@ -16,8 +17,9 @@ public class ItemSpawner : ZoneVisualizer
     [Header("Dependencies")]
     [SerializeField] private ItemPool _itemPool;
 
+    private int _maxActiveItems = 10;
     private int _maxSize = 50;
-    private List<Item> _spawnedItems = new List<Item>();
+    private List<Item> _activeItems = new List<Item>();
     private Coroutine _spawnCoroutine;
 
     public event Action<Item> ItemSpawned;
@@ -36,8 +38,31 @@ public class ItemSpawner : ZoneVisualizer
 
     public void ReturnItemToPool(Item item)
     {
+        if (item == null)
+            return;
+
+        _activeItems.Remove(item);
+        StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
+    }
+
+    private IEnumerator RespawnItemAfterDelay(Item item, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
         if (item != null && _itemPool != null)
+        {
+            Debug.Log($"🔄 РЕСПАВН: {item.name}");
+            item.PrepareForRespawn();
             _itemPool.ReturnItem(item);
+
+            StartCoroutine(CheckResourceAfterDelay(item, 0.1f));
+        }
+    }
+
+    private IEnumerator CheckResourceAfterDelay(Item item, float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        ResourceManager.Instance?.DebugResourceState(item);
     }
 
     private void InitializeItemPool()
@@ -48,8 +73,16 @@ public class ItemSpawner : ZoneVisualizer
 
     private void HandleItemReturnedToPool(Item item)
     {
-        item.PrepareForRespawn();
-        _spawnedItems.Remove(item);
+        if (item.gameObject.activeInHierarchy == false)
+            item.gameObject.SetActive(true);
+
+        if (ResourceManager.Instance != null)
+        {
+            ResourceManager.Instance.RegisterResource(item);
+            Debug.Log($"🔄 Ресурс {item.name} ПЕРЕРЕГИСТРИРОВАН. Active: {item.gameObject.activeInHierarchy}");
+        }
+
+        Debug.Log($"✅ Ресурс {item.name} возвращен в пул, готов к использованию");
     }
 
     private void StartAutoSpawning()
@@ -69,14 +102,13 @@ public class ItemSpawner : ZoneVisualizer
 
     private IEnumerator AutoSpawnCoroutine()
     {
-        WaitForSeconds waitForSeconds = new WaitForSeconds(_spawnInterval);
+        WaitForSeconds wait = new WaitForSeconds(_spawnInterval);
 
         while (true)
         {
-            yield return waitForSeconds;
+            yield return wait;
 
-            if (_spawnedItems.Count < _maxSize)
-                TrySpawnItem();
+            TrySpawnItem();
         }
     }
 
@@ -90,8 +122,11 @@ public class ItemSpawner : ZoneVisualizer
 
     private void TrySpawnItem()
     {
-        if (_spawnedItems.Count >= _maxSize)
+        if (_activeItems.Count >= _maxActiveItems)
+        {
+            Debug.Log($"Достигнут лимит активных ресурсов: {_activeItems.Count}/{_maxActiveItems}");
             return;
+        }
 
         Vector3 spawnPosition = GetRandomSpawnPosition();
         SpawnItemAtPosition(spawnPosition);
@@ -101,26 +136,15 @@ public class ItemSpawner : ZoneVisualizer
     {
         Item item = _itemPool.GetItem(position);
 
-        if (item != null)
+        if (item != null && _activeItems.Contains(item) == false)
         {
-            if (_spawnedItems.Contains(item) == false)
-            {
-                item.transform.rotation = Quaternion.identity;
-                _spawnedItems.Add(item);
+            item.transform.rotation = Quaternion.identity;
+            item.PrepareForRespawn();
+            _activeItems.Add(item);
 
-                item.Collected += HandleItemCollected;
-                ItemSpawned?.Invoke(item);
-            }
-        }
-    }
+            item.RegisterWithPosition();
 
-    private void HandleItemCollected(Item item)
-    {
-        if (item != null)
-        {
-            item.Collected -= HandleItemCollected;
-
-            _itemPool?.ReturnItem(item);
+            ItemSpawned?.Invoke(item);
         }
     }
 
@@ -128,12 +152,17 @@ public class ItemSpawner : ZoneVisualizer
     {
         Vector3 randomPoint = transform.position + new Vector3(
             UnityEngine.Random.Range(-_spawnAreaSize.x / BotConstants.Divider, _spawnAreaSize.x / BotConstants.Divider),
-            BotConstants.GroundYPosition,
+            BotConstants.ItemYOffset,
             UnityEngine.Random.Range(-_spawnAreaSize.z / BotConstants.Divider, _spawnAreaSize.z / BotConstants.Divider));
 
-        return randomPoint + Vector3.up * BotConstants.ItemYOffset;
+        return randomPoint;
     }
 
     private void UpdateZoneVisualization() =>
         CreateOrUpdateZone(_spawnAreaSize, Vector3.zero);
+
+    public int GetSpawnedItemsCount() =>
+        _activeItems.Count;
+    public int GetMaxActiveItems() =>
+        _maxActiveItems;
 }

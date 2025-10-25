@@ -11,7 +11,7 @@ public class ResourceScanner : ZoneVisualizer
 
     [Header("Scanner Visualization")]
     [SerializeField] private bool _showScannerZone = true;
-    [SerializeField] private PrimitiveType _scannerPrimitiveType = PrimitiveType.Sphere; // ← НОВОЕ ПОЛЕ
+    [SerializeField] private PrimitiveType _scannerPrimitiveType = PrimitiveType.Sphere;
 
     private List<Item> _detectedResources = new List<Item>();
     private Coroutine _scanningCoroutine;
@@ -85,26 +85,21 @@ public class ResourceScanner : ZoneVisualizer
                 {
                     _detectedResources.Add(item);
                     ResourceFound?.Invoke(item);
+
+                    BaseController baseController = FindObjectOfType<BaseController>();
+                    baseController?.OnResourceBecameAvailable(item);
                 }
             }
         }
 
-        _detectedResources.RemoveAll(resource =>
-            currentResources.Contains(resource) == false || IsResourceAvailable(resource) == false);
-    }
-
-    private bool IsResourceAvailable(Item item)
-    {
-        if (item == null || !item.CanBeCollected)
-            return false;
-
-        if (item.transform.parent != null)
-            return false;
-
-        if (item.TryGetComponent<Collider>(out var collider) && collider.enabled == false)
-            return false;
-
-        return true;
+        foreach (var resource in _detectedResources.ToArray())
+        {
+            if (currentResources.Contains(resource) == false)
+            {
+                _detectedResources.Remove(resource);
+                ResourceLost?.Invoke(resource);
+            }
+        }
     }
 
     private void CreateScannerZone()

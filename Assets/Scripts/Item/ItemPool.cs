@@ -34,15 +34,19 @@ public class ItemPool : MonoBehaviour
             item = _availableItems.Dequeue();
         else if (_createdItemsCount < _maxPoolSize)
             item = CreateNewItem();
-        else
-            item = CreateNewItem();
+
 
         if (item != null)
         {
             item.transform.position = position;
+            item.transform.rotation = Quaternion.identity;
             item.gameObject.SetActive(true);
             _activeItems.Add(item);
+
+            Debug.Log($"✅ Ресурс взят из пула: {item.name} at {position}");
         }
+        else
+            Debug.LogWarning($"❌ Не удалось получить ресурс из пула. Достигнут лимит: {_maxPoolSize}");
 
         return item;
     }
@@ -53,28 +57,50 @@ public class ItemPool : MonoBehaviour
             return;
 
         item.gameObject.SetActive(false);
-        item.transform.position = _poolContainer.position;
-        item.transform.SetParent(_poolContainer);
+
+        if (_poolContainer != null)
+        {
+            item.transform.position = _poolContainer.position;
+            item.transform.SetParent(_poolContainer);
+        }
 
         _activeItems.Remove(item);
-        _availableItems.Enqueue(item);
+
+        if (_availableItems.Contains(item) == false)
+            _availableItems.Enqueue(item);
 
         ItemReturned?.Invoke(item);
+
+        Debug.Log($"✅ Ресурс возвращен в пул: {item.name}");
     }
 
     private void InitializePool()
     {
         if (_itemPrefab == null)
+        {
+            Debug.LogError("❌ ItemPrefab не установлен в ItemPool");
             return;
+        }
 
         for (int i = 0; i < _initialPoolSize; i++)
             CreateNewItem();
+
+        Debug.Log($"✅ Пул инициализирован: {_initialPoolSize} элементов");
     }
 
     private Item CreateNewItem()
     {
         if (_createdItemsCount >= _maxPoolSize)
+        {
+            Debug.LogWarning($"❌ Достигнут максимальный размер пула: {_maxPoolSize}");
             return null;
+        }
+
+        if (_itemPrefab == null)
+        {
+            Debug.LogError("❌ ItemPrefab не установлен");
+            return null;
+        }
 
         Item item = Instantiate(_itemPrefab, _poolContainer);
 
@@ -87,6 +113,8 @@ public class ItemPool : MonoBehaviour
             _createdItemsCount++;
 
             ItemCreated?.Invoke(item);
+            Debug.Log($"✅ Ресурс создан в пуле: {item.name}. Всего создано: {_createdItemsCount}");
+            
             return item;
         }
 
@@ -97,6 +125,17 @@ public class ItemPool : MonoBehaviour
     {
         GameObject container = new GameObject("ItemPool_Container");
         container.transform.SetParent(transform);
+        container.transform.position = Vector3.zero;// Зачем ?
         return container.transform;
+    }
+
+    public int GetAvailableItemsCount() => _availableItems.Count;
+    public int GetActiveItemsCount() => _activeItems.Count;
+    public int GetTotalItemsCount() => _createdItemsCount;
+
+    private void OnDestroy()
+    {
+        _availableItems.Clear();
+        _activeItems.Clear();
     }
 }

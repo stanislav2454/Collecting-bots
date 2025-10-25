@@ -12,6 +12,7 @@ public class BotInventory : MonoBehaviour
 
     public bool HasItem => _carriedItem != null;
     public bool IsFull => HasItem;
+    public Item GetCarriedItem => _carriedItem;
 
     public bool TryAddItem(Item item)
     {
@@ -25,17 +26,12 @@ public class BotInventory : MonoBehaviour
         return true;
     }
 
-    public void ClearInventory(BotController bot = null)
+    public void ClearInventory(Bot bot = null)
     {
         if (_carriedItem != null)
         {
-            Item itemToReturn = _carriedItem;
+            _carriedItem.transform.SetParent(null);
             _carriedItem = null;
-
-            if (bot != null && bot.AssignedBase != null)
-                bot.AssignedBase.ReturnResourceToPool(itemToReturn);
-            else
-                itemToReturn.gameObject.SetActive(false);
 
             InventoryCleared?.Invoke();
         }

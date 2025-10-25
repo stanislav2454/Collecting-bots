@@ -10,6 +10,7 @@ public class ZoneVisualizer : MonoBehaviour
 
     private GameObject _zoneVisual;
     private Renderer _zoneRenderer;
+    private Collider _zoneCollider;
     [SerializeField] private Material _zoneMaterial;
 
     private void OnDestroy()
@@ -55,30 +56,19 @@ public class ZoneVisualizer : MonoBehaviour
 
     private bool NeedsRecreation()
     {
-        if (_zoneVisual == null)
+        if (_zoneVisual == null || _zoneCollider == null)
             return false;
 
-        PrimitiveType currentType = GetCurrentPrimitiveType();
-        return currentType != _primitiveType;
-    }
-
-    private PrimitiveType GetCurrentPrimitiveType()
-    {
-        if (_zoneVisual == null)
-            return PrimitiveType.Cube;
-
-        string visualName = _zoneVisual.name.ToLower();
-
-        if (visualName.Contains("sphere"))
-            return PrimitiveType.Sphere;
-
-        if (visualName.Contains("capsule"))
-            return PrimitiveType.Capsule;
-
-        if (visualName.Contains("cylinder"))
-            return PrimitiveType.Cylinder;
-
-        return PrimitiveType.Cube;
+        return _primitiveType switch
+        {
+            PrimitiveType.Sphere when (_zoneCollider is SphereCollider) == false =>
+            true,
+            PrimitiveType.Cube when !(_zoneCollider is BoxCollider) == false =>
+            true,
+            PrimitiveType.Capsule when !(_zoneCollider is CapsuleCollider) == false =>
+            true,
+            _ => false
+        };
     }
 
     private void CreateZoneVisual()

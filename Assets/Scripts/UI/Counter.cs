@@ -26,7 +26,7 @@ public class Counter : MonoBehaviour
 
     private void IncreaseCounter(int totalResources)
     {
-        _score++;
+        _score = totalResources; 
         CounterChanged?.Invoke();
     }
 }
