@@ -26,24 +26,16 @@ public class BotInventory : MonoBehaviour
         return true;
     }
 
-    public void ClearInventory(Bot bot = null)
+    public void ClearInventory(bool prepareForRespawn = false)
     {
         if (_carriedItem != null)
         {
+            if (prepareForRespawn)
+                _carriedItem.PrepareForRespawn();
+
             _carriedItem.transform.SetParent(null);
             _carriedItem = null;
-
             InventoryCleared?.Invoke();
-        }
-    }
-
-    public void ReleaseItem()
-    {
-        if (_carriedItem != null)
-        {
-            _carriedItem.transform.SetParent(null);
-            _carriedItem.PrepareForRespawn();
-            _carriedItem = null;
         }
     }
 }

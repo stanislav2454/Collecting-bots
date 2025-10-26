@@ -8,7 +8,6 @@ public class Item : MonoBehaviour
 
     private Renderer _itemRenderer;
     private Collider _itemCollider;
-    //private bool _isRegistered = false;
 
     public event Action<Item> Collected;
 
@@ -20,15 +19,6 @@ public class Item : MonoBehaviour
         TryGetComponent(out _itemRenderer);
         TryGetComponent(out _itemCollider);
     }
-
-    //public void RegisterWithPosition()
-    //{
-    //    if (_isRegistered == false && ResourceManager.Instance != null)
-    //    {
-    //        ResourceManager.Instance.RegisterResource(this);
-    //        _isRegistered = true;
-    //    }
-    //}
 
     public void Collect()
     {
@@ -50,7 +40,6 @@ public class Item : MonoBehaviour
     public void PrepareForRespawn()
     {
         CanBeCollected = true;
-        // _isRegistered = false;
         transform.SetParent(null);
         gameObject.SetActive(true);
 
@@ -61,10 +50,9 @@ public class Item : MonoBehaviour
             _itemCollider.enabled = true;
     }
 
-    public void ResetForPool()
+    public void ResetForPool()// если не нужен - удалить !
     {
         CanBeCollected = true;
-        // _isRegistered = false;
         transform.SetParent(null);
         gameObject.SetActive(false);
     }

@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
 public class MissionControl : MonoBehaviour
-{//(бывший ResourceCoordinator/MissionDispatcher)
+{
     [Header("Dependencies")]
     [SerializeField] private BotManager _botManager;
-    [SerializeField] private ResourceManager _resourceManager; // Внедренная зависимость
+    [SerializeField] private ResourceManager _resourceManager;
 
     private void Start()
     {

@@ -50,22 +50,6 @@ public class ResourceAssignmentManager : MonoBehaviour
         }
     }
 
-    public void ForceReleaseBotAssignment(Bot bot)// где и для чего используются эти методы ?
-    {
-        if (_botToItemMap.TryGetValue(bot, out Item resource))
-        {
-            _botToItemMap.Remove(bot);
-            _itemToBotMap.Remove(resource);
-            _resourceManager?.ReleaseResource(resource);
-        }
-    }
-
-    public Item GetAssignedResource(Bot bot)// где и для чего используются эти методы ?
-    {
-        _botToItemMap.TryGetValue(bot, out Item resource);
-        return resource;
-    }
-
     public bool IsBotAssigned(Bot bot) =>
         _botToItemMap.ContainsKey(bot);
 

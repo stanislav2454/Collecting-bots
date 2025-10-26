@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using UnityEngine;
 
 public class BotStateController
@@ -30,7 +29,6 @@ public class BotStateController
 public enum BotStateType
 {
     Idle,
-    Waiting,
     MovingToResource,
     Collecting,
     ReturningToBase
@@ -42,10 +40,28 @@ public abstract class BotState
     public abstract void Enter(Bot bot);
     public abstract void Update(Bot bot);
     public virtual void Exit(Bot bot) { }
-    // ОБЩИЙ МЕТОД ДЛЯ ВСЕХ СОСТОЯНИЙ
-    protected bool IsResourceValid(Item resource)
+
+    protected bool IsResourceValid(Item resource) =>
+         resource != null && resource.CanBeCollected && resource.gameObject.activeInHierarchy;
+
+    protected bool CheckDestinationReached(Bot bot, ref float checkTimer, float checkInterval = 0.2f)
     {
-        return resource != null && resource.CanBeCollected && resource.gameObject.activeInHierarchy;
+        checkTimer += Time.deltaTime;
+
+        if (checkTimer >= checkInterval)
+        {
+            checkTimer = 0f;
+            return bot.HasReachedDestination();
+        }
+
+        return false;
+    }
+
+    protected bool IsAtBase(Bot bot, Vector3 basePosition, float baseRadius)
+    {
+        float sqrDistanceToBase = (bot.transform.position - basePosition).sqrMagnitude;
+        float baseRadiusSqr = baseRadius * baseRadius;
+        return sqrDistanceToBase <= baseRadiusSqr;
     }
 }
 
@@ -53,16 +69,10 @@ public class BotIdleState : BotState
 {
     public override BotStateType StateType => BotStateType.Idle;
 
-    public override void Enter(Bot bot) { }
-    public override void Update(Bot bot) { }
-}
-
-public class BotWaitingState : BotState
-{
-    public override BotStateType StateType => BotStateType.Waiting;
-
-    public override void Enter(Bot bot) =>
+    public override void Enter(Bot bot)
+    {
         bot.StopMovement();
+    }
 
     public override void Update(Bot bot) { }
 }
@@ -71,9 +81,8 @@ public class BotMovingToResourceState : BotState
 {
     private Item _targetResource;
     private Vector3 _basePosition;
-    private float _baseRadius; // Добавляем поле для радиуса
-    private float _lastCheckTime;
-    private const float ChekInterval = 0.2f;
+    private float _baseRadius;
+    private float _checkTimer;
 
     public override BotStateType StateType => BotStateType.MovingToResource;
 
@@ -81,53 +90,40 @@ public class BotMovingToResourceState : BotState
     {
         _targetResource = resource;
         _basePosition = basePosition;
-        _baseRadius = baseRadius; // Сохраняем радиус
+        _baseRadius = baseRadius;
     }
 
     public override void Enter(Bot bot)
     {
-        if (_targetResource != null && _targetResource.CanBeCollected)
+        if (IsResourceValid(_targetResource))
         {
-            Vector3 targetPosition = _targetResource.transform.position;
-
             bot.MoveToPosition(_targetResource.transform.position);
-            _lastCheckTime = 0f;
+            _checkTimer = 0f;
         }
         else
         {
-            Debug.Log($"❌ Бот не может двигаться к ресурсу: {_targetResource?.name ?? "NULL"}");
             bot.CompleteMission(false);
         }
     }
 
     public override void Update(Bot bot)
     {
-        _lastCheckTime += Time.deltaTime;
-
-        if (_lastCheckTime >= ChekInterval)
+        if (CheckDestinationReached(bot, ref _checkTimer))
         {
-            _lastCheckTime = 0f;
-
-            if (IsResourceValid(_targetResource) == false)
-            {
-                bot.CompleteMission(false);
-                return;
-            }
-
-            if (bot.HasReachedDestination())
+            if (IsResourceValid(_targetResource))
                 bot.ChangeState(new BotCollectingState(_targetResource, _basePosition, _baseRadius));
+            else
+                bot.CompleteMission(false);
         }
     }
 }
 
 public class BotCollectingState : BotState
 {
-    private const float Delay = 0.1f;
-
     private Item _targetResource;
     private Vector3 _basePosition;
-    private float _baseRadius; 
-    private Coroutine _collectionCoroutine;
+    private float _baseRadius;
+    private float _collectionTimer;
 
     public override BotStateType StateType => BotStateType.Collecting;
 
@@ -135,7 +131,7 @@ public class BotCollectingState : BotState
     {
         _targetResource = resource;
         _basePosition = basePosition;
-        _baseRadius = baseRadius; 
+        _baseRadius = baseRadius;
     }
 
     public override void Enter(Bot bot)
@@ -148,41 +144,24 @@ public class BotCollectingState : BotState
 
         bot.StopMovement();
 
-        _collectionCoroutine = bot.StartCoroutine(CollectionRoutine(bot));
-    }
-
-    public override void Update(Bot bot) { }
-
-    public override void Exit(Bot bot)
-    {
-        if (_collectionCoroutine != null)
-        {
-            bot.StopCoroutine(_collectionCoroutine);
-            _collectionCoroutine = null;
-        }
-    }
-
-    private IEnumerator CollectionRoutine(Bot bot)
-    {
         if (_targetResource != null)
             bot.transform.LookAt(_targetResource.transform);
 
-        yield return new WaitForSeconds(Delay);
+        _collectionTimer = 0f;
+    }
 
-        float timer = 0f;
-        while (timer < bot.CollectionDuration)
+    public override void Update(Bot bot)
+    {
+        if (IsResourceValid(_targetResource) == false)
         {
-            if (IsResourceValid(_targetResource) == false)
-            {
-                bot.CompleteMission(false);
-                yield break;
-            }
-
-            timer += Time.deltaTime;
-            yield return null;
+            bot.CompleteMission(false);
+            return;
         }
 
-        CompleteCollection(bot);
+        _collectionTimer += Time.deltaTime;
+
+        if (_collectionTimer >= bot.CollectionDuration)
+            CompleteCollection(bot);
     }
 
     private void CompleteCollection(Bot bot)
@@ -194,7 +173,6 @@ public class BotCollectingState : BotState
         }
         else
         {
-            bot.Inventory.ReleaseItem();
             bot.CompleteMission(false);
         }
     }
@@ -202,55 +180,27 @@ public class BotCollectingState : BotState
 
 public class BotReturningToBaseState : BotState
 {
-    private const float CheckInterval = 0.2f;
-
     private Vector3 _basePosition;
-    private float _baseRadiusSqr;
-    private float _lastCheckTime;
+    private float _baseRadius;
+    private float _checkTimer;
 
     public override BotStateType StateType => BotStateType.ReturningToBase;
 
     public BotReturningToBaseState(Vector3 basePosition, float baseRadius)
     {
         _basePosition = basePosition;
-        _baseRadiusSqr = baseRadius * baseRadius;
+        _baseRadius = baseRadius;
     }
 
     public override void Enter(Bot bot)
     {
         bot.MoveToPosition(_basePosition);
-        _lastCheckTime = 0f;
-
-        Debug.Log($"Бот движется к базе: {_basePosition}");
+        _checkTimer = 0f;
     }
 
     public override void Update(Bot bot)
     {
-        _lastCheckTime += Time.deltaTime;
-
-        if (_lastCheckTime >= CheckInterval)
-        {
-            _lastCheckTime = 0f;
-
-            if (bot.HasReachedDestination() || IsAtBase(bot))
-            {
-                Debug.Log($"Бот достиг базы. Позиция: {bot.transform.position}, База: {_basePosition}");
-                bot.CompleteMission(true);
-            }
-        }
-    }
-
-    private bool IsAtBase(Bot bot)
-    {
-        float sqrDistanceToBase = (bot.transform.position - _basePosition).sqrMagnitude;
-        bool atBase = sqrDistanceToBase <= _baseRadiusSqr;
-
-        if (atBase)
-        {
-            float distanceToBase = Mathf.Sqrt(sqrDistanceToBase);
-            Debug.Log($"Бот в радиусе базы. Расстояние: {distanceToBase:F2}");
-        }
-
-        return atBase;
+        if (CheckDestinationReached(bot, ref _checkTimer) || IsAtBase(bot, _basePosition, _baseRadius))
+            bot.CompleteMission(true);
     }
 }

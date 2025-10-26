@@ -9,6 +9,7 @@ public class ResourceManager : MonoBehaviour
     private HashSet<Item> _allResources = new HashSet<Item>();
     private HashSet<Item> _freeResources = new HashSet<Item>();
     private HashSet<Item> _reservedResources = new HashSet<Item>();
+    private Dictionary<Item, Vector3> _resourcePositions = new Dictionary<Item, Vector3>();
 
     public event System.Action<Item> ResourceBecameAvailable;
     public event System.Action<Item> ResourceReserved;
@@ -43,6 +44,7 @@ public class ResourceManager : MonoBehaviour
         if (resource.gameObject.activeInHierarchy && resource.CanBeCollected)
         {
             _freeResources.Add(resource);
+            UpdateResourcePosition(resource);
             ResourceBecameAvailable?.Invoke(resource);
         }
     }
@@ -59,6 +61,7 @@ public class ResourceManager : MonoBehaviour
         if (resource.CanBeCollected && resource.gameObject.activeInHierarchy)
         {
             _freeResources.Add(resource);
+            UpdateResourcePosition(resource);
             ResourceBecameAvailable?.Invoke(resource);
         }
     }
@@ -70,6 +73,7 @@ public class ResourceManager : MonoBehaviour
 
         _freeResources.Remove(resource);
         _reservedResources.Remove(resource);
+        _resourcePositions.Remove(resource);
     }
 
     public Item GetNearestAvailableResource(Vector3 position)
@@ -82,16 +86,30 @@ public class ResourceManager : MonoBehaviour
             if (resource == null || resource.CanBeCollected == false)
                 continue;
 
-            float sqrDistance = (resource.transform.position - position).sqrMagnitude;
-
-            if (sqrDistance < nearestSqrDistance)
+            if (_resourcePositions.TryGetValue(resource, out Vector3 resourcePosition))
             {
-                nearestSqrDistance = sqrDistance;
-                nearestResource = resource;
+                float sqrDistance = (resourcePosition - position).sqrMagnitude;
+                if (sqrDistance < nearestSqrDistance)
+                {
+                    nearestSqrDistance = sqrDistance;
+                    nearestResource = resource;
+                }
             }
         }
 
         return nearestResource;
+    }
+
+    public void RefreshResourcePosition(Item resource)// если не нужен - удалить !
+    {
+        if (resource != null && _allResources.Contains(resource))
+            UpdateResourcePosition(resource);
+    }
+
+    private void UpdateResourcePosition(Item resource)
+    {
+        if (resource != null)
+            _resourcePositions[resource] = resource.transform.position;
     }
 
     private void OnDrawGizmos()

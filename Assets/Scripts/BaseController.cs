@@ -17,7 +17,7 @@ public class BaseController : MonoBehaviour
     public event System.Action<int> ResourceCollected;
     public event System.Action<Bot> BotCreated;
 
-    public Vector3 BasePosition => transform.position;
+    public Vector3 BasePosition => transform.position;// если не нужен - удалить !
     public float UnloadZoneRadius => _zoneVisualizer != null ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
     public float SpawnZoneRadius => _zoneVisualizer != null ? _zoneVisualizer.SpawnZoneRadius : 3f;
 
@@ -26,36 +26,15 @@ public class BaseController : MonoBehaviour
         InitializeDependencies();
     }
 
-    private void InitializeDependencies()
-    {
-        if (TryGetComponent(out _zoneVisualizer) == false)
-            _zoneVisualizer = GetComponentInChildren<BaseZoneVisualizer>();// дочернийний объект
-        //if (_botManager != null)
-        //    _botManager.BotCreated += OnBotCreated;
-        //else
-        //    Debug.LogError("BotManager not found in BaseController!");
-        if (TryGetComponent(out _botManager) == false)
-        {
-            _botManager = GetComponentInChildren<BotManager>();// дочернийний объект
-            _botManager.BotCreated += OnBotCreated;
-        }
-        else
-            Debug.LogError("BotManager not found in BaseController!");
-
-        if (_itemSpawner == null)// внешний объект
-            Debug.LogError("ItemSpawner not assigned in BotManager!");
-
-        if (_resourceManager == null)// внешний объект
-            Debug.LogError("ResourceManager not assigned in BotManager!");
-    }
-
     private void Update()
     {
-        _debugTimer += Time.deltaTime;
-        if (_debugTimer >= 5f)
-        {
-            DebugLogBaseState();// temporarily (временно)
-            _debugTimer = 0f;
+        {// temporarily (временно)
+            _debugTimer += Time.deltaTime;
+            if (_debugTimer >= 5f)
+            {
+                // DebugLogBaseState();
+                _debugTimer = 0f;
+            }
         }
     }
 
@@ -88,26 +67,44 @@ public class BaseController : MonoBehaviour
         }
     }
 
+    private void InitializeDependencies()
+    {
+        if (TryGetComponent(out _zoneVisualizer) == false)
+            _zoneVisualizer = GetComponentInChildren<BaseZoneVisualizer>();// дочернийний объект
+
+        if (TryGetComponent(out _botManager) == false)
+        {
+            _botManager = GetComponentInChildren<BotManager>();// дочернийний объект
+            _botManager.BotCreated += OnBotCreated;
+        }
+        else
+            Debug.LogError("BotManager not found in BaseController!");
+
+        if (_itemSpawner == null)// внешний объект
+            Debug.LogError("ItemSpawner not assigned in BotManager!");
+
+        if (_resourceManager == null)// внешний объект
+            Debug.LogError("ResourceManager not assigned in BotManager!");
+    }
+
     private void OnBotCreated(Bot bot)
     {
         BotCreated?.Invoke(bot);
     }
 
     private void DebugLogBaseState()
-    {
-        if (_botManager != null)
-        {
-            Debug.Log($"=== BASE CONTROLLER STATE ===");
-            Debug.Log($"Collected Resources: {_collectedResources}");
-            Debug.Log($"Unload Zone Radius: {UnloadZoneRadius}");
-            Debug.Log($"Spawn Zone Radius: {SpawnZoneRadius}");
-            Debug.Log($"=============================");
+    { // ✅ СОКРАЩАЕМ: Только самая важная информация
+        Debug.Log($"Resources: {_collectedResources} | " +
+            $"Bots: {_botManager?.AvailableBotsCount}/{_botManager?.BotCount}");
+        //if (_botManager != null)
+        //{
+        //    //Debug.Log($"=== BASE CONTROLLER STATE ===");
+        //    //Debug.Log($"Collected Resources: {_collectedResources}");
+        //    //Debug.Log($"Unload Zone Radius: {UnloadZoneRadius}");
+        //    //Debug.Log($"Spawn Zone Radius: {SpawnZoneRadius}");
+        //    //Debug.Log($"=============================");
 
-            _botManager.DebugLogBotState();
-        }
+        //    //_botManager.DebugLogBotState();
+        //}
     }
-
-    // Делегирование управления визуализацией
-    public void SetZonesVisibility(bool visible) =>
-        _zoneVisualizer?.SetZonesVisibility(visible);
 }

@@ -16,6 +16,12 @@ public class ItemPool : MonoBehaviour
     public event System.Action<Item> ItemCreated;
     public event System.Action<Item> ItemReturned;
 
+    private void OnDestroy()
+    {
+        _availableItems.Clear();
+        _activeItems.Clear();
+    }
+
     public void Initialize(Item itemPrefab, int initialSize, int maxSize, Transform container = null)
     {
         _itemPrefab = itemPrefab;
@@ -106,15 +112,5 @@ public class ItemPool : MonoBehaviour
         GameObject container = new GameObject("ItemPool_Container");
         container.transform.SetParent(transform);
         return container.transform;
-    }
-
-    public int GetAvailableItemsCount() => _availableItems.Count;// Зачем ?
-    public int GetActiveItemsCount() => _activeItems.Count;// Зачем ?
-    public int GetTotalItemsCount() => _createdItemsCount;// Зачем ?
-
-    private void OnDestroy()
-    {
-        _availableItems.Clear();
-        _activeItems.Clear();
     }
 }

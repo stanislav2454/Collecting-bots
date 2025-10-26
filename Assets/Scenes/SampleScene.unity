@@ -703,6 +703,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _initialBotsCount: 3
+  _zoneVisualizer: {fileID: 1034017053}
   _botManager: {fileID: 1327456474}
   _itemSpawner: {fileID: 2122070370}
   _resourceManager: {fileID: 386589998}
@@ -831,9 +832,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _showZones: 0
-  _spawnZoneRadius: 3
+  _spawnZoneRadius: 9
   _unloadZoneRadius: 1.5
   _heightVisualizationZone: 0.1
+  _spawnZoneColor: {r: 0, g: 0, b: 1, a: 1}
+  _unloadZoneColor: {r: 0, g: 1, b: 0, a: 1}
 --- !u!1 &1327456473
 GameObject:
   m_ObjectHideFlags: 0
@@ -865,7 +868,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _initialBotsCount: 3
   _botPrefab: {fileID: 357538259168064287, guid: 5d0b0d834525a224c83acf4854c91ec6, type: 3}
-  _spawnZoneRadius: 3
   _baseController: {fileID: 978571041}
   _resourceManager: {fileID: 386589998}
   _assignmentManager: {fileID: 296904015}
@@ -970,8 +972,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1406071450}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.30070576, y: 0, z: 0, w: 0.953717}
-  m_LocalPosition: {x: 0, y: 10.75, z: -15.75}
+  m_LocalRotation: {x: 0.22958153, y: -0.38731936, z: 0.10022049, w: 0.887261}
+  m_LocalPosition: {x: 10.786434, y: 10.331734, z: -6.11275}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1213,6 +1215,8 @@ MonoBehaviour:
   _scanInterval: 1
   _showScannerZone: 0
   _scannerPrimitiveType: 0
+  _scannerZoneColor: {r: 0, g: 0, b: 1, a: 1}
+  _scannerZoneOpacity: 0.2
 --- !u!1 &1878174221
 GameObject:
   m_ObjectHideFlags: 0
@@ -1582,7 +1586,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2e5846c9a57aaf429f4af0ce3c1b93e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _showZone: 0
+  _showZone: 1
   _zoneColor: {r: 0, g: 1, b: 0, a: 1}
   _zoneOpacity: 0.3
   _primitiveType: 3

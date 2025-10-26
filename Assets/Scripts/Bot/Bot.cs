@@ -19,8 +19,7 @@ public class Bot : MonoBehaviour
     public BotInventory Inventory => _inventory;
     public Item AssignedResource => _currentAssignedResource;
     public float CollectionDuration => _collectionDuration;
-    public bool IsAvailable => _stateController.CurrentStateType == BotStateType.Idle ||
-                              _stateController.CurrentStateType == BotStateType.Waiting;
+    public bool IsAvailable => _stateController.CurrentStateType == BotStateType.Idle;
     public bool IsCarryingResource => _inventory != null && _inventory.HasItem;
     public BotStateType CurrentStateType => _stateController.CurrentStateType;
 
@@ -46,7 +45,7 @@ public class Bot : MonoBehaviour
 
     public void SetWaiting()
     {
-        ChangeState(new BotWaitingState());
+        ChangeState(new BotIdleState());
     }
 
     public void ChangeState(BotState newState)
@@ -56,10 +55,12 @@ public class Bot : MonoBehaviour
 
     public void CompleteMission(bool success)
     {
-        if (success)
-            _inventory.ClearInventory(this);
-        else
-            _inventory.ReleaseItem();
+        bool shouldRespawnResource = success == false;
+        _inventory.ClearInventory(prepareForRespawn: shouldRespawnResource);
+        //if (success)
+        //    _inventory.ClearInventory(this);
+        //else
+        //    _inventory.ReleaseItem();
 
         _currentAssignedResource = null;
         ChangeState(new BotIdleState());
@@ -84,6 +85,17 @@ public class Bot : MonoBehaviour
         ChangeState(new BotIdleState());
     }
 
+    private string GetStateIcon()
+    {
+        return CurrentStateType switch
+        {
+            BotStateType.Idle => "sv_icon_dot0_pix16_gizmo",
+            BotStateType.MovingToResource => "sv_icon_dot7_pix16_gizmo",
+            BotStateType.Collecting => "sv_icon_dot9_pix16_gizmo",
+            BotStateType.ReturningToBase => "sv_icon_dot10_pix16_gizmo",
+            _ => "sv_icon_dot0_pix16_gizmo"
+        };
+    }
 
     // ВИЗУАЛИЗАЦИЯ В SCENE VIEW
     private void OnDrawGizmos()
@@ -125,16 +137,20 @@ public class Bot : MonoBehaviour
             return;
 
         string stateText = $"{CurrentStateType}";
-        if (IsCarryingResource) stateText += " 📦";
-        if (_currentAssignedResource != null) stateText += $"\nTarget: {_currentAssignedResource.name}";
+
+        if (IsCarryingResource)
+            stateText += " 📦";
+
+        if (_currentAssignedResource != null)
+            stateText += $"\nTarget: {_currentAssignedResource.name}";
 
         GUIStyle style = new GUIStyle(GUI.skin.label);
         style.normal.textColor = GetStateColor();
         style.alignment = TextAnchor.MiddleCenter;
-        style.fontSize = 10;
+        style.fontSize = 15;
         style.fontStyle = FontStyle.Bold;
 
-        GUI.Label(new Rect(screenPos.x - 50, Screen.height - screenPos.y - 30, 100, 40), stateText, style);
+        GUI.Label(new Rect(screenPos.x - 50, Screen.height - screenPos.y - 30, 180, 70), stateText, style);
     }
 
     private Color GetStateColor()
@@ -142,24 +158,10 @@ public class Bot : MonoBehaviour
         return CurrentStateType switch
         {
             BotStateType.Idle => Color.gray,
-            BotStateType.Waiting => Color.blue,
             BotStateType.MovingToResource => Color.yellow,
             BotStateType.Collecting => Color.magenta,
             BotStateType.ReturningToBase => Color.cyan,
-            _ => Color.white
-        };
-    }
-
-    private string GetStateIcon()
-    {
-        return CurrentStateType switch
-        {
-            BotStateType.Idle => "sv_icon_dot0_pix16_gizmo",
-            BotStateType.Waiting => "sv_icon_dot3_pix16_gizmo",
-            BotStateType.MovingToResource => "sv_icon_dot7_pix16_gizmo",
-            BotStateType.Collecting => "sv_icon_dot9_pix16_gizmo",
-            BotStateType.ReturningToBase => "sv_icon_dot10_pix16_gizmo",
-            _ => "sv_icon_dot0_pix16_gizmo"
+            _ => Color.red
         };
     }
 }

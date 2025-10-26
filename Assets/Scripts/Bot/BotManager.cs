@@ -11,8 +11,8 @@ public class BotManager : MonoBehaviour
 
     [Header("Dependencies")]
     [SerializeField] private BaseController _baseController;
-    [SerializeField] private ResourceManager _resourceManager; 
-    [SerializeField] private ResourceAssignmentManager _assignmentManager; 
+    [SerializeField] private ResourceManager _resourceManager;
+    [SerializeField] private ResourceAssignmentManager _assignmentManager;
 
     private List<Bot> _bots = new List<Bot>();
 
@@ -27,6 +27,31 @@ public class BotManager : MonoBehaviour
     {
         ValidateDependencies();
         SpawnInitialBots();
+    }
+
+    public void AssignResourceToBot(Bot bot)
+    {
+        if (bot.IsAvailable && _assignmentManager.IsBotAssigned(bot) == false)
+        {
+            Item resource = _resourceManager?.GetNearestAvailableResource(bot.transform.position);
+
+            if (resource != null && _assignmentManager.TryAssignResourceToBot(resource, bot))
+                bot.AssignResource(resource, BasePosition, UnloadZoneRadius);
+        }
+    }
+
+    public void AssignBotToResource(Item resource)
+    {
+        if (resource == null || _assignmentManager.IsResourceAssigned(resource))
+            return;
+
+        var nearestBot = _bots
+            .Where(b => b.IsAvailable && _assignmentManager.IsBotAssigned(b) == false)
+            .OrderBy(b => (b.transform.position - resource.transform.position).sqrMagnitude)
+            .FirstOrDefault();
+
+        if (nearestBot != null && _assignmentManager.TryAssignResourceToBot(resource, nearestBot))
+            nearestBot.AssignResource(resource, BasePosition, UnloadZoneRadius);
     }
 
     private void ValidateDependencies()
@@ -77,31 +102,6 @@ public class BotManager : MonoBehaviour
             AssignResourceToBot(bot);
     }
 
-    public void AssignResourceToBot(Bot bot)
-    {
-        if (bot.IsAvailable && _assignmentManager.IsBotAssigned(bot) == false)
-        {
-            Item resource = _resourceManager?.GetNearestAvailableResource(bot.transform.position);
-
-            if (resource != null && _assignmentManager.TryAssignResourceToBot(resource, bot)) 
-                bot.AssignResource(resource, BasePosition, UnloadZoneRadius);
-        }
-    }
-
-    public void AssignBotToResource(Item resource)
-    {
-        if (resource == null || _assignmentManager.IsResourceAssigned(resource))
-            return;
-
-        var nearestBot = _bots
-            .Where(b => b.IsAvailable && _assignmentManager.IsBotAssigned(b) == false)
-            .OrderBy(b => (b.transform.position - resource.transform.position).sqrMagnitude)
-            .FirstOrDefault();
-
-        if (nearestBot != null && _assignmentManager.TryAssignResourceToBot(resource, nearestBot))
-            nearestBot.AssignResource(resource, BasePosition, UnloadZoneRadius);
-    }
-
     private void HandleBotMissionCompleted(Bot bot, bool success)
     {
         _assignmentManager.CompleteAssignment(bot, success);
@@ -120,17 +120,5 @@ public class BotManager : MonoBehaviour
             AssignResourceToBot(bot);
         else
             bot.SetWaiting();
-    }
-
-    public void DebugLogBotState()
-    {
-        int availableBots = _bots.Count(b => b.IsAvailable);
-        int assignedBots = _bots.Count(b => _assignmentManager.IsBotAssigned(b));
-
-        Debug.Log($"=== BOT MANAGER STATE ===");
-        Debug.Log($"Total Bots: {_bots.Count}");
-        Debug.Log($"Available Bots: {availableBots}");
-        Debug.Log($"Assigned Bots: {assignedBots}");
-        Debug.Log($"=========================");
     }
 }
