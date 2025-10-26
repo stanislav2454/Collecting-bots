@@ -77,7 +77,7 @@ public class ResourceScanner : ZoneVisualizer
 
         foreach (var collider in hitColliders)
         {
-            if (collider.TryGetComponent(out Item item) && item.CanBeCollected)
+            if (collider.TryGetComponent(out Item item))
             {
                 currentResources.Add(item);
 

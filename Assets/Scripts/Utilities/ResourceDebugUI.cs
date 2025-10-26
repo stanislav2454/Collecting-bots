@@ -29,16 +29,6 @@ public class ResourceDebugUI : MonoBehaviour
         UpdateDisplay();
     }
 
-    private void FindDependencies()
-    {
-        _itemSpawner = FindObjectOfType<ItemSpawner>();
-        _itemPool = FindObjectOfType<ItemPool>();
-
-        if (_resourceManager == null) Debug.LogWarning("ResourceManager not found!");
-        if (_itemSpawner == null) Debug.LogWarning("ItemSpawner not found!");
-        if (_itemPool == null) Debug.LogWarning("ItemPool not found!");
-    }
-
     private void Update()
     {
         _timer += Time.deltaTime;
@@ -47,6 +37,16 @@ public class ResourceDebugUI : MonoBehaviour
             UpdateDisplay();
             _timer = 0f;
         }
+    }
+
+    private void FindDependencies()
+    {
+        _itemSpawner = FindObjectOfType<ItemSpawner>();
+        _itemPool = FindObjectOfType<ItemPool>();
+
+        if (_resourceManager == null) Debug.LogWarning("ResourceManager not found!");
+        if (_itemSpawner == null) Debug.LogWarning("ItemSpawner not found!");
+        if (_itemPool == null) Debug.LogWarning("ItemPool not found!");
     }
 
     private void UpdateDisplay()
@@ -106,12 +106,12 @@ public class ResourceDebugUI : MonoBehaviour
 
                 if (!item.gameObject.activeInHierarchy)
                     status = "В ПУЛЕ";
-                else if (!item.CanBeCollected)
-                    status = "СОБРАН";
-                else if (_resourceManager != null && _resourceManager.ReservedResourcesCount > 0)
+                else if (_resourceManager != null && _resourceManager.IsResourceReserved(item))
                     status = "ЗАНЯТ";
-                else
+                else if (_resourceManager != null && _resourceManager.IsResourceFree(item))
                     status = "СВОБОДЕН";
+                else
+                    status = "АКТИВЕН";
 
                 result[item] = $"{status}: {item.name} at {item.transform.position}";
             }
@@ -136,26 +136,6 @@ public class ResourceDebugUI : MonoBehaviour
     {
         if (_itemPool == null) return 0;
         return _itemPool.transform.childCount;
-    }
-
-    private List<Vector3> GetFirstResourcePositions(int maxCount)
-    {
-        List<Vector3> positions = new List<Vector3>();
-        Item[] allItems = FindObjectsOfType<Item>();
-
-        int count = 0;
-        foreach (var item in allItems)
-        {
-            if (item != null && item.gameObject.activeInHierarchy)
-            {
-                positions.Add(item.transform.position);
-                count++;
-                if (count >= maxCount)
-                    break;
-            }
-        }
-
-        return positions;
     }
 
     public void LogCurrentState()

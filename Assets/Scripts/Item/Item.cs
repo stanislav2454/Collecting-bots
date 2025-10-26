@@ -10,7 +10,6 @@ public class Item : MonoBehaviour
 
     [field: Header("Item Settings")]
     [field: SerializeField] public int Value { get; private set; } = 1;
-    public bool CanBeCollected { get; private set; } = true;//- У ресурса не должно быть CanBeCollected. 
 
     private void Awake()
     {
@@ -20,10 +19,6 @@ public class Item : MonoBehaviour
 
     public void Collect()
     {
-        if (CanBeCollected == false)
-            return;
-
-        CanBeCollected = false;
         Collected?.Invoke(this);
     }
 
@@ -37,7 +32,6 @@ public class Item : MonoBehaviour
 
     public void PrepareForRespawn()
     {
-        CanBeCollected = true;
         transform.SetParent(null);
         gameObject.SetActive(true);
 

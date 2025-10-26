@@ -7,7 +7,6 @@ using System.Collections.Generic;
 public class Bot : MonoBehaviour
 {
     [field: Header("Bot Settings")]
-    // [SerializeField] private float CollectionDuration = 1f;
     [field: SerializeField] public float CollectionDuration { get; private set; } = 1f;
 
     [Header("State Visualization")]
@@ -24,7 +23,7 @@ public class Bot : MonoBehaviour
     private BotStateController _stateController;
     private Dictionary<BotStateType, StateVisualData> _stateVisualMap;
 
-    private Color _currentStateColor;
+    private Color _currentStateColor;//
     private string _currentStateIcon;
 
     public event Action<Bot, bool> MissionCompleted;
@@ -131,28 +130,13 @@ public class Bot : MonoBehaviour
         }
     }
 
-    private Color GetStateColor()
-    {
-        if (_stateVisualMap.TryGetValue(CurrentStateType, out StateVisualData data))
-            return data.Color;
-        return Color.white;
-    }
-
-    private string GetStateIcon()
-    {
-        if (_stateVisualMap.TryGetValue(CurrentStateType, out StateVisualData data))
-            return data.IconName;
-        return "sv_icon_dot0_pix16_gizmo";
-    }
-
-    // ВИЗУАЛИЗАЦИЯ В SCENE VIEW
+    // ВИЗУАЛИЗАЦИЯ В SCENE VIEW // вынести в отдельный класс
     private void OnDrawGizmos()
     {
         if (Application.isPlaying == false)
             return;
 
-        Color stateColor = GetStateColor();//
-        Gizmos.color = stateColor;
+        Gizmos.color = _currentStateColor;
 
         Vector3 iconPosition = transform.position + Vector3.up * 3f;
         Gizmos.DrawIcon(iconPosition, _currentStateIcon, true);
@@ -163,7 +147,7 @@ public class Bot : MonoBehaviour
             Gizmos.DrawLine(transform.position + Vector3.up, _movement.transform.position + Vector3.up);
         }
 
-        Gizmos.color = stateColor;
+        Gizmos.color = _currentStateColor;
         Gizmos.DrawWireSphere(transform.position + Vector3.up * 0.1f, 0.5f);
 
         if (IsCarryingResource)
@@ -173,7 +157,7 @@ public class Bot : MonoBehaviour
         }
     }
 
-    // ВИЗУАЛИЗАЦИЯ ДЛЯ GAME VIEW 
+    // ВИЗУАЛИЗАЦИЯ ДЛЯ GAME VIEW // вынести в отдельный класс
     private void OnGUI()
     {
         if (Application.isPlaying == false)
@@ -193,7 +177,7 @@ public class Bot : MonoBehaviour
             stateText += $"\nTarget: {AssignedResource.name}";
 
         GUIStyle style = new GUIStyle(GUI.skin.label);
-        style.normal.textColor = GetStateColor();//
+        style.normal.textColor = _currentStateColor;
         style.alignment = TextAnchor.MiddleCenter;
         style.fontSize = 15;
         style.fontStyle = FontStyle.Bold;

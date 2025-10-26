@@ -54,7 +54,7 @@ public abstract class BotState
     public virtual void Exit(Bot bot) { }
 
     protected bool IsResourceValid(Item resource) =>
-         resource != null && resource.CanBeCollected && resource.gameObject.activeInHierarchy;
+         resource != null && resource.gameObject.activeInHierarchy;
 
     protected bool CheckDestinationReached(Bot bot, ref float checkTimer, float checkInterval = 0.2f)
     {

@@ -41,7 +41,7 @@ public class ResourceManager : MonoBehaviour
 
         _reservedResources.Remove(resource);
 
-        if (resource.gameObject.activeInHierarchy && resource.CanBeCollected)
+        if (resource.gameObject.activeInHierarchy)
         {
             _freeResources.Add(resource);
             UpdateResourcePosition(resource);
@@ -106,6 +106,12 @@ public class ResourceManager : MonoBehaviour
         if (resource != null)
             _resourcePositions[resource] = resource.transform.position;
     }
+
+    public bool IsResourceReserved(Item resource) =>
+        _reservedResources.Contains(resource);
+
+    public bool IsResourceFree(Item resource) =>
+        _freeResources.Contains(resource);
 
     private void OnDrawGizmos()
     {

@@ -390,51 +390,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!1 &296904014
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 296904016}
-  - component: {fileID: 296904015}
-  m_Layer: 0
-  m_Name: ResourceAssignmentManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &296904015
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 296904014}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9cba7bdca2af484197157026323d67e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _resourceManager: {fileID: 386589998}
---- !u!4 &296904016
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 296904014}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 978571040}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &386589997
 GameObject:
   m_ObjectHideFlags: 0
@@ -671,7 +626,6 @@ Transform:
   - {fileID: 1034017052}
   - {fileID: 1327456475}
   - {fileID: 1867040160}
-  - {fileID: 296904016}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &978571041
@@ -816,11 +770,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _showZones: 0
-  _spawnZoneRadius: 9
   _unloadZoneRadius: 1.5
   _heightVisualizationZone: 0.1
   _spawnZoneColor: {r: 0, g: 0, b: 1, a: 1}
   _unloadZoneColor: {r: 0, g: 1, b: 0, a: 1}
+  <SpawnZoneRadius>k__BackingField: 3
 --- !u!1 &1327456473
 GameObject:
   m_ObjectHideFlags: 0
@@ -854,7 +808,6 @@ MonoBehaviour:
   _botPrefab: {fileID: 357538259168064287, guid: 5d0b0d834525a224c83acf4854c91ec6, type: 3}
   _baseController: {fileID: 978571041}
   _resourceManager: {fileID: 386589998}
-  _assignmentManager: {fileID: 296904015}
 --- !u!4 &1327456475
 Transform:
   m_ObjectHideFlags: 0
