@@ -141,7 +141,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed2911faae94b124cb47732635b11d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _collectionDuration: 1
+  _collectionDuration: 0.3
+  _stateVisualData:
+  - StateType: 0
+    Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    IconName: sv_icon_dot0_pix16_gizmo
+  - StateType: 1
+    Color: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    IconName: sv_icon_dot7_pix16_gizmo
+  - StateType: 2
+    Color: {r: 1, g: 0, b: 1, a: 1}
+    IconName: sv_icon_dot9_pix16_gizmo
+  - StateType: 3
+    Color: {r: 0, g: 1, b: 1, a: 1}
+    IconName: sv_icon_dot10_pix16_gizmo
 --- !u!114 &8039361809418053208
 MonoBehaviour:
   m_ObjectHideFlags: 0

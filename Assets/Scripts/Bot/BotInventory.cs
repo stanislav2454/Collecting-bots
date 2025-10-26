@@ -5,21 +5,19 @@ public class BotInventory : MonoBehaviour
 {
     [SerializeField] private int _maxCapacity = 1;
 
-    private Item _carriedItem;
-
     public event Action ItemAdded;
     public event Action InventoryCleared;
 
-    public bool HasItem => _carriedItem != null;
+    public bool HasItem => CarriedItem != null;
     public bool IsFull => HasItem;
-    public Item GetCarriedItem => _carriedItem;
+    public Item CarriedItem { get; private set; }
 
     public bool TryAddItem(Item item)
     {
         if (IsFull || item == null)
             return false;
 
-        _carriedItem = item;
+        CarriedItem = item;
         item.AttachToBot(transform);
         ItemAdded?.Invoke();
 
@@ -28,13 +26,13 @@ public class BotInventory : MonoBehaviour
 
     public void ClearInventory(bool prepareForRespawn = false)
     {
-        if (_carriedItem != null)
+        if (CarriedItem != null)
         {
             if (prepareForRespawn)
-                _carriedItem.PrepareForRespawn();
+                CarriedItem.PrepareForRespawn();
 
-            _carriedItem.transform.SetParent(null);
-            _carriedItem = null;
+            CarriedItem.transform.SetParent(null);
+            CarriedItem = null;
             InventoryCleared?.Invoke();
         }
     }

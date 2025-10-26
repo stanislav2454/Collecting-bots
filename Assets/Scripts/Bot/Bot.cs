@@ -1,31 +1,48 @@
 ﻿using UnityEngine;
 using UnityEngine.AI;
 using System;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(NavMeshAgent), typeof(BotInventory))]
 public class Bot : MonoBehaviour
 {
-    [Header("Bot Settings")]
-    [SerializeField] private float _collectionDuration = 1f;
+    [field: Header("Bot Settings")]
+    // [SerializeField] private float CollectionDuration = 1f;
+    [field: SerializeField] public float CollectionDuration { get; private set; } = 1f;
+
+    [Header("State Visualization")]
+    [SerializeField]
+    private List<StateVisualData> _stateVisualData = new List<StateVisualData>
+    {
+        new StateVisualData { StateType = BotStateType.Idle, Color = Color.gray, IconName = "sv_icon_dot0_pix16_gizmo" },
+        new StateVisualData { StateType = BotStateType.MovingToResource, Color = Color.yellow, IconName = "sv_icon_dot7_pix16_gizmo" },
+        new StateVisualData { StateType = BotStateType.Collecting, Color = Color.magenta, IconName = "sv_icon_dot9_pix16_gizmo" },
+        new StateVisualData { StateType = BotStateType.ReturningToBase, Color = Color.cyan, IconName = "sv_icon_dot10_pix16_gizmo" }
+    };
 
     private BotMovementController _movement;
-    private BotInventory _inventory;
     private BotStateController _stateController;
+    private Dictionary<BotStateType, StateVisualData> _stateVisualMap;
 
-    private Item _currentAssignedResource;
+    //private Color _currentStateColor;
+    //private string _currentStateIcon;
 
     public event Action<Bot, bool> MissionCompleted;
 
-    public BotInventory Inventory => _inventory;
-    public Item AssignedResource => _currentAssignedResource;
-    public float CollectionDuration => _collectionDuration;
+    public BotInventory Inventory { get; private set; }
+    public Item AssignedResource { get; private set; }
+    //  public float CollectionDuration => CollectionDuration;
     public bool IsAvailable => _stateController.CurrentStateType == BotStateType.Idle;
-    public bool IsCarryingResource => _inventory != null && _inventory.HasItem;
+    public bool IsCarryingResource => Inventory != null && Inventory.HasItem;
     public BotStateType CurrentStateType => _stateController.CurrentStateType;
 
     private void Awake()
     {
         InitializeComponents();
+        InitializeStateVisualMap();
+        UpdateVisualizationCache();
+
+        _stateController.StateChanged += UpdateVisualizationCache;
     }
 
     private void Update()
@@ -33,13 +50,21 @@ public class Bot : MonoBehaviour
         _stateController.UpdateState(this);
     }
 
+    private void OnDestroy()
+    {
+        if (MissionCompleted != null)
+            foreach (var handler in MissionCompleted.GetInvocationList())
+                MissionCompleted -= (Action<Bot, bool>)handler;
+
+        _stateController.StateChanged -= UpdateVisualizationCache;
+    }
 
     public void AssignResource(Item resource, Vector3 basePosition, float baseRadius)
     {
         if (IsAvailable == false)
             return;
 
-        _currentAssignedResource = resource;
+        AssignedResource = resource;
         ChangeState(new BotMovingToResourceState(resource, basePosition, baseRadius));
     }
 
@@ -56,8 +81,9 @@ public class Bot : MonoBehaviour
     public void CompleteMission(bool success)
     {
         bool shouldRespawnResource = success == false;
-        _inventory.ClearInventory(prepareForRespawn: shouldRespawnResource);
-        _currentAssignedResource = null;
+        Inventory.ClearInventory(prepareForRespawn: shouldRespawnResource);
+
+        AssignedResource = null;
         ChangeState(new BotIdleState());
         MissionCompleted?.Invoke(this, success);
     }
@@ -74,22 +100,49 @@ public class Bot : MonoBehaviour
     private void InitializeComponents()
     {
         TryGetComponent(out _movement);
-        TryGetComponent(out _inventory);
+
+        BotInventory inventory;
+        if (TryGetComponent(out inventory))
+            Inventory = inventory;
 
         _stateController = new BotStateController();
         ChangeState(new BotIdleState());
     }
 
+    private void InitializeStateVisualMap()
+    {
+        _stateVisualMap = new Dictionary<BotStateType, StateVisualData>();
+
+        foreach (var data in _stateVisualData)
+            _stateVisualMap[data.StateType] = data;
+    }
+
+    private void UpdateVisualizationCache()
+    {
+        if (_stateVisualMap.TryGetValue(CurrentStateType, out StateVisualData data))
+        {
+            _currentStateColor = data.Color;
+            _currentStateIcon = data.IconName;
+        }
+        else
+        {
+            _currentStateColor = Color.white;
+            _currentStateIcon = "sv_icon_dot0_pix16_gizmo";
+        }
+    }
+
+    private Color GetStateColor()
+    {
+        if (_stateVisualMap.TryGetValue(CurrentStateType, out StateVisualData data))
+            return data.Color;
+        return Color.white;
+    }
+
     private string GetStateIcon()
     {
-        return CurrentStateType switch
-        {
-            BotStateType.Idle => "sv_icon_dot0_pix16_gizmo",
-            BotStateType.MovingToResource => "sv_icon_dot7_pix16_gizmo",
-            BotStateType.Collecting => "sv_icon_dot9_pix16_gizmo",
-            BotStateType.ReturningToBase => "sv_icon_dot10_pix16_gizmo",
-            _ => "sv_icon_dot0_pix16_gizmo"
-        };
+        if (_stateVisualMap.TryGetValue(CurrentStateType, out StateVisualData data))
+            return data.IconName;
+        return "sv_icon_dot0_pix16_gizmo";
     }
 
     // ВИЗУАЛИЗАЦИЯ В SCENE VIEW
@@ -98,11 +151,11 @@ public class Bot : MonoBehaviour
         if (Application.isPlaying == false)
             return;
 
-        Color stateColor = GetStateColor();
+        Color stateColor = GetStateColor();//
         Gizmos.color = stateColor;
 
         Vector3 iconPosition = transform.position + Vector3.up * 3f;
-        Gizmos.DrawIcon(iconPosition, GetStateIcon(), true);
+        Gizmos.DrawIcon(iconPosition, _currentStateIcon, true);
 
         if (_movement != null && _movement.IsMoving)
         {
@@ -136,29 +189,25 @@ public class Bot : MonoBehaviour
         if (IsCarryingResource)
             stateText += " 📦";
 
-        if (_currentAssignedResource != null)
-            stateText += $"\nTarget: {_currentAssignedResource.name}";
+        if (AssignedResource != null)
+            stateText += $"\nTarget: {AssignedResource.name}";
 
         GUIStyle style = new GUIStyle(GUI.skin.label);
-        style.normal.textColor = GetStateColor();
+        style.normal.textColor = GetStateColor();//
         style.alignment = TextAnchor.MiddleCenter;
         style.fontSize = 15;
         style.fontStyle = FontStyle.Bold;
 
         GUI.Label(new Rect(screenPos.x - 50, Screen.height - screenPos.y - 30, 180, 70), stateText, style);
     }
+}
 
-    private Color GetStateColor()
-    {
-        return CurrentStateType switch
-        {
-            BotStateType.Idle => Color.gray,
-            BotStateType.MovingToResource => Color.yellow,
-            BotStateType.Collecting => Color.magenta,
-            BotStateType.ReturningToBase => Color.cyan,
-            _ => Color.red
-        };
-    }
+[Serializable]
+public class StateVisualData
+{
+    public BotStateType StateType;
+    public Color Color;
+    public string IconName;
 }
 
 public static class BotConstants

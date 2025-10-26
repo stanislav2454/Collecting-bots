@@ -40,10 +40,10 @@ public class BaseController : MonoBehaviour
     {
         if (bot.IsCarryingResource)
         {
-            var item = bot.Inventory.GetCarriedItem;
+            var item = bot.Inventory.CarriedItem;
             if (item != null)
             {
-                _collectedResources += item.GetValue;
+                _collectedResources += item.Value;
                 ResourceCollected?.Invoke(_collectedResources);
                 _resourceManager?.MarkAsCollected(item);
             }

@@ -56,10 +56,11 @@ public class ResourceManager : MonoBehaviour
 
         _freeResources.Remove(resource);
         _reservedResources.Remove(resource);
-        _allResources.Add(resource);
+        _allResources.Remove(resource); // Убираем из всех коллекций перед добавлением
+        _allResources.Add(resource);// ✅ УПРОЩЕНО: Добавляем всегда, если ресурс активен
 
-        if (resource.CanBeCollected && resource.gameObject.activeInHierarchy)
-        {
+        if (resource.gameObject.activeInHierarchy)
+        {//"У ресурса не должно быть CanBeCollected" 4. Упрощаем ResourceManager (убираем проверки CanBeCollected)
             _freeResources.Add(resource);
             UpdateResourcePosition(resource);
             ResourceBecameAvailable?.Invoke(resource);
@@ -83,7 +84,7 @@ public class ResourceManager : MonoBehaviour
 
         foreach (var resource in _freeResources)
         {
-            if (resource == null || resource.CanBeCollected == false)
+            if (resource == null) // ✅ УПРОЩЕНО: Только проверка на null
                 continue;
 
             if (_resourcePositions.TryGetValue(resource, out Vector3 resourcePosition))

@@ -3,16 +3,14 @@ using System;
 
 public class Item : MonoBehaviour
 {
-    [Header("Item Settings")]
-    [SerializeField] private int _value = 1;
-
     private Renderer _itemRenderer;
     private Collider _itemCollider;
 
     public event Action<Item> Collected;
 
-    public bool CanBeCollected { get; private set; } = true;
-    public int GetValue => _value;
+    [field: Header("Item Settings")]
+    [field: SerializeField] public int Value { get; private set; } = 1;
+    public bool CanBeCollected { get; private set; } = true;//- У ресурса не должно быть CanBeCollected. 
 
     private void Awake()
     {

@@ -3,25 +3,37 @@ using UnityEngine;
 
 public class BotStateController
 {
+    public event Action StateChanged;
+
     private BotState _currentState;
-    private BotStateType _currentStateType;
+    private bool _stateChanged;
 
-    public event Action<BotStateType> StateChanged;
+    public BotStateType CurrentStateType => _currentState?.StateType ?? BotStateType.Idle;
+    public bool StateChange => _stateChanged;
+    //private BotState _currentState;
+    //private BotStateType _currentStateType;
 
-    public BotStateType CurrentStateType => _currentStateType;
+    //public event Action<BotStateType> StateChanged;
+
+    //public BotStateType CurrentStateType => _currentStateType;
 
     public void ChangeState(BotState newState, Bot bot)
     {
+        //_currentState?.Exit(bot);
+        //_currentState = newState;
+        //_currentStateType = newState.StateType;
+        //_currentState?.Enter(bot);
         _currentState?.Exit(bot);
         _currentState = newState;
-        _currentStateType = newState.StateType;
-        _currentState?.Enter(bot);
-
-        StateChanged?.Invoke(_currentStateType);
+        _currentState.Enter(bot);
+        _stateChanged = true;
+        StateChanged?.Invoke();
+        //StateChanged?.Invoke(_currentStateType);
     }
 
     public void UpdateState(Bot bot)
     {
+        _stateChanged = false;
         _currentState?.Update(bot);
     }
 }
