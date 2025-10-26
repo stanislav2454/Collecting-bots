@@ -121,15 +121,6 @@ public class ResourceScanner : ZoneVisualizer
         }
     }
 
-    public void SetScannerZoneVisible(bool visible)
-    {
-        _showScannerZone = visible;
-
-        if (_scannerZoneVisualizer != null)
-            _scannerZoneVisualizer.SetZoneVisible(_showScannerZone);
-    }
-
-
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.blue;

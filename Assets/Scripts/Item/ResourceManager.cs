@@ -100,12 +100,6 @@ public class ResourceManager : MonoBehaviour
         return nearestResource;
     }
 
-    public void RefreshResourcePosition(Item resource)// если не нужен - удалить !
-    {
-        if (resource != null && _allResources.Contains(resource))
-            UpdateResourcePosition(resource);
-    }
-
     private void UpdateResourcePosition(Item resource)
     {
         if (resource != null)

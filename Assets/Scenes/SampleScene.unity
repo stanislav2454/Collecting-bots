@@ -445,7 +445,6 @@ GameObject:
   m_Component:
   - component: {fileID: 386589999}
   - component: {fileID: 386589998}
-  - component: {fileID: 386590000}
   m_Layer: 0
   m_Name: ResourceManager
   m_TagString: Untagged
@@ -481,21 +480,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &386590000
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 386589997}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba08bfe4f17640645b3e400120f6deb7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _resourceManager: {fileID: 386589998}
-  _debugText: {fileID: 574098764}
-  _updateInterval: 1
 --- !u!1 &574098761
 GameObject:
   m_ObjectHideFlags: 0
@@ -1450,13 +1434,14 @@ GameObject:
   - component: {fileID: 2065061982}
   - component: {fileID: 2065061981}
   - component: {fileID: 2065061980}
+  - component: {fileID: 2065061984}
   m_Layer: 5
-  m_Name: Canvas - Overlay
+  m_Name: DebugCanvas - Overlay
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &2065061980
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1540,6 +1525,21 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &2065061984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2065061979}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba08bfe4f17640645b3e400120f6deb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _resourceManager: {fileID: 386589998}
+  _debugText: {fileID: 574098764}
+  _updateInterval: 1
 --- !u!1 &2122070368
 GameObject:
   m_ObjectHideFlags: 0
@@ -1591,9 +1591,8 @@ MonoBehaviour:
   _zoneOpacity: 0.3
   _primitiveType: 3
   _itemPrefab: {fileID: 1762044928646761028, guid: e4a9c00e05714f44b93093aebfa122d9, type: 3}
-  _initialItemsCount: 3
-  _autoSpawnInterval: 3
-  _respawnDelay: 60
+  _initialItemsCount: 5
+  _respawnDelay: 12.2
   _spawnAreaSize: {x: 20, y: 0.02, z: 20}
   _itemPool: {fileID: 2122070371}
   _resourceManager: {fileID: 386589998}

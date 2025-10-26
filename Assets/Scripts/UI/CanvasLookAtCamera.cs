@@ -36,7 +36,8 @@ public class CanvasLookAtCamera : MonoBehaviour
 
         if (directionToCamera != Vector3.zero)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(_reverseForward ? -directionToCamera : directionToCamera);
+            Quaternion targetRotation = Quaternion.LookRotation(_reverseForward ? 
+                                        -directionToCamera : directionToCamera);
             transform.rotation = targetRotation;
         }
     }

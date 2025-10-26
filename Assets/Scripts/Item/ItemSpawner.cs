@@ -68,7 +68,9 @@ public class ItemSpawner : ZoneVisualizer
             _resourceManager?.RegisterResource(item);
         }
         else if (item != null && _itemPool != null)
+        {
             _itemPool.ReturnItem(item);
+        }
     }
 
     private void InitializeItemPool()

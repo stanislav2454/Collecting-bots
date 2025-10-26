@@ -13,7 +13,6 @@ public class BotMovementController : MonoBehaviour
     private float _sqrTargetChangeThreshold;
 
     public bool IsMoving => _navMeshAgent.hasPath && _navMeshAgent.isStopped == false;
-    public float RemainingDistance => _navMeshAgent.remainingDistance;
 
     private void Awake()
     {

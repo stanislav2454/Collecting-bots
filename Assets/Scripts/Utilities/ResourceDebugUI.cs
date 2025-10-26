@@ -2,9 +2,9 @@
 using TMPro;
 using System.Collections.Generic;
 
-public class ResourceDebugUI : MonoBehaviour// после отладки удалить или поместить в некомпилируемый блок.
+public class ResourceDebugUI : MonoBehaviour
 {
-    [SerializeField] private ResourceManager _resourceManager; 
+    [SerializeField] private ResourceManager _resourceManager;
 
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI _debugText;
@@ -26,7 +26,7 @@ public class ResourceDebugUI : MonoBehaviour// после отладки уда�
             return;
         }
 
-        UpdateDisplay(); 
+        UpdateDisplay();
     }
 
     private void FindDependencies()
@@ -68,25 +68,25 @@ public class ResourceDebugUI : MonoBehaviour// после отладки уда�
             debugInfo += $"  Занятые: {_resourceManager.ReservedResourcesCount}\n";
             debugInfo += $"  Всего управляется: {_resourceManager.TotalResourcesCount}\n";
         }
-        else        
-            debugInfo += "ResourceManager: НЕ НАЙДЕН\n";        
+        else
+            debugInfo += "ResourceManager: НЕ НАЙДЕН\n";
 
         // 3. Состояние спавнера
-        if (_itemSpawner != null)        
-            debugInfo += $"Спавнер: {_itemSpawner.GetSpawnedItemsCount()}/{_itemSpawner.GetMaxActiveItems()}\n";        
-        else        
-            debugInfo += "Спавнер: НЕ НАЙДЕН\n";        
+        if (_itemSpawner != null)
+            debugInfo += $"Спавнер: {_itemSpawner.GetSpawnedItemsCount()}/{_itemSpawner.GetMaxActiveItems()}\n";
+        else
+            debugInfo += "Спавнер: НЕ НАЙДЕН\n";
 
         // 4. Состояние пула
-        if (_itemPool != null)        
-            debugInfo += $"В пуле: {CountItemsInPool()}\n";        
-        else        
-            debugInfo += "Пул: НЕ НАЙДЕН\n";        
+        if (_itemPool != null)
+            debugInfo += $"В пуле: {CountItemsInPool()}\n";
+        else
+            debugInfo += "Пул: НЕ НАЙДЕН\n";
 
         // 5. Позиции ВСЕХ ресурсов с их статусом
         debugInfo += "\n=== ВСЕ РЕСУРСЫ ===\n";
         Dictionary<Item, string> allResourcesWithStatus = GetAllResourcesWithStatus();
-        
+
         foreach (var kvp in allResourcesWithStatus)
             debugInfo += $"{kvp.Value}\n";
 
@@ -123,12 +123,12 @@ public class ResourceDebugUI : MonoBehaviour// после отладки уда�
     private int CountActiveResourcesOnScene()
     {
         int count = 0;
-        Item[] allItems = FindObjectsOfType<Item>(true); 
+        Item[] allItems = FindObjectsOfType<Item>(true);
 
-        foreach (var item in allItems)        
-            if (item != null && item.gameObject.activeInHierarchy)            
-                count++;                 
-        
+        foreach (var item in allItems)
+            if (item != null && item.gameObject.activeInHierarchy)
+                count++;
+
         return count;
     }
 
@@ -150,7 +150,7 @@ public class ResourceDebugUI : MonoBehaviour// после отладки уда�
             {
                 positions.Add(item.transform.position);
                 count++;
-                if (count >= maxCount) 
+                if (count >= maxCount)
                     break;
             }
         }
@@ -163,10 +163,10 @@ public class ResourceDebugUI : MonoBehaviour// после отладки уда�
         Debug.Log("=== ResourceDebugUI State ===");
         Debug.Log($"Ресурсов на сцене: {CountActiveResourcesOnScene()}");
 
-        if (_resourceManager != null)        
-            Debug.Log($"ResourceManager - Свободные: {_resourceManager.FreeResourcesCount}, Занятые: {_resourceManager.ReservedResourcesCount}");        
+        if (_resourceManager != null)
+            Debug.Log($"ResourceManager - Свободные: {_resourceManager.FreeResourcesCount}, Занятые: {_resourceManager.ReservedResourcesCount}");
 
-        if (_itemSpawner != null)        
-            Debug.Log($"Спавнер - Активные: {_itemSpawner.GetSpawnedItemsCount()}/{_itemSpawner.GetMaxActiveItems()}");        
+        if (_itemSpawner != null)
+            Debug.Log($"Спавнер - Активные: {_itemSpawner.GetSpawnedItemsCount()}/{_itemSpawner.GetMaxActiveItems()}");
     }
 }

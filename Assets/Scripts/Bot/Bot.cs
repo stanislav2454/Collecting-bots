@@ -57,11 +57,6 @@ public class Bot : MonoBehaviour
     {
         bool shouldRespawnResource = success == false;
         _inventory.ClearInventory(prepareForRespawn: shouldRespawnResource);
-        //if (success)
-        //    _inventory.ClearInventory(this);
-        //else
-        //    _inventory.ReleaseItem();
-
         _currentAssignedResource = null;
         ChangeState(new BotIdleState());
         MissionCompleted?.Invoke(this, success);
@@ -125,7 +120,7 @@ public class Bot : MonoBehaviour
         }
     }
 
-    // ВИЗУАЛИЗАЦИЯ ДЛЯ GAME VIEW (в мире)
+    // ВИЗУАЛИЗАЦИЯ ДЛЯ GAME VIEW 
     private void OnGUI()
     {
         if (Application.isPlaying == false)

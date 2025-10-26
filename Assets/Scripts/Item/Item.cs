@@ -49,11 +49,4 @@ public class Item : MonoBehaviour
         if (_itemCollider != null)
             _itemCollider.enabled = true;
     }
-
-    public void ResetForPool()// если не нужен - удалить !
-    {
-        CanBeCollected = true;
-        transform.SetParent(null);
-        gameObject.SetActive(false);
-    }
 }
