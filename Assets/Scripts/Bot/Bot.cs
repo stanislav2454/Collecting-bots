@@ -6,9 +6,6 @@ using System.Collections.Generic;
 [RequireComponent(typeof(NavMeshAgent), typeof(BotInventory))]
 public class Bot : MonoBehaviour
 {
-    [field: Header("Bot Settings")]
-    [field: SerializeField] public float CollectionDuration { get; private set; } = 1f;
-
     [Header("State Visualization")]
     [SerializeField]
     private List<StateVisualData> _stateVisualData = new List<StateVisualData>
@@ -23,14 +20,15 @@ public class Bot : MonoBehaviour
     private BotStateController _stateController;
     private Dictionary<BotStateType, StateVisualData> _stateVisualMap;
 
-    private Color _currentStateColor;//
+    private Color _currentStateColor;
     private string _currentStateIcon;
 
     public event Action<Bot, bool> MissionCompleted;
 
+    [field: Header("Bot Settings")]
+    [field: SerializeField] public float CollectionDuration { get; private set; } = 1f;
     public BotInventory Inventory { get; private set; }
     public Item AssignedResource { get; private set; }
-    //  public float CollectionDuration => CollectionDuration;
     public bool IsAvailable => _stateController.CurrentStateType == BotStateType.Idle;
     public bool IsCarryingResource => Inventory != null && Inventory.HasItem;
     public BotStateType CurrentStateType => _stateController.CurrentStateType;

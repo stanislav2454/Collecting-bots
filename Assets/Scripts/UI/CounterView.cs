@@ -14,5 +14,5 @@ public class CounterView : MonoBehaviour
         _counter.CounterChanged -= ShowCounterValue;
 
     private void ShowCounterValue() =>
-        _counterText.text = $"Собранные ресурсы: {_counter.CurrentCounterValue}";
+        _counterText.text = $"Собранные ресурсы: {_counter.CurrentValue}";
 }

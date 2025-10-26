@@ -4,18 +4,16 @@ public class BaseZoneVisualizer : MonoBehaviour
 {
     [Header("Base Zones")]
     [SerializeField] private bool _showZones = true;
-    //[SerializeField] private float SpawnZoneRadius = 3f;
-    [SerializeField] private float _unloadZoneRadius = 1.5f;
     [SerializeField] private float _heightVisualizationZone = 0.1f;
     [SerializeField] private Color _spawnZoneColor = Color.blue;
     [SerializeField] private Color _unloadZoneColor = Color.green;
 
     private ZoneVisualizer _spawnZoneVisualizer;
     private ZoneVisualizer _unloadZoneVisualizer;
-    [field: SerializeField] public float SpawnZoneRadius { get; private set; } = 3f;
 
-    // public float SpawnZoneRadius => _spawnZoneRadius;
-    public float UnloadZoneRadius => _unloadZoneRadius;
+    [field: SerializeField] public float SpawnZoneRadius { get; private set; } = 3f;
+    [field: SerializeField] public float UnloadZoneRadius { get; private set; } = 1.5f;
+
 
     private void Start()
     {
@@ -43,7 +41,7 @@ public class BaseZoneVisualizer : MonoBehaviour
     private void ConfigureZoneVisualizers()
     {
         ApplyZoneVisualizationSettings(_spawnZoneVisualizer, SpawnZoneRadius, _spawnZoneColor);
-        ApplyZoneVisualizationSettings(_unloadZoneVisualizer, _unloadZoneRadius, _unloadZoneColor);
+        ApplyZoneVisualizationSettings(_unloadZoneVisualizer, UnloadZoneRadius, _unloadZoneColor);
     }
 
     private void ApplyZoneVisualizationSettings(ZoneVisualizer visualizer, float radius, Color color)

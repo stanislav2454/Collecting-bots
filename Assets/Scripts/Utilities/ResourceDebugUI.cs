@@ -73,7 +73,7 @@ public class ResourceDebugUI : MonoBehaviour
 
         // 3. Состояние спавнера
         if (_itemSpawner != null)
-            debugInfo += $"Спавнер: {_itemSpawner.GetSpawnedItemsCount()}/{_itemSpawner.GetMaxActiveItems()}\n";
+            debugInfo += $"Спавнер: {_itemSpawner.SpawnedItemsCount}/{_itemSpawner.MaxActiveItems}\n";
         else
             debugInfo += "Спавнер: НЕ НАЙДЕН\n";
 
@@ -147,6 +147,6 @@ public class ResourceDebugUI : MonoBehaviour
             Debug.Log($"ResourceManager - Свободные: {_resourceManager.FreeResourcesCount}, Занятые: {_resourceManager.ReservedResourcesCount}");
 
         if (_itemSpawner != null)
-            Debug.Log($"Спавнер - Активные: {_itemSpawner.GetSpawnedItemsCount()}/{_itemSpawner.GetMaxActiveItems()}");
+            Debug.Log($"Спавнер - Активные: {_itemSpawner.SpawnedItemsCount}/{_itemSpawner.MaxActiveItems}");
     }
 }

@@ -3,9 +3,6 @@ using System.Collections.Generic;
 
 public class ResourceManager : MonoBehaviour
 {
-    [Header("Resource Settings")]
-    [SerializeField] private int _maxActiveResources = 50;
-
     private HashSet<Item> _allResources = new HashSet<Item>();
     private HashSet<Item> _freeResources = new HashSet<Item>();
     private HashSet<Item> _reservedResources = new HashSet<Item>();
@@ -54,13 +51,10 @@ public class ResourceManager : MonoBehaviour
         if (resource == null)
             return;
 
-        _freeResources.Remove(resource);
-        _reservedResources.Remove(resource);
-        _allResources.Remove(resource); // Убираем из всех коллекций перед добавлением
-        _allResources.Add(resource);// ✅ УПРОЩЕНО: Добавляем всегда, если ресурс активен
+        _allResources.Add(resource);
 
         if (resource.gameObject.activeInHierarchy)
-        {//"У ресурса не должно быть CanBeCollected" 4. Упрощаем ResourceManager (убираем проверки CanBeCollected)
+        {
             _freeResources.Add(resource);
             UpdateResourcePosition(resource);
             ResourceBecameAvailable?.Invoke(resource);
@@ -84,7 +78,7 @@ public class ResourceManager : MonoBehaviour
 
         foreach (var resource in _freeResources)
         {
-            if (resource == null) // ✅ УПРОЩЕНО: Только проверка на null
+            if (resource == null)
                 continue;
 
             if (_resourcePositions.TryGetValue(resource, out Vector3 resourcePosition))

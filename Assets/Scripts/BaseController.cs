@@ -2,9 +2,6 @@
 
 public class BaseController : MonoBehaviour
 {
-    [Header("Base Settings")]
-    [SerializeField] private int _initialBotsCount = 3;
-
     [Header("Dependencies")]
     [SerializeField] private BaseZoneVisualizer _zoneVisualizer;
     [SerializeField] private BotManager _botManager;

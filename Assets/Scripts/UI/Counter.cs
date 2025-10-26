@@ -6,11 +6,9 @@ public class Counter : MonoBehaviour
     [Header("Dependencies")]
     [SerializeField] private BaseController _baseController;
 
-    private int _score = 0;
-
     public event Action CounterChanged;
 
-    public int CurrentCounterValue => _score;
+    [field: SerializeField] public int CurrentValue { get; private set; } = 0;
 
     private void OnEnable()
     {
@@ -26,7 +24,7 @@ public class Counter : MonoBehaviour
 
     private void IncreaseCounter(int totalResources)
     {
-        _score = totalResources; 
+        CurrentValue = totalResources;
         CounterChanged?.Invoke();
     }
 }

@@ -17,12 +17,14 @@ public class ItemSpawner : ZoneVisualizer
     [SerializeField] private ItemPool _itemPool;
     [SerializeField] private ResourceManager _resourceManager;
 
-    private int _maxActiveItems = 15;
     private int _maxSize = 50;
     private List<Item> _activeItems = new List<Item>();
     private Coroutine _respawnItemAfterDelayCoroutine;
 
     public event Action<Item> ItemSpawned;
+
+    public int MaxActiveItems { get; private set; } = 15;
+    public int SpawnedItemsCount => _activeItems.Count;
 
     private void Start()
     {
@@ -47,17 +49,11 @@ public class ItemSpawner : ZoneVisualizer
         _respawnItemAfterDelayCoroutine = StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
     }
 
-    public int GetSpawnedItemsCount() =>
-        _activeItems.Count;
-
-    public int GetMaxActiveItems() =>
-        _maxActiveItems;
-
     private IEnumerator RespawnItemAfterDelay(Item item, float delay)
     {
         yield return new WaitForSeconds(delay);
 
-        if (item != null && _itemPool != null && _activeItems.Count < _maxActiveItems)
+        if (item != null && _itemPool != null && _activeItems.Count < MaxActiveItems)
         {
             Vector3 spawnPosition = GetRandomSpawnPosition();
 
@@ -96,7 +92,7 @@ public class ItemSpawner : ZoneVisualizer
 
     private void TrySpawnItem()
     {
-        if (_activeItems.Count >= _maxActiveItems)
+        if (_activeItems.Count >= MaxActiveItems)
             return;
 
         SpawnItemAtPosition(GetRandomSpawnPosition());

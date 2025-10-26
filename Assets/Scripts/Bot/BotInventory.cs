@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class BotInventory : MonoBehaviour
 {
-    [SerializeField] private int _maxCapacity = 1;
-
     public event Action ItemAdded;
     public event Action InventoryCleared;
 
