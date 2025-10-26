@@ -33,7 +33,8 @@ public class ItemSpawner : ZoneVisualizer
 
     private void OnDestroy()
     {
-        StopCoroutine(_respawnItemAfterDelayCoroutine);
+        if (_respawnItemAfterDelayCoroutine != null)
+            StopCoroutine(_respawnItemAfterDelayCoroutine);
     }
 
     public void ReturnItemToPool(Item item)
