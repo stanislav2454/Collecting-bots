@@ -24,8 +24,8 @@ public class Bot : MonoBehaviour
     private BotStateController _stateController;
     private Dictionary<BotStateType, StateVisualData> _stateVisualMap;
 
-    //private Color _currentStateColor;
-    //private string _currentStateIcon;
+    private Color _currentStateColor;
+    private string _currentStateIcon;
 
     public event Action<Bot, bool> MissionCompleted;
 

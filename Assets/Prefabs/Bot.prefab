@@ -141,7 +141,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed2911faae94b124cb47732635b11d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _collectionDuration: 0.3
+  <CollectionDuration>k__BackingField: 0.5
   _stateVisualData:
   - StateType: 0
     Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
