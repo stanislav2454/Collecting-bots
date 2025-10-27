@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 8039361809418053208}
   - component: {fileID: 6547183769993788536}
   - component: {fileID: 5172540315369211150}
+  - component: {fileID: 8194535275672724383}
   m_Layer: 6
   m_Name: Bot
   m_TagString: Untagged
@@ -141,7 +142,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed2911faae94b124cb47732635b11d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <CollectionDuration>k__BackingField: 0.5
   _stateVisualData:
   - StateType: 0
     Color: {r: 0.5, g: 0.5, b: 0.5, a: 1}
@@ -155,6 +155,7 @@ MonoBehaviour:
   - StateType: 3
     Color: {r: 0, g: 1, b: 1, a: 1}
     IconName: sv_icon_dot10_pix16_gizmo
+  <CollectionDuration>k__BackingField: 0.5
 --- !u!114 &8039361809418053208
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,7 +168,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fe6497109eb74f4bb44869dea12a8b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxCapacity: 1
 --- !u!195 &6547183769993788536
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -204,6 +204,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _pathRecalculationInterval: 0.5
   _targetChangeThreshold: 0.1
+--- !u!114 &8194535275672724383
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861847553803959124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fbf638556f5641944bb8239cc1a51db1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _enableVisualization: 0
+  _showSceneGizmos: 1
+  _showGameGUI: 1
+  _iconHeight: 3
+  _labelHeight: 2
+  _sphereRadius: 0.5
+  _carrySphereRadius: 0.3
 --- !u!1 &7109858471207249038
 GameObject:
   m_ObjectHideFlags: 0

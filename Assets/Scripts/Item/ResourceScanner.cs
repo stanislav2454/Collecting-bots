@@ -78,7 +78,6 @@ public class ResourceScanner : ZoneVisualizer
         foreach (var collider in hitColliders)
         {
             if (collider.TryGetComponent(out Item item) && item.gameObject.activeInHierarchy)
-            //if (collider.TryGetComponent(out Item item))
             {
                 currentResources.Add(item);
 

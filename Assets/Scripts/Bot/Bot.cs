@@ -3,7 +3,7 @@ using UnityEngine.AI;
 using System;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(NavMeshAgent), typeof(BotInventory))]
+[RequireComponent(typeof(NavMeshAgent), typeof(BotInventory), typeof(BotVisualizer))]
 public class Bot : MonoBehaviour
 {
     [Header("State Visualization")]
@@ -19,9 +19,7 @@ public class Bot : MonoBehaviour
     private BotMovementController _movement;
     private BotStateController _stateController;
     private Dictionary<BotStateType, StateVisualData> _stateVisualMap;
-
-    private Color _currentStateColor;
-    private string _currentStateIcon;
+    private BotVisualizer _visualizer;
 
     public event Action<Bot, bool> MissionCompleted;
 
@@ -65,15 +63,11 @@ public class Bot : MonoBehaviour
         ChangeState(new BotMovingToResourceState(resource, basePosition, baseRadius));
     }
 
-    public void SetWaiting()
-    {
+    public void SetWaiting() =>
         ChangeState(new BotIdleState());
-    }
 
-    public void ChangeState(BotState newState)
-    {
+    public void ChangeState(BotState newState) =>
         _stateController.ChangeState(newState, this);
-    }
 
     public void CompleteMission(bool success)
     {
@@ -102,6 +96,9 @@ public class Bot : MonoBehaviour
         if (TryGetComponent(out inventory))
             Inventory = inventory;
 
+        TryGetComponent(out _visualizer);
+        _visualizer.Initialize(this, _movement);
+
         _stateController = new BotStateController();
         ChangeState(new BotIdleState());
     }
@@ -116,71 +113,13 @@ public class Bot : MonoBehaviour
 
     private void UpdateVisualizationCache()
     {
+        if (_visualizer == null)
+            return;
+
         if (_stateVisualMap.TryGetValue(CurrentStateType, out StateVisualData data))
-        {
-            _currentStateColor = data.Color;
-            _currentStateIcon = data.IconName;
-        }
+            _visualizer.UpdateVisualization(data.Color, data.IconName);
         else
-        {
-            _currentStateColor = Color.white;
-            _currentStateIcon = "sv_icon_dot0_pix16_gizmo";
-        }
-    }
-
-    // ВИЗУАЛИЗАЦИЯ В SCENE VIEW // вынести в отдельный класс
-    private void OnDrawGizmos()
-    {
-        if (Application.isPlaying == false)
-            return;
-
-        Gizmos.color = _currentStateColor;
-
-        Vector3 iconPosition = transform.position + Vector3.up * 3f;
-        Gizmos.DrawIcon(iconPosition, _currentStateIcon, true);
-
-        if (_movement != null && _movement.IsMoving)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawLine(transform.position + Vector3.up, _movement.transform.position + Vector3.up);
-        }
-
-        Gizmos.color = _currentStateColor;
-        Gizmos.DrawWireSphere(transform.position + Vector3.up * 0.1f, 0.5f);
-
-        if (IsCarryingResource)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position + Vector3.up * 0.2f, 0.3f);
-        }
-    }
-
-    // ВИЗУАЛИЗАЦИЯ ДЛЯ GAME VIEW // вынести в отдельный класс
-    private void OnGUI()
-    {
-        if (Application.isPlaying == false)
-            return;
-
-        Vector3 screenPos = Camera.main.WorldToScreenPoint(transform.position + Vector3.up * 2f);
-
-        if (screenPos.z <= 0)
-            return;
-
-        string stateText = $"{CurrentStateType}";
-
-        if (IsCarryingResource)
-            stateText += " 📦";
-
-        if (AssignedResource != null)
-            stateText += $"\nTarget: {AssignedResource.name}";
-
-        GUIStyle style = new GUIStyle(GUI.skin.label);
-        style.normal.textColor = _currentStateColor;
-        style.alignment = TextAnchor.MiddleCenter;
-        style.fontSize = 15;
-        style.fontStyle = FontStyle.Bold;
-
-        GUI.Label(new Rect(screenPos.x - 50, Screen.height - screenPos.y - 30, 180, 70), stateText, style);
+            _visualizer.UpdateVisualization(Color.white, "sv_icon_dot0_pix16_gizmo");
     }
 }
 

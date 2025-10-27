@@ -13,8 +13,6 @@ public class ZoneVisualizer : MonoBehaviour
     private Material _zoneMaterial;
     private PrimitiveType _currentPrimitiveType;
 
-    public bool IsVisible => _showZone;
-
     private void OnDestroy()
     {
         DestroyZoneVisual();
@@ -59,12 +57,6 @@ public class ZoneVisualizer : MonoBehaviour
     public void SetZoneColor(Color color)
     {
         _zoneColor = color;
-        UpdateZoneColor();
-    }
-
-    public void SetZoneOpacity(float opacity)
-    {
-        _zoneOpacity = Mathf.Clamp01(opacity);
         UpdateZoneColor();
     }
 

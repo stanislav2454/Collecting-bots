@@ -55,8 +55,7 @@ public class BotMovementController : MonoBehaviour
 #if UNITY_EDITOR
     private void OnValidate()
     {
-        if (Application.isPlaying)
-            _sqrTargetChangeThreshold = _targetChangeThreshold * _targetChangeThreshold;
+        _sqrTargetChangeThreshold = _targetChangeThreshold * _targetChangeThreshold;
     }
 #endif
 }
