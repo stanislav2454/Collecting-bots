@@ -8,6 +8,7 @@ public class BotManager : MonoBehaviour
     [Header("Bot Settings")]
     [SerializeField] private int _initialBotsCount = 3;
     [SerializeField] private Bot _botPrefab;
+    [SerializeField] private Transform _spawnContainer;
 
     [Header("Dependencies")]
     [SerializeField] private BaseController _baseController;
@@ -15,11 +16,17 @@ public class BotManager : MonoBehaviour
 
     private List<Bot> _bots = new List<Bot>();
     private Dictionary<Item, Bot> _resourceAssignments = new Dictionary<Item, Bot>();
-
-    public event System.Action<Bot> BotCreated;
+    private BotFactory _botFactory;
 
     public Vector3 BasePosition => _baseController != null ? _baseController.transform.position : transform.position;
     public float UnloadZoneRadius => _baseController != null ? _baseController.UnloadZoneRadius : 1.5f;
+    public int BotCount => _bots.Count;
+    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);
+
+    private void Awake()
+    {
+        InitializeBotFactory();
+    }
 
     private void Start()
     {
@@ -52,21 +59,10 @@ public class BotManager : MonoBehaviour
             nearestBot.AssignResource(resource, BasePosition, UnloadZoneRadius);
     }
 
-    private bool TryAssignResourceToBot(Item resource, Bot bot)
+    public void CreateNewBot()
     {
-        if (resource == null || bot == null || _resourceManager == null)
-            return false;
-
-        if (_resourceAssignments.ContainsKey(resource) || IsBotAssigned(bot))
-            return false;
-
-        if (_resourceManager.TryReserveResource(resource))
-        {
-            _resourceAssignments[resource] = bot;
-            return true;
-        }
-
-        return false;
+        if (_botFactory != null)
+            _botFactory.CreateBot(BasePosition);
     }
 
     public void CompleteAssignment(Bot bot, bool success)
@@ -89,6 +85,35 @@ public class BotManager : MonoBehaviour
     public bool IsResourceAssigned(Item resource) =>
         _resourceAssignments.ContainsKey(resource);
 
+    private void InitializeBotFactory()
+    {
+        float spawnRadius = _baseController != null ? _baseController.SpawnZoneRadius : 3f;
+        _botFactory = new BotFactory(_botPrefab, _spawnContainer, spawnRadius);
+        _botFactory.BotCreated += OnBotCreated;
+    }
+
+    private void OnBotCreated(Bot newBot)
+    {
+        InitializeBot(newBot);
+    }
+
+    private bool TryAssignResourceToBot(Item resource, Bot bot)
+    {
+        if (resource == null || bot == null || _resourceManager == null)
+            return false;
+
+        if (_resourceAssignments.ContainsKey(resource) || IsBotAssigned(bot))
+            return false;
+
+        if (_resourceManager.TryReserveResource(resource))
+        {
+            _resourceAssignments[resource] = bot;
+            return true;
+        }
+
+        return false;
+    }
+
     private void ValidateDependencies()
     {
         if (_botPrefab == null)
@@ -96,36 +121,21 @@ public class BotManager : MonoBehaviour
 
         if (_resourceManager == null)
             Debug.LogError("ResourceManager not assigned in BotManager!");
+
+        if (_botFactory == null)
+            Debug.LogError("ResourceManager not Created in BotManager!");
     }
 
     private void SpawnInitialBots()
     {
         for (int i = 0; i < _initialBotsCount; i++)
-            SpawnBot();
-    }
-
-    private void SpawnBot()
-    {
-        Vector3 spawnPosition = GetRandomSpawnPosition();
-        Bot bot = Instantiate(_botPrefab, spawnPosition, Quaternion.identity);
-        InitializeBot(bot);
-    }
-
-    private Vector3 GetRandomSpawnPosition()
-    {
-        Vector3 basePos = BasePosition;
-        float spawnRadius = _baseController != null ? _baseController.SpawnZoneRadius : 3f;
-
-        return basePos + new Vector3(Random.Range(-spawnRadius, spawnRadius),
-                                     0,
-                                     Random.Range(-spawnRadius, spawnRadius));
+            CreateNewBot();
     }
 
     private void InitializeBot(Bot bot)
     {
         bot.MissionCompleted += HandleBotMissionCompleted;
         _bots.Add(bot);
-        BotCreated?.Invoke(bot);
 
         if (_resourceManager != null && _resourceManager.HasAvailableResources)
             AssignResourceToBot(bot);

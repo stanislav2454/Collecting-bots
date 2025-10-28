@@ -419,7 +419,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7395a4d9bbcb9314facf62221b3460c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _maxActiveResources: 50
 --- !u!4 &386589999
 Transform:
   m_ObjectHideFlags: 0
@@ -640,7 +639,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87b68cd7a52a246498089ed01793616c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _initialBotsCount: 3
+  _resourcesForBot: 3
   _zoneVisualizer: {fileID: 1034017053}
   _botManager: {fileID: 1327456474}
   _itemSpawner: {fileID: 2122070370}
@@ -770,11 +769,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _showZones: 0
-  _unloadZoneRadius: 1.5
   _heightVisualizationZone: 0.1
   _spawnZoneColor: {r: 0, g: 0, b: 1, a: 1}
   _unloadZoneColor: {r: 0, g: 1, b: 0, a: 1}
   <SpawnZoneRadius>k__BackingField: 3
+  <UnloadZoneRadius>k__BackingField: 1.5
 --- !u!1 &1327456473
 GameObject:
   m_ObjectHideFlags: 0
@@ -806,6 +805,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _initialBotsCount: 3
   _botPrefab: {fileID: 357538259168064287, guid: 5d0b0d834525a224c83acf4854c91ec6, type: 3}
+  _spawnContainer: {fileID: 1327456475}
   _baseController: {fileID: 978571041}
   _resourceManager: {fileID: 386589998}
 --- !u!4 &1327456475
@@ -1148,7 +1148,7 @@ MonoBehaviour:
   _zoneColor: {r: 0, g: 1, b: 0, a: 0.09803922}
   _zoneOpacity: 0.03
   _primitiveType: 0
-  _scanRadius: 35
+  _scanRadius: 40
   _scanInterval: 1
   _showScannerZone: 0
   _scannerPrimitiveType: 0
@@ -1544,9 +1544,10 @@ MonoBehaviour:
   _zoneOpacity: 0.3
   _primitiveType: 3
   _itemPrefab: {fileID: 1762044928646761028, guid: e4a9c00e05714f44b93093aebfa122d9, type: 3}
-  _initialItemsCount: 5
-  _respawnDelay: 12.2
-  _spawnAreaSize: {x: 20, y: 0.02, z: 20}
+  _itemContainer: {fileID: 2122070369}
+  _initialItemsCount: 4
+  _respawnDelay: 5
+  _spawnAreaSize: {x: 30, y: 0.02, z: 30}
   _itemPool: {fileID: 2122070371}
   _resourceManager: {fileID: 386589998}
 --- !u!114 &2122070371
@@ -1564,7 +1565,7 @@ MonoBehaviour:
   _itemPrefab: {fileID: 1762044928646761028, guid: e4a9c00e05714f44b93093aebfa122d9, type: 3}
   _initialPoolSize: 15
   _maxPoolSize: 30
-  _poolContainer: {fileID: 2122070369}
+  _itemContainer: {fileID: 2122070369}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

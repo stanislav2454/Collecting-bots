@@ -8,18 +8,18 @@ public class Counter : MonoBehaviour
 
     public event Action CounterChanged;
 
-    [field: SerializeField] public int CurrentValue { get; private set; } = 0;
+    public int CurrentValue { get; private set; } = 0;
 
     private void OnEnable()
     {
         if (_baseController != null)
-            _baseController.ResourceCollected += IncreaseCounter;
+            _baseController.AmountResourcesChanged += IncreaseCounter;
     }
 
     private void OnDisable()
     {
         if (_baseController != null)
-            _baseController.ResourceCollected -= IncreaseCounter;
+            _baseController.AmountResourcesChanged -= IncreaseCounter;
     }
 
     private void IncreaseCounter(int totalResources)

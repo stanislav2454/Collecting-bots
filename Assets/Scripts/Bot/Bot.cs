@@ -17,7 +17,7 @@ public class Bot : MonoBehaviour
     };
 
     private BotMovementController _movement;
-    private BotStateController _stateController;
+    private BotStateMachine _stateMachine;
     private Dictionary<BotStateType, StateVisualData> _stateVisualMap;
     private BotVisualizer _visualizer;
 
@@ -27,9 +27,9 @@ public class Bot : MonoBehaviour
     [field: SerializeField] public float CollectionDuration { get; private set; } = 1f;
     public BotInventory Inventory { get; private set; }
     public Item AssignedResource { get; private set; }
-    public bool IsAvailable => _stateController.CurrentStateType == BotStateType.Idle;
+    public bool IsAvailable => _stateMachine.CurrentStateType == BotStateType.Idle;
     public bool IsCarryingResource => Inventory != null && Inventory.HasItem;
-    public BotStateType CurrentStateType => _stateController.CurrentStateType;
+    public BotStateType CurrentStateType => _stateMachine.CurrentStateType;
 
     private void Awake()
     {
@@ -37,12 +37,12 @@ public class Bot : MonoBehaviour
         InitializeStateVisualMap();
         UpdateVisualizationCache();
 
-        _stateController.StateChanged += UpdateVisualizationCache;
+        _stateMachine.StateChanged += UpdateVisualizationCache;
     }
 
     private void Update()
     {
-        _stateController.UpdateState(this);
+        _stateMachine.UpdateState(this);
     }
 
     private void OnDestroy()
@@ -51,7 +51,7 @@ public class Bot : MonoBehaviour
             foreach (var handler in MissionCompleted.GetInvocationList())
                 MissionCompleted -= (Action<Bot, bool>)handler;
 
-        _stateController.StateChanged -= UpdateVisualizationCache;
+        _stateMachine.StateChanged -= UpdateVisualizationCache;
     }
 
     public void AssignResource(Item resource, Vector3 basePosition, float baseRadius)
@@ -67,7 +67,7 @@ public class Bot : MonoBehaviour
         ChangeState(new BotIdleState());
 
     public void ChangeState(BotState newState) =>
-        _stateController.ChangeState(newState, this);
+        _stateMachine.ChangeState(newState, this);
 
     public void CompleteMission(bool success)
     {
@@ -99,7 +99,7 @@ public class Bot : MonoBehaviour
         TryGetComponent(out _visualizer);
         _visualizer.Initialize(this, _movement);
 
-        _stateController = new BotStateController();
+        _stateMachine = new BotStateMachine();
         ChangeState(new BotIdleState());
     }
 

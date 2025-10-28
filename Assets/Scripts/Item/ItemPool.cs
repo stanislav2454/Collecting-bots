@@ -7,7 +7,7 @@ public class ItemPool : MonoBehaviour
     [SerializeField] private Item _itemPrefab;
     [SerializeField] private int _initialPoolSize = 10;
     [SerializeField] private int _maxPoolSize = 30;
-    [SerializeField] private Transform _poolContainer;
+    [SerializeField] private Transform _itemContainer;
 
     private Queue<Item> _availableItems = new Queue<Item>();
     private List<Item> _activeItems = new List<Item>();
@@ -27,7 +27,7 @@ public class ItemPool : MonoBehaviour
         _itemPrefab = itemPrefab;
         _initialPoolSize = initialSize;
         _maxPoolSize = maxSize;
-        _poolContainer = container ?? CreatePoolContainer();
+        _itemContainer = container ?? CreatePoolContainer();
 
         InitializePool();
     }
@@ -44,6 +44,9 @@ public class ItemPool : MonoBehaviour
 
         if (item != null)
         {
+            if (_itemContainer != null)
+                item.transform.SetParent(_itemContainer);
+
             item.transform.position = position;
             item.transform.rotation = Quaternion.identity;
             item.gameObject.SetActive(true);
@@ -60,10 +63,10 @@ public class ItemPool : MonoBehaviour
 
         item.gameObject.SetActive(false);
 
-        if (_poolContainer != null)
+        if (_itemContainer != null)
         {
-            item.transform.position = _poolContainer.position;
-            item.transform.SetParent(_poolContainer);
+            item.transform.position = _itemContainer.position;
+            item.transform.SetParent(_itemContainer);
         }
 
         _activeItems.Remove(item);
@@ -91,7 +94,7 @@ public class ItemPool : MonoBehaviour
         if (_itemPrefab == null)
             return null;
 
-        Item item = Instantiate(_itemPrefab, _poolContainer);
+        Item item = Instantiate(_itemPrefab, _itemContainer);
 
         if (item != null)
         {

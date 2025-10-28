@@ -1,7 +1,6 @@
 ﻿using System;
-//Название контроллер не совсем корректное, особенно для состояний. )
-//В целом лучше избегать в названии слов controller 
-public class BotStateController
+
+public class BotStateMachine
 {
     private BotState _currentState;
 

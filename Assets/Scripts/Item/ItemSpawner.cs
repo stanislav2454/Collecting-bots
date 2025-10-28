@@ -7,8 +7,9 @@ public class ItemSpawner : ZoneVisualizer
 {
     [Header("Spawn Settings")]
     [SerializeField] private Item _itemPrefab;
+    [SerializeField] private Transform _itemContainer;
     [SerializeField] private int _initialItemsCount = 5;
-    [SerializeField] [Range(0.1f, 60)] private float _respawnDelay = 5f;
+    [SerializeField] [Range(0.2f, 60)] private float _respawnDelay = 5f;
 
     [Header("Spawn Area")]
     [SerializeField] private Vector3 _spawnAreaSize = new Vector3(20f, 0.1f, 20f);
@@ -57,9 +58,14 @@ public class ItemSpawner : ZoneVisualizer
         {
             Vector3 spawnPosition = GetRandomSpawnPosition();
 
+            item.PrepareForRespawn();
+
+            if (_itemContainer != null)
+                item.transform.SetParent(_itemContainer);
+
             item.transform.position = spawnPosition;
             item.transform.rotation = Quaternion.identity;
-            item.PrepareForRespawn();
+            //item.PrepareForRespawn();
 
             _activeItems.Add(item);
             _resourceManager?.RegisterResource(item);
@@ -72,7 +78,7 @@ public class ItemSpawner : ZoneVisualizer
 
     private void InitializeItemPool()
     {
-        _itemPool.Initialize(_itemPrefab, _initialItemsCount, _maxSize, transform);
+        _itemPool.Initialize(_itemPrefab, _initialItemsCount, _maxSize, _itemContainer);
         _itemPool.ItemReturned += HandleItemReturnedToPool;
     }
 
@@ -104,6 +110,9 @@ public class ItemSpawner : ZoneVisualizer
 
         if (item != null && _activeItems.Contains(item) == false)
         {
+            if (_itemContainer != null && item.transform.parent != _itemContainer)
+                item.transform.SetParent(_itemContainer);
+
             item.transform.rotation = Quaternion.identity;
             item.PrepareForRespawn();
             _activeItems.Add(item);

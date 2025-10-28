@@ -1,20 +1,22 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class BaseController : MonoBehaviour
 {
+    [SerializeField] private int _resourcesForBot = 3;
+
     [Header("Dependencies")]
     [SerializeField] private BaseZoneVisualizer _zoneVisualizer;
     [SerializeField] private BotManager _botManager;
     [SerializeField] private ItemSpawner _itemSpawner;
     [SerializeField] private ResourceManager _resourceManager;
 
-    private int _collectedResources;
-
-    public event System.Action<int> ResourceCollected;
-    public event System.Action<Bot> BotCreated;
+    public event Action<int> AmountResourcesChanged;
 
     public float UnloadZoneRadius => _zoneVisualizer != null ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
     public float SpawnZoneRadius => _zoneVisualizer != null ? _zoneVisualizer.SpawnZoneRadius : 3f;
+    public int CollectedResources { get; private set; }
+    public bool CanAffordBot => CollectedResources >= _resourcesForBot;
 
     private void Start()
     {
@@ -35,19 +37,31 @@ public class BaseController : MonoBehaviour
 
     public void CollectResourceFromBot(Bot bot)
     {
-        if (bot.IsCarryingResource)
-        {
-            var item = bot.Inventory.CarriedItem;
-            if (item != null)
-            {
-                _collectedResources += item.Value;
-                ResourceCollected?.Invoke(_collectedResources);
-                _resourceManager?.MarkAsCollected(item);
-            }
+        if (bot.IsCarryingResource == false)
+            return;
 
-            bot.Inventory.ClearInventory();
-            _itemSpawner?.ReturnItemToPool(item);
+        var item = bot.Inventory.CarriedItem;
+        if (item != null)
+        {
+            CollectedResources += item.Value;
+            AmountResourcesChanged?.Invoke(CollectedResources);
+
+            if (CanAffordBot)
+                CreateBotFromResources();
         }
+
+        bot.Inventory.ClearInventory();
+        _itemSpawner?.ReturnItemToPool(item);
+    }
+
+    private void CreateBotFromResources()
+    {
+        if (_botManager == null)
+            return;
+
+        CollectedResources -= _resourcesForBot;
+        AmountResourcesChanged?.Invoke(CollectedResources);
+        _botManager.CreateNewBot();
     }
 
     private void InitializeDependencies()
@@ -56,10 +70,7 @@ public class BaseController : MonoBehaviour
             _zoneVisualizer = GetComponentInChildren<BaseZoneVisualizer>();
 
         if (TryGetComponent(out _botManager) == false)
-        {
             _botManager = GetComponentInChildren<BotManager>();
-            _botManager.BotCreated += OnBotCreated;
-        }
         else
             Debug.LogError("BotManager not found in BaseController!");
 
@@ -68,10 +79,5 @@ public class BaseController : MonoBehaviour
 
         if (_resourceManager == null)
             Debug.LogError("ResourceManager not assigned in BotManager!");
-    }
-
-    private void OnBotCreated(Bot bot)
-    {
-        BotCreated?.Invoke(bot);
     }
 }

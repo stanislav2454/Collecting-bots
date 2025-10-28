@@ -32,7 +32,7 @@ public class Item : MonoBehaviour
 
     public void PrepareForRespawn()
     {
-        transform.SetParent(null);
+        //transform.SetParent(null);//из-за этого рес может спавнится в корне сцены
         gameObject.SetActive(true);
 
         if (_itemRenderer != null)
