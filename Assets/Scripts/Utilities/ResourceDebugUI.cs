@@ -44,9 +44,14 @@ public class ResourceDebugUI : MonoBehaviour
         _itemSpawner = FindObjectOfType<ItemSpawner>();
         _itemPool = FindObjectOfType<ItemPool>();
 
-        if (_resourceManager == null) Debug.LogWarning("ResourceManager not found!");
-        if (_itemSpawner == null) Debug.LogWarning("ItemSpawner not found!");
-        if (_itemPool == null) Debug.LogWarning("ItemPool not found!");
+        if (_resourceManager == null)
+            Debug.LogWarning("ResourceManager not found!");
+
+        if (_itemSpawner == null)
+            Debug.LogWarning("ItemSpawner not found!");
+
+        if (_itemPool == null)
+            Debug.LogWarning("ItemPool not found!");
     }
 
     private void UpdateDisplay()
@@ -56,11 +61,9 @@ public class ResourceDebugUI : MonoBehaviour
 
         string debugInfo = "=== СИСТЕМА РЕСУРСОВ ===\n\n";
 
-        // 1. Ресурсы на сцене (физически активные)
         int activeOnScene = CountActiveResourcesOnScene();
         debugInfo += $"На сцене (активные): {activeOnScene}\n";
 
-        // 2. Состояние в ResourceManager
         if (_resourceManager != null)
         {
             debugInfo += $"ResourceManager:\n";
@@ -71,19 +74,16 @@ public class ResourceDebugUI : MonoBehaviour
         else
             debugInfo += "ResourceManager: НЕ НАЙДЕН\n";
 
-        // 3. Состояние спавнера
         if (_itemSpawner != null)
             debugInfo += $"Спавнер: {_itemSpawner.SpawnedItemsCount}/{_itemSpawner.MaxActiveItems}\n";
         else
             debugInfo += "Спавнер: НЕ НАЙДЕН\n";
 
-        // 4. Состояние пула
         if (_itemPool != null)
             debugInfo += $"В пуле: {CountItemsInPool()}\n";
         else
             debugInfo += "Пул: НЕ НАЙДЕН\n";
 
-        // 5. Позиции ВСЕХ ресурсов с их статусом
         debugInfo += "\n=== ВСЕ РЕСУРСЫ ===\n";
         Dictionary<Item, string> allResourcesWithStatus = GetAllResourcesWithStatus();
 
@@ -134,7 +134,9 @@ public class ResourceDebugUI : MonoBehaviour
 
     private int CountItemsInPool()
     {
-        if (_itemPool == null) return 0;
+        if (_itemPool == null)
+            return 0;
+
         return _itemPool.transform.childCount;
     }
 
