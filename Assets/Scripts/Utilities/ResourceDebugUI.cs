@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
 
@@ -32,6 +33,7 @@ public class ResourceDebugUI : MonoBehaviour
     private void Update()
     {
         _timer += Time.deltaTime;
+
         if (_timer >= _updateInterval)
         {
             UpdateDisplay();
@@ -152,3 +154,4 @@ public class ResourceDebugUI : MonoBehaviour
             Debug.Log($"Спавнер - Активные: {_itemSpawner.SpawnedItemsCount}/{_itemSpawner.MaxActiveItems}");
     }
 }
+#endif

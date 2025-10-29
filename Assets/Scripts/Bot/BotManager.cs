@@ -21,7 +21,7 @@ public class BotManager : MonoBehaviour
     public Vector3 BasePosition => _baseController != null ? _baseController.transform.position : transform.position;
     public float UnloadZoneRadius => _baseController != null ? _baseController.UnloadZoneRadius : 1.5f;
     public int BotCount => _bots.Count;
-    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);
+    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);// Зачем ?
 
     private void Awake()
     {
