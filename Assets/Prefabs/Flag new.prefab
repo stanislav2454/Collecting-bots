@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8797021270524048778}
   - component: {fileID: 205606043585909696}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: flag canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -92,9 +92,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5179452890761827703}
-  - component: {fileID: 2388977066019723055}
+  - component: {fileID: 8782693539927774351}
   m_Layer: 0
-  m_Name: Flag
+  m_Name: Flag new
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -117,7 +117,7 @@ Transform:
   - {fileID: 262580945794465237}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2388977066019723055
+--- !u!114 &8782693539927774351
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -126,17 +126,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 3604960193339218746}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e82308c08860bbd4e8a874a8d962786e, type: 3}
+  m_Script: {fileID: 11500000, guid: d6e0afe212f6ced46a1df78a5b35adde, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _pulseAmplitude: 0.25
-  _pulseSpeed: 5
-  _minAlpha: 0.2
-  _maxAlpha: 0.9
-  _previewMaterial: {fileID: 2100000, guid: f156beb05a60fc04dab5ecc28685a3df, type: 2}
+  _flagRenderer: {fileID: 205606043585909696}
+  _flagCollider: {fileID: 6284677539599806555}
+  _previewMaterial: {fileID: 2100000, guid: 8711156c410be1f4db23ad8c88ef2985, type: 2}
   _validMaterial: {fileID: 2100000, guid: f156beb05a60fc04dab5ecc28685a3df, type: 2}
-  _invalidMaterial: {fileID: 2100000, guid: c55b85dbc88e0aa46a611ce225fe6dcc, type: 2}
-  _isPreview: 0
+  _invalidMaterial: {fileID: 2100000, guid: f156beb05a60fc04dab5ecc28685a3df, type: 2}
 --- !u!1 &6743380843572460581
 GameObject:
   m_ObjectHideFlags: 0
@@ -148,9 +145,9 @@ GameObject:
   - component: {fileID: 8756916007602746332}
   - component: {fileID: 1016825766790272535}
   - component: {fileID: 879307755964102391}
-  - component: {fileID: 2873520074920083085}
+  - component: {fileID: 6284677539599806555}
   m_Layer: 0
-  m_Name: Cylinder
+  m_Name: flagpole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -199,7 +196,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 8711156c410be1f4db23ad8c88ef2985, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -221,8 +218,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &2873520074920083085
-CapsuleCollider:
+--- !u!65 &6284677539599806555
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -238,9 +235,7 @@ CapsuleCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.0000001, y: 1.6, z: 1.0000002}
+  m_Center: {x: 0, y: 0.2, z: 0}

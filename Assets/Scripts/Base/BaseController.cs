@@ -3,36 +3,70 @@ using UnityEngine;
 
 public class BaseController : MonoBehaviour
 {
-    [SerializeField] private int _resourcesForBot = 3;
-    [SerializeField] private int _resourcesForNewBase = 5;
-
     [Header("Dependencies")]
     [SerializeField] private BaseZoneVisualizer _zoneVisualizer;
     [SerializeField] private BotManager _botManager;
     [SerializeField] private ItemSpawner _itemSpawner;
-    [SerializeField] private ResourceManager _resourceManager;
+    [SerializeField] private ItemCounter _itemCounter;
 
-    [field: SerializeField] public BaseFlag FlagPrefab { get; private set; }
-    private BaseFlag _currentFlag;
-    //private BasePriority CurrentPriority = BasePriority.CollectForBots;
+    [Header("Price Settings")]
+    [SerializeField] private int _resourcesForBot = 3;
+    [SerializeField] private int _resourcesForNewBase = 5;
 
-    public event Action<int> AmountResourcesChanged;
+    [Header("Flag System")]
+    [SerializeField] private SimpleFlag _flagPrefab;
+
+    [Header("Selection Settings")]
+    [SerializeField] private MaterialChanger _materialChanger;
+    [SerializeField] private float _selectedScaleMultiplier = 1.1f;
+    [SerializeField] private Transform _viewTransform;
+
+    private SimpleFlag _currentFlag;
+    private Vector3 _originalViewScale;
+    private bool _isSelected = false;
+
+    public event Action<BaseController> BaseSelected;
+    public event Action<BaseController> BaseDeselected;
     public event Action<BasePriority> PriorityChanged;
 
-    public float UnloadZoneRadius => _zoneVisualizer != null ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
-    public float SpawnZoneRadius => _zoneVisualizer != null ? _zoneVisualizer.SpawnZoneRadius : 3f;
-    public int CollectedResources { get; private set; }
-    public bool CanAffordBot => CollectedResources >= _resourcesForBot;
-    // 👇
-    public bool CanAffordNewBase => CollectedResources >= _resourcesForNewBase;
     public BasePriority CurrentPriority { get; private set; } = BasePriority.CollectForBots;
-    // public BasePriority CurrentPriority => _currentPriority;// 👈 // удалить и исп.авто св-во !!!
-    public bool HasActiveFlag => _currentFlag != null;
+    public bool IsSelected => _isSelected; // ? 0 references !
+    public int CollectedResources => _itemCounter.CurrentValue;// ? 0 references !
+    public float UnloadZoneRadius => _zoneVisualizer ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
+    public float SpawnZoneRadius => _zoneVisualizer ? _zoneVisualizer.SpawnZoneRadius : 3f;
+    public bool CanAffordBot => _itemCounter.CanAfford(_resourcesForBot);
+    public bool CanAffordNewBase => _itemCounter.CanAfford(_resourcesForNewBase);
+    public bool HasActiveFlag => _currentFlag != null && _currentFlag.CurrentState != FlagState.Hide;
     public bool CanBuildNewBase => _botManager != null && _botManager.BotCount > 1;
 
     private void Start()
     {
-        InitializeDependencies();
+        InitializeSelection();
+        RegisterWithSelectionManager();
+        InitializeAndValidateDependencies();
+    }
+
+    private void OnValidate()
+    {
+        InitializeAndValidateDependencies();
+    }
+
+    private void OnEnable()
+    {
+        if (_itemCounter != null)
+            _itemCounter.CounterChanged += OnResourcesChanged;
+    }
+
+    private void OnDisable()
+    {
+        if (_itemCounter != null)
+            _itemCounter.CounterChanged -= OnResourcesChanged;
+    }
+
+    private void OnDestroy()
+    {
+        if (BaseSelectionManager.Instance != null)
+            BaseSelectionManager.Instance.UnregisterBase(this);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -47,6 +81,40 @@ public class BaseController : MonoBehaviour
         }
     }
 
+    private void OnMouseDown() =>
+        ToggleSelection();
+
+    public void SetSelected(bool selected, bool notifyOthers = true)
+    {
+        if (_isSelected == selected)
+            return;
+
+        _isSelected = selected;
+
+        if (selected)
+        {
+            _viewTransform.localScale = _originalViewScale * _selectedScaleMultiplier;
+            _materialChanger?.SetSelected(true);
+
+            if (notifyOthers)
+                BaseSelected?.Invoke(this);
+        }
+        else
+        {
+            _viewTransform.localScale = _originalViewScale;
+            _materialChanger?.SetSelected(false);
+
+            if (notifyOthers)
+                BaseDeselected?.Invoke(this);
+        }
+    }
+
+    public void SelectBase() =>
+        SetSelected(true);
+
+    public void DeselectBase() =>
+        SetSelected(false);
+
     public void CollectResourceFromBot(Bot bot)
     {
         if (bot.IsCarryingResource == false)
@@ -55,17 +123,28 @@ public class BaseController : MonoBehaviour
         var item = bot.Inventory.CarriedItem;
         if (item != null)
         {
-            CollectedResources += item.Value;
-            AmountResourcesChanged?.Invoke(CollectedResources);
-
-            if (CanAffordBot)
-                CheckResourceSpending();
-            //CreateBotFromResources();
+            _itemCounter.Add(item.Value);
+            CheckResourceSpending();
         }
 
         bot.Inventory.ClearInventory();
         _itemSpawner?.ReturnItemToPool(item);
     }
+
+    private void InitializeSelection() =>
+        SetSelected(false, false);
+
+    private void ToggleSelection() =>
+        SetSelected(!_isSelected);
+
+    private void RegisterWithSelectionManager()
+    {
+        if (BaseSelectionManager.Instance != null)
+            BaseSelectionManager.Instance.RegisterBase(this);
+    }
+
+    private void OnResourcesChanged() =>// зачем ? модификатор ведь private    
+        CheckResourceSpending();
 
     private void CheckResourceSpending()
     {
@@ -74,6 +153,7 @@ public class BaseController : MonoBehaviour
             case BasePriority.CollectForBots when CanAffordBot:
                 CreateBotFromResources();
                 break;
+
             case BasePriority.CollectForNewBase when CanAffordNewBase && HasActiveFlag:
                 CreateNewBaseFromResources();
                 break;
@@ -85,74 +165,106 @@ public class BaseController : MonoBehaviour
         if (_botManager == null || CurrentPriority != BasePriority.CollectForBots)
             return;
 
-        CollectedResources -= _resourcesForBot;
-        AmountResourcesChanged?.Invoke(CollectedResources);
-        _botManager.CreateNewBot();
-        //// После создания бота снова проверяем, может хватает на еще одного
-        //CheckResourceSpending();
+        if (_itemCounter.TrySubtract(_resourcesForBot))
+            _botManager.CreateNewBot();
     }
 
     private void CreateNewBaseFromResources()
     {
-        if (_currentFlag == null || _botManager == null) 
+        if (_currentFlag == null || _botManager == null)
             return;
 
-        CollectedResources -= _resourcesForNewBase;
-        AmountResourcesChanged?.Invoke(CollectedResources);
-
-        Debug.Log("Starting new base construction! Need to send builder bot.");
-        // TODO: Реализовать отправку строителя
-        // _botManager.SendBuilderToFlag(_currentFlag);
+        if (_itemCounter.TrySubtract(_resourcesForNewBase))
+        {
+            Debug.Log("Starting new base construction! Need to send builder bot.");
+            // TODO: Реализовать отправку строителя
+        }
     }
 
-    private void InitializeDependencies()
+    private void InitializeAndValidateDependencies()
     {
-        if (TryGetComponent(out _zoneVisualizer) == false)
-            _zoneVisualizer = GetComponentInChildren<BaseZoneVisualizer>();
+        if (_zoneVisualizer == null)
+            Debug.LogError("BaseZoneVisualizer not found in BaseController!");
 
-        if (TryGetComponent(out _botManager) == false)
-            _botManager = GetComponentInChildren<BotManager>();
-        else
+        if (_botManager == null)
             Debug.LogError("BotManager not found in BaseController!");
 
         if (_itemSpawner == null)
             Debug.LogError("ItemSpawner not assigned in BotManager!");
 
-        if (_resourceManager == null)
-            Debug.LogError("ResourceManager not assigned in BotManager!");
+        if (_itemCounter == null)
+            Debug.LogError("ItemCounter not assigned in BotManager!");
 
-        if (FlagPrefab == null)
+        if (_flagPrefab == null)
             Debug.LogError("FlagPrefab not assigned in BotManager!");
+
+        if (_materialChanger == null)
+            Debug.LogError("MaterialChanger not assigned in BotManager!");
+
+        if (_viewTransform == null)
+            Debug.LogError("ViewTransform not assigned in BaseController!");
+        else
+        {
+            _originalViewScale = _viewTransform.localScale;
+        }
     }
+
     // TODO вынести логику работы с флагом в отдельный класс
     #region Flag 
     public bool TrySetFlag(Vector3 worldPosition)
     {
-        if (CanBuildNewBase == false)// 👈
-        {
-            Debug.LogWarning("Cannot set flag: not enough bots. Need at least 2 bots.");
+        if (CanBuildNewBase == false || IsValidFlagPosition(worldPosition) == false)
             return false;
-        }
 
-        if (IsValidFlagPosition(worldPosition) == false)
+        if (_currentFlag == null)
         {
-            Debug.LogWarning("Invalid flag position");
-            return false;
+            CreateFlag(worldPosition);
         }
-
-        if (_currentFlag != null)
-            _currentFlag.UpdatePosition(worldPosition, true);
+        else
+        {
+            _currentFlag.StartMoving();
+            _currentFlag.SetPosition(worldPosition, true);
+            _currentFlag.PlaceFlag();
+        }
 
         SetPriority(BasePriority.CollectForNewBase);
         return true;
     }
 
+    public void RemoveFlag() => // ?
+        _currentFlag?.RemoveFlag();
+
+    private void CreateFlag(Vector3 position)
+    {
+        _currentFlag = Instantiate(_flagPrefab);
+
+        if (_currentFlag == null)
+            return;
+
+        _currentFlag.Initialize(this);
+        _currentFlag.FlagSettled += OnFlagSettled;
+        _currentFlag.FlagRemoved += OnFlagRemoved;
+        _currentFlag.PlaceFlagDirectly(position);
+    }
+
+    private void OnFlagSettled(Vector3 position)//todo
+    {
+        Debug.Log($"Flag settled at: {position}");
+        // Логика при установке флага
+    }
+
+    private void OnFlagRemoved()
+    {
+        SetPriority(BasePriority.CollectForBots);
+        Debug.Log("Flag removed");
+    }
+
     private bool IsValidFlagPosition(Vector3 position)
     {
-        if (position.y < 0) // Проверяем, что позиция в пределах карты (можно расширить)
+        if (position.y < 0)
             return false;
 
-        float checkRadius = 1f;// Проверяем коллизии с непроходимыми объектами
+        float checkRadius = 1f;
         Collider[] colliders = Physics.OverlapSphere(position, checkRadius);
 
         foreach (var collider in colliders)
@@ -162,17 +274,6 @@ public class BaseController : MonoBehaviour
         }
 
         return true;
-    }
-
-    public void RemoveFlag()// ?
-    {
-        if (_currentFlag != null)
-        {
-            _currentFlag.Remove();
-            _currentFlag = null;
-        }
-
-        SetPriority(BasePriority.CollectForBots);
     }
 
     private void SetPriority(BasePriority newPriority)

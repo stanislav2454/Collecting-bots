@@ -8,7 +8,7 @@ public class ItemSpawner : ZoneVisualizer
     [Header("Spawn Settings")]
     [SerializeField] private Item _itemPrefab;
     [SerializeField] private Transform _itemContainer;
-    [SerializeField] private int _initialItemsCount = 5;
+    [SerializeField] [Range(1, 10)] private int _initialItemsCount = 3;
     [SerializeField] [Range(0.2f, 60)] private float _respawnDelay = 5f;
 
     [Header("Spawn Area")]

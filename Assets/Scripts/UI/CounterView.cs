@@ -7,6 +7,12 @@ public class CounterView : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _counterText;
     [SerializeField] private Counter _counter;
 
+    private void Start()
+    {
+        // Инициализируем начальное значение
+        ShowCounterValue();
+    }
+
     private void OnEnable() =>
         _counter.CounterChanged += ShowCounterValue;
 

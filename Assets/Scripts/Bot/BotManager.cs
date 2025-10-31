@@ -6,7 +6,7 @@ using System.Linq;
 public class BotManager : MonoBehaviour
 {
     [Header("Bot Settings")]
-    [SerializeField] private int _initialBotsCount = 3;
+    [SerializeField] [Range(1, 10)] private int _initialBotsCount = 3;
     [SerializeField] private Bot _botPrefab;
     [SerializeField] private Transform _spawnContainer;
 

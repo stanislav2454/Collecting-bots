@@ -19,9 +19,9 @@ public class BotVisualizer : MonoBehaviour
     private Color _currentStateColor;
     private string _currentStateIcon;
 
-    public event Action<bool> VisualizationToggled;
-    public event Action<bool> SceneGizmosToggled;
-    public event Action<bool> GameGUIToggled;
+    public event Action<bool> VisualizationToggled;//  is never used
+    public event Action<bool> SceneGizmosToggled;//  is never used
+    public event Action<bool> GameGUIToggled;//  is never used
 
     public void Initialize(Bot bot, BotMovementController movement)
     {
