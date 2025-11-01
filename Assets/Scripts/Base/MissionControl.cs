@@ -8,8 +8,18 @@ public class MissionControl : MonoBehaviour
 
     private void Start()
     {
+        // ЗАМЕНА: если ResourceManager не назначен в инспекторе, получаем через GameDependencies
+        if (_resourceManager == null)
+        {
+            var gameDependencies = GameDependencies.Instance;
+            if (gameDependencies != null)
+                _resourceManager = gameDependencies.ResourceManager;
+        }
+
         if (_resourceManager != null)
             _resourceManager.ResourceBecameAvailable += OnResourceBecameAvailable;
+        else
+            Debug.LogError("ResourceManager not found in MissionControl!");
     }
 
     private void OnDestroy()

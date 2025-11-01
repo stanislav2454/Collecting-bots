@@ -4,6 +4,21 @@ using UnityEngine;
 public class ItemCounter : Counter
 {
     public event Action<int> ResourceSpent; // Событие при трате ресурсов
+    public event Action<int> ResourceAdded; // Событие при добавлении ресурсов
+
+    public override void Add(int increment)
+    {
+        if (increment <= 0)
+        {
+            Debug.LogWarning($"Attempt to add non-positive value: {increment}");
+            return;
+        }
+
+        CurrentValue += increment;
+        OnChanged();
+        // CounterChanged?.Invoke();
+        ResourceAdded?.Invoke(increment); // Отдельное событие для добавления
+    }
 
     public bool TrySubtract(int value)
     {

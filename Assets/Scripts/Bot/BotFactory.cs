@@ -40,4 +40,9 @@ public class BotFactory
             0,
             UnityEngine.Random.Range(-_spawnRadius, _spawnRadius));
     }
+
+    public void Dispose()
+    {
+        BotCreated = null;
+    }
 }

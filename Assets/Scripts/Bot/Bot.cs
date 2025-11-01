@@ -88,6 +88,14 @@ public class Bot : MonoBehaviour
     public bool HasReachedDestination() =>
          _movement?.HasReachedDestination() ?? false;
 
+    public void BuildBase(Vector3 flagPosition, BaseController newBase)
+    {
+        if (IsAvailable == false)
+            return;
+
+        ChangeState(new BotMovingToFlagState(flagPosition, newBase));
+    }
+
     private void InitializeComponents()
     {
         TryGetComponent(out _movement);

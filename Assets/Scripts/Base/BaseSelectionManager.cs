@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class BaseSelectionManager : MonoBehaviour
@@ -27,8 +27,19 @@ public class BaseSelectionManager : MonoBehaviour
         if (_allBases.Contains(baseController) == false)
         {
             _allBases.Add(baseController);
-            baseController.BaseSelected += OnBaseSelected;
-            baseController.BaseDeselected += OnBaseDeselected;
+
+            // Подписываемся на события через BaseSelectionController
+            var selectionController = baseController.GetComponent<BaseSelectionController>();
+            if (selectionController != null)
+            {
+                selectionController.SelectionChanged += (isSelected) =>
+                {
+                    if (isSelected)
+                        OnBaseSelected(baseController);
+                    else
+                        OnBaseDeselected(baseController);
+                };
+            }
         }
     }
 
@@ -37,8 +48,6 @@ public class BaseSelectionManager : MonoBehaviour
         if (_allBases.Contains(baseController))
         {
             _allBases.Remove(baseController);
-            baseController.BaseSelected -= OnBaseSelected;
-            baseController.BaseDeselected -= OnBaseDeselected;
 
             if (_currentlySelectedBase == baseController)
                 _currentlySelectedBase = null;
@@ -73,13 +82,6 @@ public class BaseSelectionManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        foreach (var baseController in _allBases)
-        {
-            if (baseController != null)
-            {
-                baseController.BaseSelected -= OnBaseSelected;
-                baseController.BaseDeselected -= OnBaseDeselected;
-            }
-        }
+        _allBases.Clear();
     }
 }

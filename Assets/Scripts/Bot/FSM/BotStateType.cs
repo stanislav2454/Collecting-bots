@@ -3,5 +3,7 @@
     Idle,
     MovingToResource,
     Collecting,
-    ReturningToBase
+    ReturningToBase,
+    MovingToFlag,       // Новое состояние - движение к флагу
+    BuildingBase        // Новое состояние - строительство базы
 }
