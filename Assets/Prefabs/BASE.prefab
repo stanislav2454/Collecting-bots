@@ -383,6 +383,10 @@ GameObject:
   - component: {fileID: 7565189843437546003}
   - component: {fileID: 7329456198453109178}
   - component: {fileID: 6793156432604784225}
+  - component: {fileID: 7022950598396886681}
+  - component: {fileID: 2789512780010243448}
+  - component: {fileID: 6452841131117150607}
+  - component: {fileID: 6943994859035777150}
   - component: {fileID: 8886935231294392995}
   - component: {fileID: 7819358836058202353}
   - component: {fileID: 2045096636562343027}
@@ -446,14 +450,74 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _zoneVisualizer: {fileID: 7951745057925323068}
   _botManager: {fileID: 5442629442105204883}
-  _itemSpawner: {fileID: 0}
+  _resourceManager: {fileID: 0}
+  _selectionController: {fileID: 7022950598396886681}
+  _flagController: {fileID: 2789512780010243448}
+  _priorityController: {fileID: 6452841131117150607}
+  _resourceController: {fileID: 6943994859035777150}
+--- !u!114 &7022950598396886681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7332860983349931590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7701ccbdc3ab19a41bddc4a9a073629b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _materialChanger: {fileID: 2045096636562343027}
+  _viewTransform: {fileID: 7259148174972594869}
+  _selectedScaleMultiplier: 1.1
+--- !u!114 &2789512780010243448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7332860983349931590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6054684c0a75dbb48b03f96c7893478a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _flagPrefab: {fileID: 8782693539927774351, guid: 49f8d19d75389524ab58c9e97c803b45, type: 3}
+  _botManager: {fileID: 5442629442105204883}
   _itemCounter: {fileID: 7819358836058202353}
+  _priorityController: {fileID: 6452841131117150607}
+--- !u!114 &6452841131117150607
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7332860983349931590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5196aae2bf7c3fe4eb744172a35b2097, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _botManager: {fileID: 5442629442105204883}
+  _resourceController: {fileID: 6943994859035777150}
+  _flagController: {fileID: 2789512780010243448}
   _resourcesForBot: 3
   _resourcesForNewBase: 5
-  _flagPrefab: {fileID: 8782693539927774351, guid: 49f8d19d75389524ab58c9e97c803b45, type: 3}
-  _materialChanger: {fileID: 2045096636562343027}
-  _selectedScaleMultiplier: 1.1
-  _viewTransform: {fileID: 7259148174972594869}
+--- !u!114 &6943994859035777150
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7332860983349931590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4de71e657e8d77b458da7fb57e1737c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _itemCounter: {fileID: 7819358836058202353}
+  _itemSpawner: {fileID: 0}
+  _priorityController: {fileID: 6452841131117150607}
 --- !u!114 &8886935231294392995
 MonoBehaviour:
   m_ObjectHideFlags: 0

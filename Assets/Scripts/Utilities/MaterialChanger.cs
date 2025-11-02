@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class MaterialChanger : MonoBehaviour
@@ -21,8 +21,22 @@ public class MaterialChanger : MonoBehaviour
             _originalMaterials.Add(renderer.material);
     }
 
-    public void SetDefaultMaterial()
+    private void OnValidate()
     {
+        if (_meshRenderers == null || _meshRenderers.Count == 0)
+        {
+            TryGetComponent(out MeshRenderer mainRenderer);
+            if (mainRenderer != null)
+                _meshRenderers = new List<MeshRenderer> { mainRenderer };
+        }
+    }
+
+    public void SetDefaultMaterial()
+    {  
+        // ДОБАВЬТЕ ПРОВЕРКУ:
+        if (_meshRenderers == null || _meshRenderers.Count == 0)
+            return;
+
         foreach (var renderer in _meshRenderers)
             if (_defaultMaterial != null)
                 renderer.material = _defaultMaterial;
@@ -37,19 +51,13 @@ public class MaterialChanger : MonoBehaviour
 
     public void SetSelected(bool isSelected)
     {
+        // ДОБАВЬТЕ ПРОВЕРКУ:
+        if (_meshRenderers == null || _meshRenderers.Count == 0)
+            return;
+
         if (isSelected)
             SetAlternativeMaterial();
         else
             SetDefaultMaterial();
-    }
-
-    private void OnValidate()
-    {
-        if (_meshRenderers == null || _meshRenderers.Count == 0)
-        {
-            TryGetComponent(out MeshRenderer mainRenderer);
-            if (mainRenderer != null)
-                _meshRenderers = new List<MeshRenderer> { mainRenderer };
-        }
     }
 }

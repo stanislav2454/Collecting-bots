@@ -3,25 +3,36 @@
 public class GameDependencies : MonoBehaviour, IGameDependencies
 {
     [Header("Core Managers")]
-    [SerializeField] private ResourceManager _resourceManager;
-    [SerializeField] private ItemSpawner _itemSpawner;
-    [SerializeField] private BaseGenerator _baseGenerator;
-    [SerializeField] private BaseSelectionManager _baseSelectionManager;
+    [SerializeField] private ResourceManager _resourceManager;// оптимизировать
+    public ResourceManager ResourceManager => _resourceManager;// оптимизировать
 
-    // Реализация IGameDependencies
-    public ResourceManager ResourceManager => _resourceManager;
-    public ItemSpawner ItemSpawner => _itemSpawner;
-    public BaseGenerator BaseGenerator => _baseGenerator;
-    public BaseSelectionManager BaseSelectionManager => _baseSelectionManager;
+    [SerializeField] private ItemSpawner _itemSpawner;// оптимизировать
+    public ItemSpawner ItemSpawner => _itemSpawner;// оптимизировать
 
-    // Static instance для удобного доступа (не синглтон в чистом виде)
-    private static GameDependencies _instance;
-    public static GameDependencies Instance => _instance;
+    [SerializeField] private BaseGenerator _baseGenerator;// оптимизировать
+    public BaseGenerator BaseGenerator => _baseGenerator;// оптимизировать
+
+    [SerializeField] private BaseSelectionManager _baseSelectionManager;// оптимизировать
+    public BaseSelectionManager BaseSelectionManager => _baseSelectionManager;// оптимизировать
+
+    [Header("Base Systems")]
+    [SerializeField] private BaseResourceController _baseResourceController;// оптимизировать
+    public BaseResourceController BaseResourceController => _baseResourceController;// оптимизировать
+
+
+    private static GameDependencies _instance;// оптимизировать
+    public static GameDependencies Instance => _instance;// оптимизировать
 
     private void Awake()
     {
         InitializeInstance();
         ValidateDependencies();
+    }
+
+    // Метод для ручной установки зависимостей (полезно для тестов)
+    public void SetBaseResourceController(BaseResourceController controller)
+    {
+        _baseResourceController = controller;
     }
 
     private void InitializeInstance()
@@ -50,9 +61,11 @@ public class GameDependencies : MonoBehaviour, IGameDependencies
 
         if (_baseSelectionManager == null)
             Debug.LogWarning("BaseSelectionManager not assigned in GameDependencies!");
+
+        if (_baseResourceController == null)
+            Debug.LogWarning("BaseResourceController not assigned in GameDependencies!");
     }
 
-    // Валидация в редакторе
     private void OnValidate()
     {
         if (Application.isPlaying) 
@@ -61,7 +74,6 @@ public class GameDependencies : MonoBehaviour, IGameDependencies
         ValidateDependencies();
     }
 
-    // Очистка при уничтожении
     private void OnDestroy()
     {
         if (_instance == this)

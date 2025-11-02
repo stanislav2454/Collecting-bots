@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class BaseSelectionManager : MonoBehaviour
 {
-    private static BaseSelectionManager _instance;
-    public static BaseSelectionManager Instance => _instance;
+    private static BaseSelectionManager _instance;// оптимизировать
+    public static BaseSelectionManager Instance => _instance;// оптимизировать
 
     private BaseController _currentlySelectedBase;
     private List<BaseController> _allBases = new List<BaseController>();
@@ -28,7 +28,6 @@ public class BaseSelectionManager : MonoBehaviour
         {
             _allBases.Add(baseController);
 
-            // Подписываемся на события через BaseSelectionController
             var selectionController = baseController.GetComponent<BaseSelectionController>();
             if (selectionController != null)
             {

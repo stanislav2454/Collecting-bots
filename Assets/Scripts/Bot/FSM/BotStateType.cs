@@ -4,6 +4,6 @@
     MovingToResource,
     Collecting,
     ReturningToBase,
-    MovingToFlag,       // Новое состояние - движение к флагу
-    BuildingBase        // Новое состояние - строительство базы
+    MovingToFlag,
+    BuildingBase
 }

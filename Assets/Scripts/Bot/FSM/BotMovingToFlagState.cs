@@ -18,7 +18,6 @@ public class BotMovingToFlagState : BotState
     {
         bot.MoveToPosition(_flagPosition);
         _checkTimer = 0f;
-        Debug.Log($"Bot moving to flag at: {_flagPosition}");
     }
 
     public override void Update(Bot bot)

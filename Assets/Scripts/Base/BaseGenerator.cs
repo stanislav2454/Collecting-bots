@@ -8,11 +8,11 @@ public class BaseGenerator : MonoBehaviour
     [SerializeField] private Transform _basesContainer;
     [SerializeField] private BaseController _initialBase;
 
-    private List<BaseController> _allBases = new List<BaseController>();
-    private static BaseGenerator _instance;
+    private List<BaseController> _allBases = new List<BaseController>();// оптимизировать
+    private static BaseGenerator _instance;// оптимизировать
 
-    public static BaseGenerator Instance => _instance;
-    public IReadOnlyList<BaseController> AllBases => _allBases;
+    public static BaseGenerator Instance => _instance;// оптимизировать
+    public IReadOnlyList<BaseController> AllBases => _allBases;// оптимизировать
 
     private void Awake()
     {

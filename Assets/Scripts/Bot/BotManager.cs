@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class BotManager : MonoBehaviour, IBotManager
+public class BotManager : MonoBehaviour, IBotManager// класс перегружен
 {
     [Header("Bot Settings")]
     [SerializeField] [Range(1, 10)] private int _initialBotsCount = 3;
@@ -11,7 +11,6 @@ public class BotManager : MonoBehaviour, IBotManager
     [SerializeField] private Transform _spawnContainer;
 
     [Header("Dependencies")]
-    //[SerializeField] private IBaseController _baseController;
     [SerializeField] private BaseController _baseController;
     [SerializeField] private ResourceManager _resourceManager;
 
@@ -22,28 +21,7 @@ public class BotManager : MonoBehaviour, IBotManager
     public Vector3 BasePosition => _baseController != null ? _baseController.transform.position : transform.position;
     public float UnloadZoneRadius => _baseController != null ? _baseController.UnloadZoneRadius : 1.5f;
     public int BotCount => _bots.Count;
-    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);// Зачем ?
-
-    public void SetBaseController(BaseController baseController)
-    {
-        _baseController = baseController;
-        if (_baseController == null)
-        {
-            Debug.LogWarning("BaseController set to null in BotManager!");
-        }
-    }
-    public void SetResourceManager(ResourceManager resourceManager)
-    {
-        _resourceManager = resourceManager;
-        if (_resourceManager == null)
-        {
-            Debug.LogWarning("ResourceManager set to null in BotManager!");
-        }
-        else
-        {
-            Debug.Log("ResourceManager successfully assigned to BotManager");
-        }
-    }
+    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);
 
     private void Awake()
     {
@@ -52,7 +30,6 @@ public class BotManager : MonoBehaviour, IBotManager
 
     private void Start()
     {
-        // ЗАМЕНА: вместо FindObjectOfType
         if (_resourceManager == null)
         {
             var gameDependencies = GameDependencies.Instance;
@@ -73,6 +50,22 @@ public class BotManager : MonoBehaviour, IBotManager
 
         ValidateDependencies();
         SpawnInitialBots();
+    }
+
+    public void SetBaseController(BaseController baseController)
+    {
+        _baseController = baseController;
+        if (_baseController == null)
+            Debug.LogWarning("BaseController set to null in BotManager!");
+    }
+
+    public void SetResourceManager(ResourceManager resourceManager)
+    {
+        _resourceManager = resourceManager;
+        if (_resourceManager == null)
+            Debug.LogWarning("ResourceManager set to null in BotManager!");
+        else
+            Debug.Log("ResourceManager successfully assigned to BotManager");
     }
 
     public void AssignResourceToBot(Bot bot)
@@ -148,7 +141,6 @@ public class BotManager : MonoBehaviour, IBotManager
             return false;
         }
 
-        // Освобождаем текущие задания бота
         var assignment = _resourceAssignments.FirstOrDefault(x => x.Value == bot);
         if (assignment.Key != null)
         {
@@ -156,15 +148,8 @@ public class BotManager : MonoBehaviour, IBotManager
             _resourceManager?.ReleaseResource(assignment.Key);
         }
 
-        // Убираем бота из текущего менеджера
         _bots.Remove(bot);
-
-        // Отписываемся от событий бота
         bot.MissionCompleted -= HandleBotMissionCompleted;
-        //// Обновляем принадлежность бота
-        //bot.transform.SetParent(newBase.transform);
-
-        // Сбрасываем состояние бота
         bot.SetWaiting();
 
         Debug.Log($"Bot {bot.name} transferred to new base");
@@ -179,7 +164,6 @@ public class BotManager : MonoBehaviour, IBotManager
         _bots.Add(bot);
         bot.MissionCompleted += HandleBotMissionCompleted;
 
-        // Обновляем позицию родительской базы у бота
         bot.transform.SetParent(_spawnContainer);
 
         Debug.Log($"Bot {bot.name} added to base manager");
@@ -264,28 +248,23 @@ public class BotManager : MonoBehaviour, IBotManager
     private void OnDestroy()
     {
         if (_botFactory != null)
-        {
             _botFactory.BotCreated -= OnBotCreated;
-            // Добавим метод Dispose в BotFactory если нужно
-        }
 
-        // Очистка событий
         foreach (var bot in _bots)
-        {
             if (bot != null)
                 bot.MissionCompleted -= HandleBotMissionCompleted;
-        }
     }
 
-    public void SetBaseController(IBaseController baseController)
+    public void SetBaseController(IBaseController baseController)// todo: зачем, может удалить ?
     {
         //_baseController = baseController;
     }
 
-    bool IBotManager.TransferBotToNewBase(Bot bot, IBaseController newBase)
+    bool IBotManager.TransferBotToNewBase(Bot bot, IBaseController newBase)// todo: модификатор доступа ?
     {
         if (newBase is BaseController concreteBase)
             return TransferBotToNewBase(bot, concreteBase);
+
         return false;
     }
 }

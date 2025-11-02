@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
 public class BaseFlagController : MonoBehaviour
@@ -16,88 +16,6 @@ public class BaseFlagController : MonoBehaviour
 
     public bool HasActiveFlag => _currentFlag != null && _currentFlag.CurrentState != FlagState.Hide;
     public Vector3 FlagPosition => _currentFlag != null ? _currentFlag.Position : Vector3.zero;
-
-    public bool TrySetFlag(Vector3 worldPosition)
-    {
-        if (_botManager == null || _botManager.BotCount <= 1 || IsValidFlagPosition(worldPosition) == false)
-            return false;
-
-        if (_currentFlag == null)
-        {
-            CreateFlag(worldPosition);
-        }
-        else
-        {
-            _currentFlag.StartMoving();
-            _currentFlag.SetPosition(worldPosition, true);
-            _currentFlag.PlaceFlag();
-        }
-        _priorityController?.SetPriority(BasePriority.CollectForNewBase);
-
-        return true;
-    }
-
-    public void RemoveFlag()
-    {
-        _currentFlag?.RemoveFlag();
-    }
-
-    public void StartBaseConstruction(Bot builderBot)
-    {
-        if (builderBot == null || _currentFlag == null)
-            return;
-
-        Debug.Log($"Starting base construction at {_currentFlag.Position}");
-        builderBot.BuildBase(_currentFlag.Position, GetComponent<BaseController>());
-        _currentFlag.SetDeliveryState();
-    }
-
-    public void OnBaseConstructionCompleted()
-    {
-        RemoveFlag();
-        Debug.Log("Base construction completed successfully!");
-    }
-
-    private void CreateFlag(Vector3 position)
-    {
-        _currentFlag = Instantiate(_flagPrefab);
-        if (_currentFlag == null) return;
-
-        _currentFlag.Initialize(GetComponent<BaseController>());
-        _currentFlag.FlagSettled += OnFlagSettled;
-        _currentFlag.FlagRemoved += OnFlagRemoved;
-        _currentFlag.PlaceFlagDirectly(position);
-    }
-
-    private void OnFlagSettled(Vector3 position)
-    {
-        Debug.Log($"Flag settled at: {position}");
-        FlagSettled?.Invoke(position);
-    }
-
-    private void OnFlagRemoved()
-    {
-        _priorityController?.SetPriority(BasePriority.CollectForBots);
-        FlagRemoved?.Invoke();
-        Debug.Log("Flag removed");
-    }
-
-    private bool IsValidFlagPosition(Vector3 position)
-    {
-        if (position.y < 0)
-            return false;
-
-        float checkRadius = 1f;
-        Collider[] colliders = Physics.OverlapSphere(position, checkRadius);
-
-        foreach (var collider in colliders)
-        {
-            if (collider.isTrigger == false && !collider.TryGetComponent<Ground>(out _))
-                return false;
-        }
-
-        return true;
-    }
 
     private void OnValidate()
     {
@@ -124,5 +42,90 @@ public class BaseFlagController : MonoBehaviour
 
         FlagSettled = null;
         FlagRemoved = null;
+    }
+
+    public bool TrySetFlag(Vector3 worldPosition)
+    {
+        int minNumberBot = 1;
+
+        if (_botManager == null || _botManager.BotCount <= minNumberBot ||
+                                IsValidFlagPosition(worldPosition) == false)
+            return false;
+
+        if (_currentFlag == null)
+        {
+            CreateFlag(worldPosition);
+        }
+        else
+        {
+            _currentFlag.StartMoving();
+            _currentFlag.SetPosition(worldPosition, true);
+            _currentFlag.PlaceFlag();
+        }
+        _priorityController?.SetPriority(BasePriority.CollectForNewBase);
+
+        return true;
+    }
+
+    public void RemoveFlag() =>
+        _currentFlag?.RemoveFlag();
+
+    public void StartBaseConstruction(Bot builderBot)
+    {
+        if (builderBot == null || _currentFlag == null)
+            return;
+
+        Debug.Log($"Starting base construction at {_currentFlag.Position}");
+        builderBot.BuildBase(_currentFlag.Position, GetComponent<BaseController>());
+        _currentFlag.SetDeliveryState();
+    }
+
+    public void OnBaseConstructionCompleted()//todo: не используется ?
+    {
+        RemoveFlag();
+        Debug.Log("Base construction completed successfully!");
+    }
+
+    private void CreateFlag(Vector3 position)
+    {
+        _currentFlag = Instantiate(_flagPrefab);
+
+        if (_currentFlag == null)
+            return;
+
+        _currentFlag.Initialize(GetComponent<BaseController>());
+        _currentFlag.FlagSettled += OnFlagSettled;
+        _currentFlag.FlagRemoved += OnFlagRemoved;
+        _currentFlag.PlaceFlagDirectly(position);
+    }
+
+    private void OnFlagSettled(Vector3 position)
+    {
+        Debug.Log($"Flag settled at: {position}");
+        FlagSettled?.Invoke(position);
+    }
+
+    private void OnFlagRemoved()
+    {
+        _priorityController?.SetPriority(BasePriority.CollectForBots);
+        FlagRemoved?.Invoke();
+        Debug.Log("Flag removed");
+    }
+
+    private bool IsValidFlagPosition(Vector3 position)
+    {
+        int minLevelGround = 0;
+        float checkRadius = 1f;
+
+        if (position.y < minLevelGround)
+            return false;
+
+        Collider[] colliders = Physics.OverlapSphere(position, checkRadius);
+
+        foreach (var collider in colliders)
+            if (collider.isTrigger == false && !collider.TryGetComponent<Ground>(out _))
+                return false;
+
+        return true;
     }
 }

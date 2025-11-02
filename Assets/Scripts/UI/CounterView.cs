@@ -9,15 +9,14 @@ public class CounterView : MonoBehaviour
 
     private void Start()
     {
-        // Инициализируем начальное значение
         ShowCounterValue();
     }
 
     private void OnEnable() =>
-        _counter.CounterChanged += ShowCounterValue;
+        _counter.Changed += ShowCounterValue;
 
     private void OnDisable() =>
-        _counter.CounterChanged -= ShowCounterValue;
+        _counter.Changed -= ShowCounterValue;
 
     private void ShowCounterValue() =>
         _counterText.text = $"Собранные ресурсы: {_counter.CurrentValue}";
