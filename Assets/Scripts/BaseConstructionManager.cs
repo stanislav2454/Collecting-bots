@@ -7,6 +7,7 @@ public class BaseConstructionManager : MonoBehaviour
     [Header("Dependencies")]
     [SerializeField] private BaseFactory _baseFactory;
     [SerializeField] private ResourceManager _resourceManager;
+    [SerializeField] private BaseSelectionManager _selectionManager;
 
     [Header("Construction Settings")]
     [SerializeField] private float _constructionTime = 3f;
@@ -17,6 +18,15 @@ public class BaseConstructionManager : MonoBehaviour
 
     public event Action<BaseController> BaseConstructionStarted;
     public event Action<BaseController> BaseConstructionCompleted;
+
+    private void OnDestroy()
+    {
+        if (_currentConstructionCoroutine != null)
+            StopCoroutine(_currentConstructionCoroutine);
+
+        if (_activateBotCoroutine != null)
+            StopCoroutine(_activateBotCoroutine);
+    }
 
     public void StartBaseConstruction(BaseController parentBase, Vector3 flagPosition, Bot builderBot)
     {
@@ -37,38 +47,25 @@ public class BaseConstructionManager : MonoBehaviour
         GameObject constructionSite = null;// TODO: на конкретный тип
         BaseController newBase = null;
 
-
-        // 1. Создаем строительную площадку
         constructionSite = CreateConstructionSite(flagPosition);
-
-        // 2. Отправляем бота НА строительную площадку
         builderBot.ChangeState(new BotMovingToConstructionState(flagPosition));
 
-        // 3. Ждем пока бот дойдет до места
         yield return new WaitUntil(() => builderBot.HasReachedDestination());
 
-        // 4. Начинаем строительство
         builderBot.ChangeState(new BotBuildingState(_constructionTime));
-        Debug.Log($"[Construction] Bot started building at {flagPosition}");
 
-        // 5. Ждем завершения строительства
         yield return new WaitForSeconds(_constructionTime);
 
-        // 6. Создаем новую базу
         newBase = _baseFactory.CreateBase(flagPosition);
 
-        // 7. Передаем бота новой базе
         TransferBotToNewBase(builderBot, parentBase, newBase);
 
-        // 8. Убираем строительную площадку
         if (constructionSite != null)
             Destroy(constructionSite);
 
-        // УВЕДОМЛЯЕМ PriorityController о завершении строительства
         var priorityController = parentBase.GetComponent<BasePriorityController>();
         priorityController?.ResetConstructionFlag();
 
-        Debug.Log($"[Construction] Base construction completed! New base: {newBase.name}");
         BaseConstructionCompleted?.Invoke(newBase);
         _currentConstructionCoroutine = null;
     }
@@ -87,67 +84,47 @@ public class BaseConstructionManager : MonoBehaviour
 
     private void TransferBotToNewBase(Bot bot, BaseController fromBase, BaseController toBase)
     {
-        Debug.Log($"[Construction] Transferring bot {bot.name} from {fromBase.name} to {toBase.name}");
+        const float Delay = 0.5f;
 
         if (bot == null || toBase == null)
-        {
-            Debug.LogError("[Construction] Cannot transfer bot - bot or target base is null");
             return;
-        }
 
         try
         {
-            // 1. Получаем BotManager новой базы
             var toBotManager = toBase.GetComponentInChildren<BotManager>();
             var fromBotManager = fromBase.GetComponentInChildren<BotManager>();
 
             if (toBotManager == null)
-            {
-                Debug.LogError("[Construction] Target BotManager not found!");
                 return;
-            }
 
-            // 2. Используем новый метод перепривязки
             bot.ReassignToNewManager(toBotManager, fromBotManager);
 
-            // 3. Удаляем бота из старой базы
             if (fromBotManager != null)
             {
-                // Используем рефлексию для доступа к приватному списку _bots
                 var botsField = typeof(BotManager).GetField("_bots",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (botsField != null)
                 {
                     var botsList = (System.Collections.Generic.List<Bot>)botsField.GetValue(fromBotManager);
                     botsList?.Remove(bot);
-                    Debug.Log($"[Construction] Bot removed from old base, remaining: {botsList?.Count ?? 0}");
                 }
             }
 
-            // 4. Добавляем бота в новую базу
             var toBotsField = typeof(BotManager).GetField("_bots",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
             if (toBotsField != null)
             {
                 var toBotsList = (System.Collections.Generic.List<Bot>)toBotsField.GetValue(toBotManager);
                 toBotsList?.Add(bot);
-                Debug.Log($"[Construction] Bot added to new base, total: {toBotsList?.Count ?? 0}");
             }
 
-            // 5. ВАЖНО: Меняем физический parent бота на BotManager новой базы
             if (toBotManager.transform != null)
-            {
                 bot.transform.SetParent(toBotManager.transform);
-                Debug.Log($"[Construction] Bot parent changed to: {toBotManager.transform.name}");
-            }
 
-            // 6. Переводим бота в idle состояние
             bot.ChangeState(new BotIdleState());
 
-            // 7. Активируем бота для сбора ресурсов в новой базе
-            _activateBotCoroutine = StartCoroutine(ActivateBotAfterDelay(bot, toBotManager, 0.5f));// TODO:   magic num
-
-            Debug.Log($"[Construction] Bot transfer completed successfully");
+            _activateBotCoroutine = StartCoroutine(ActivateBotAfterDelay(bot, toBotManager, Delay));
         }
         catch (System.Exception e)
         {

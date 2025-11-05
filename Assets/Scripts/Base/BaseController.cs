@@ -8,17 +8,14 @@ public class BaseController : MonoBehaviour
     [SerializeField] private BotManager _botManager;
     [SerializeField] private ItemSpawner _itemSpawner;
     [SerializeField] private ItemCounter _itemCounter;
-
     [SerializeField] private BasePriorityController _priorityController;
     [SerializeField] private FlagController _flagController;
+    [SerializeField] private BaseSelectionManager _selectionManager;
 
     [Header("Selection Settings")]
     [SerializeField] private MaterialChanger _materialChanger;
-    [SerializeField] private float _selectedScaleMultiplier = 1.1f;
     [SerializeField] private Transform _viewTransform;
-
-    [Header("Selection Dependencies")]
-    [SerializeField] private BaseSelectionManager _selectionManager;
+    [SerializeField] private float _selectedScaleMultiplier = 1.1f;
 
     private Vector3 _originalViewScale;
     private bool _isSelected = false;
@@ -27,13 +24,9 @@ public class BaseController : MonoBehaviour
     public event Action<BaseController> BaseDeselected;
 
     public bool IsSelected => _isSelected;
-    public int CollectedResources => _itemCounter.CurrentValue;// ? 0 references !
     public float UnloadZoneRadius => _zoneVisualizer ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
     public float SpawnZoneRadius => _zoneVisualizer ? _zoneVisualizer.SpawnZoneRadius : 3f;
 
-    public bool CanAffordBot => _priorityController?.CanAffordBot ?? false;// ? 0 references !
-    public bool CanAffordNewBase => _priorityController?.CanAffordNewBase ?? false;// ? 0 references !
-    public bool HasActiveFlag => _flagController?.HasActiveFlag ?? false;// ? 0 references !
     public bool CanBuildNewBase => _botManager != null && _botManager.BotCount > 1;
     public BasePriority CurrentPriority => _priorityController?.CurrentPriority ?? BasePriority.CollectForBots;
 
@@ -59,7 +52,6 @@ public class BaseController : MonoBehaviour
     {
         InitializeSelection();
 
-        //RegisterWithSelectionManager();
         if (_selectionManager != null)
             _selectionManager.RegisterBase(this);
         else
@@ -92,8 +84,6 @@ public class BaseController : MonoBehaviour
     {
         if (_selectionManager != null)
             _selectionManager.UnregisterBase(this);
-        //if (BaseSelectionManager.Instance != null)
-        //    BaseSelectionManager.Instance.UnregisterBase(this);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -156,13 +146,8 @@ public class BaseController : MonoBehaviour
         _itemSpawner?.ReturnItemToPool(item);
     }
 
-
     public bool TrySetFlag(Vector3 worldPosition) =>
         _flagController?.TrySetFlag(worldPosition) ?? false;
-
-    public void RemoveFlag() =>
-        _flagController?.RemoveFlag();
-
 
     private void InitializeSelection() =>
         SetSelected(false, false);
@@ -170,17 +155,8 @@ public class BaseController : MonoBehaviour
     private void ToggleSelection() =>
         SetSelected(IsSelected ? false : true);
 
-    //private void RegisterWithSelectionManager()
-    //{
-    //    if (BaseSelectionManager.Instance != null)
-    //        BaseSelectionManager.Instance.RegisterBase(this);
-    //}
-
-    private void OnItemCounterChanged()
-    {
+    private void OnItemCounterChanged() =>
         _priorityController?.OnResourcesChanged();
-    }
-
 
     private void InitializeAndValidateDependencies()
     {
@@ -190,11 +166,8 @@ public class BaseController : MonoBehaviour
         if (_botManager == null)
             Debug.LogError("BotManager not found in BaseController!");
 
-
         if (_itemCounter == null)
             Debug.LogError("ItemCounter not assigned in BotManager!");
-
-
 
         if (_materialChanger == null)
             Debug.LogError("MaterialChanger not assigned in BotManager!");
@@ -203,7 +176,6 @@ public class BaseController : MonoBehaviour
             Debug.LogError("ViewTransform not assigned in BaseController!");
         else
             _originalViewScale = _viewTransform.localScale;
-
 
         if (_priorityController == null)
             Debug.LogError("_PriorityController not assigned in BaseController!");

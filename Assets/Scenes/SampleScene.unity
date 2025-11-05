@@ -373,8 +373,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 386589999}
   - {fileID: 722945741}
+  - {fileID: 386589999}
   - {fileID: 17133662}
   - {fileID: 1745672140}
   - {fileID: 900999531}
@@ -474,8 +474,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _baseFactory: {fileID: 1745672139}
   _resourceManager: {fileID: 386589998}
+  _selectionManager: {fileID: 17133661}
   _constructionTime: 3
-  _constructionSitePrefab: {fileID: 1878174221}
+  _constructionSitePrefab: {fileID: 0}
 --- !u!4 &978571040 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6084678715314758968, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}

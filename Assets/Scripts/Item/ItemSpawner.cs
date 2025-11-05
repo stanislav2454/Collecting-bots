@@ -20,8 +20,6 @@ public class ItemSpawner : ZoneVisualizer
 
     private int _maxSize = 50;
     private List<Item> _activeItems = new List<Item>();
-    //private Coroutine _respawnItemAfterDelayCoroutine;
-    // ЗАМЕНА: словарь для управления множественными корутинами
     private Dictionary<Item, Coroutine> _activeRespawnCoroutines = new Dictionary<Item, Coroutine>();
 
     public event Action<Item> ItemSpawned;
@@ -43,8 +41,6 @@ public class ItemSpawner : ZoneVisualizer
                 StopCoroutine(coroutinePair.Value);
 
         _activeRespawnCoroutines.Clear();
-        //if (_respawnItemAfterDelayCoroutine != null)
-        //    StopCoroutine(_respawnItemAfterDelayCoroutine);
     }
 
     public void ReturnItemToPool(Item item)
@@ -63,7 +59,6 @@ public class ItemSpawner : ZoneVisualizer
 
         var coroutine = StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
         _activeRespawnCoroutines[item] = coroutine;
-        //_respawnItemAfterDelayCoroutine = StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
     }
 
     private IEnumerator RespawnItemAfterDelay(Item item, float delay)
@@ -84,7 +79,6 @@ public class ItemSpawner : ZoneVisualizer
 
             item.transform.position = spawnPosition;
             item.transform.rotation = Quaternion.identity;
-            //item.PrepareForRespawn();
 
             _activeItems.Add(item);
             _resourceManager?.RegisterResource(item);

@@ -16,6 +16,11 @@ public class BaseFactory : MonoBehaviour
 
     private Coroutine _botAssignment;
 
+    private void OnDestroy()
+    {
+        StopCoroutine(_botAssignment);
+    }
+
     public BaseController CreateBase(Vector3 position)
     {
         if (_basePrefab == null)
@@ -54,39 +59,30 @@ public class BaseFactory : MonoBehaviour
             _mainCamera = Camera.main;
         }
 
-        // 1. Настраиваем BaseController новой базы
-        var baseController = newBase.GetComponent<BaseController>();
-        if (baseController != null)
-            SetupBaseController(baseController, _itemSpawner);
-
-        // 2. Настраиваем BotManager новой базы
-        var botManager = newBase.GetComponentInChildren<BotManager>();
-        if (botManager != null)
-        {
-            botManager.SetResourceManager(_resourceManager);
-            _botAssignment = StartCoroutine(StartBotAssignmentsAfterDelay(botManager, Delay));// ЗАПУСКАЕМ автоматическое назначение ресурсов ботам
-        }
-
-        // 3. Настраиваем MissionControl новой базы
-        var missionControl = newBase.GetComponent<MissionControl>();
-        if (missionControl != null)
-            SetupMissionControl(missionControl, _resourceManager, botManager);
-
-        // 4. Настраиваем CanvasLookAtCamera
-        var canvasLookAt = newBase.GetComponentInChildren<CanvasLookAtCamera>();
-        if (canvasLookAt != null && _mainCamera != null)// Через рефлексию или добавим публичный метод        
-            canvasLookAt.SetTargetCamera(_mainCamera);
-        //SetCameraOnCanvasLookAt(canvasLookAt, _mainCamera);
-
-        // 5. Регистрируем базу в менеджерах
         if (_selectionManager != null)
             _selectionManager.RegisterBase(newBase);
         else
             Debug.LogWarning("BaseSelectionManager not assigned in BaseFactory!");
 
-        Debug.Log($"[BaseFactory] New base dependencies setup completed");
-    }
+        var baseController = newBase.GetComponent<BaseController>();
+        if (baseController != null)
+            SetupBaseController(baseController, _itemSpawner);
 
+        var botManager = newBase.GetComponentInChildren<BotManager>();
+        if (botManager != null)
+        {
+            botManager.SetResourceManager(_resourceManager);
+            _botAssignment = StartCoroutine(StartBotAssignmentsAfterDelay(botManager, Delay));
+        }
+
+        var missionControl = newBase.GetComponent<MissionControl>();
+        if (missionControl != null)
+            SetupMissionControl(missionControl, _resourceManager, botManager);
+
+        var canvasLookAt = newBase.GetComponentInChildren<CanvasLookAtCamera>();
+        if (canvasLookAt != null && _mainCamera != null)
+            canvasLookAt.SetTargetCamera(_mainCamera);
+    }
 
     private void SetupBaseController(BaseController baseController, ItemSpawner itemSpawner)
     {
@@ -99,7 +95,6 @@ public class BaseFactory : MonoBehaviour
         if (itemSpawnerField != null)
             itemSpawnerField.SetValue(baseController, itemSpawner);
     }
-
 
     private void SetupMissionControl
         (MissionControl missionControl, ResourceManager resourceManager, BotManager botManager)

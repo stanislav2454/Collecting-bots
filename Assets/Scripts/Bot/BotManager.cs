@@ -14,18 +14,14 @@ public class BotManager : MonoBehaviour
     [SerializeField] private BaseController _baseController;
     [SerializeField] private ResourceManager _resourceManager;
 
+    private BotFactory _botFactory;
     private List<Bot> _bots = new List<Bot>();
     private Dictionary<Item, Bot> _resourceAssignments = new Dictionary<Item, Bot>();
-    private BotFactory _botFactory;
-
-    //private Coroutine _resourceAssignment;
-    // ЗАМЕНА: словарь для управления корутинами назначения ботов
     private Dictionary<Bot, Coroutine> _botAssignmentCoroutines = new Dictionary<Bot, Coroutine>();
 
     public Vector3 BasePosition => _baseController != null ? _baseController.transform.position : transform.position;
     public float UnloadZoneRadius => _baseController != null ? _baseController.UnloadZoneRadius : 1.5f;
     public int BotCount => _bots.Count;
-    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);// Зачем ?
 
     private void Awake()
     {
@@ -54,17 +50,15 @@ public class BotManager : MonoBehaviour
         if (success && _baseController != null)
             _baseController.CollectResourceFromBot(bot);
 
-        // Останавливаем предыдущую корутину для этого бота
         if (_botAssignmentCoroutines.ContainsKey(bot))
         {
             StopCoroutine(_botAssignmentCoroutines[bot]);
             _botAssignmentCoroutines.Remove(bot);
         }
 
-        // Запускаем новую корутину и сохраняем ссылку
-        var coroutine = StartCoroutine(AssignNewResourceAfterDelay(bot, 0.5f));
+        const float Delay = 0.5f;
+        var coroutine = StartCoroutine(AssignNewResourceAfterDelay(bot, Delay));
         _botAssignmentCoroutines[bot] = coroutine;
-        //_resourceAssignment = StartCoroutine(AssignNewResourceAfterDelay(bot, 0.5f));
     }
 
     public void AssignResourceToBot(Bot bot)
@@ -124,41 +118,31 @@ public class BotManager : MonoBehaviour
     public bool IsResourceAssigned(Item resource) =>
         _resourceAssignments.ContainsKey(resource);
 
-
     public Bot GetAvailableBotForConstruction()
     {
         var availableBot = _bots.FirstOrDefault
                 (b => b != null && b.CurrentStateType == BotStateType.Idle);
 
         if (availableBot != null)
-        {
-            Debug.Log($"[BotManager] Found builder bot: {availableBot.name}, State: {availableBot.CurrentStateType}");
             return availableBot;
-        }
 
-        // Если нет Idle ботов, ищем любого не занятого сбором
         availableBot = _bots.FirstOrDefault(b =>
-            b != null &&
-            IsBotAssigned(b) == false &&
-            b.CurrentStateType != BotStateType.Collecting &&
-            b.CurrentStateType != BotStateType.ReturningToBase);
+                b != null &&
+                IsBotAssigned(b) == false &&
+                b.CurrentStateType != BotStateType.Collecting &&
+                b.CurrentStateType != BotStateType.ReturningToBase);
 
         if (availableBot != null)
-        {
-            Debug.Log($"[BotManager] Found alternative builder: {availableBot.name}, State: {availableBot.CurrentStateType}");
             return availableBot;
-        }
 
-        Debug.LogWarning($"[BotManager] No available bot for construction! Total bots: {_bots.Count}");
         return null;
     }
 
     public Bot ForceGetBotForConstruction()
     {
-        var bot = _bots.FirstOrDefault();
-        if (bot != null)
+        if (_bots.Count > 0)
         {
-            Debug.Log($"[BotManager] Force using bot for construction: {bot.name}");
+            var bot = _bots[0];
 
             if (IsBotAssigned(bot))
             {
@@ -177,12 +161,8 @@ public class BotManager : MonoBehaviour
         return null;
     }
 
-    public void SetResourceManager(ResourceManager resourceManager)
-    {
+    public void SetResourceManager(ResourceManager resourceManager) =>
         _resourceManager = resourceManager;
-        Debug.Log($"[BotManager] ResourceManager set: {_resourceManager != null}");
-    }
-
 
     private void InitializeBotFactory()
     {
@@ -191,10 +171,8 @@ public class BotManager : MonoBehaviour
         _botFactory.BotCreated += OnBotCreated;
     }
 
-    private void OnBotCreated(Bot newBot)
-    {
+    private void OnBotCreated(Bot newBot) =>
         InitializeBot(newBot);
-    }
 
     private bool TryAssignResourceToBot(Item resource, Bot bot)
     {

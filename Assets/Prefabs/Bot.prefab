@@ -216,7 +216,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fbf638556f5641944bb8239cc1a51db1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _enableVisualization: 1
+  _enableVisualization: 0
   _showSceneGizmos: 1
   _showGameGUI: 1
   _iconHeight: 3
