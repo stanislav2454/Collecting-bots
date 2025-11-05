@@ -823,6 +823,8 @@ MonoBehaviour:
   _basesContainer: {fileID: 1677253470}
   _resourceManager: {fileID: 386589998}
   _itemSpawner: {fileID: 2122070370}
+  _selectionManager: {fileID: 17133661}
+  _constructionManager: {fileID: 900999532}
   _mainCamera: {fileID: 1406071452}
 --- !u!4 &1745672140
 Transform:
@@ -1243,7 +1245,7 @@ MonoBehaviour:
   _primitiveType: 3
   _itemPrefab: {fileID: 1762044928646761028, guid: e4a9c00e05714f44b93093aebfa122d9, type: 3}
   _itemContainer: {fileID: 2122070369}
-  _initialItemsCount: 6
+  _initialItemsCount: 10
   _respawnDelay: 1.1
   _spawnAreaSize: {x: 30, y: 0.02, z: 30}
   _itemPool: {fileID: 2122070371}
@@ -1336,6 +1338,10 @@ PrefabInstance:
       propertyPath: _itemSpawner
       value: 
       objectReference: {fileID: 2122070370}
+    - target: {fileID: 6111019587113685739, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: _selectionManager
+      value: 
+      objectReference: {fileID: 17133661}
     - target: {fileID: 7932974522014517014, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: _targetCamera
       value: 

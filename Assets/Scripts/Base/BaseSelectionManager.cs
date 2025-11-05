@@ -3,23 +3,36 @@ using UnityEngine;
 
 public class BaseSelectionManager : MonoBehaviour
 {
-    private static BaseSelectionManager _instance;//TODO: убрать static !!!
-    public static BaseSelectionManager Instance => _instance;//TODO: убрать static !!!
+    //private static BaseSelectionManager _instance;//TODO: убрать static !!!
+    //public static BaseSelectionManager Instance => _instance;//TODO: убрать static !!!
 
-    private BaseController _currentlySelectedBase;
     private List<BaseController> _allBases = new List<BaseController>();
+    private BaseController _currentlySelectedBase;
 
     public BaseController CurrentlySelectedBase => _currentlySelectedBase;
 
+    // Временный фасад для обратной совместимости
+    [System.Obsolete("Use direct reference instead of Singleton pattern")]
+    public static BaseSelectionManager Instance
+    {
+        get
+        {
+            var manager = FindAnyObjectByType<BaseSelectionManager>();
+            if (manager != null)
+                Debug.LogWarning("Using deprecated Instance property. Use direct reference instead.");
+            return manager;
+        }
+    }
+
     private void Awake()
     {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        //if (_instance != null && _instance != this)
+        //{
+        //    Destroy(gameObject);
+        //    return;
+        //}
 
-        _instance = this;
+        //_instance = this;
     }
 
     public void RegisterBase(BaseController baseController)
@@ -44,6 +57,12 @@ public class BaseSelectionManager : MonoBehaviour
                 _currentlySelectedBase = null;
         }
     }
+
+    // Явные методы для доступа вместо статических
+    public void SelectBase(BaseController baseController) => 
+        OnBaseSelected(baseController);
+    public void DeselectAll() => 
+        DeselectAllBases();
 
     private void OnBaseSelected(BaseController selectedBase)
     {

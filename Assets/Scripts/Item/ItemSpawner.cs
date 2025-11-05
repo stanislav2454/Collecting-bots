@@ -20,7 +20,9 @@ public class ItemSpawner : ZoneVisualizer
 
     private int _maxSize = 50;
     private List<Item> _activeItems = new List<Item>();
-    private Coroutine _respawnItemAfterDelayCoroutine;
+    //private Coroutine _respawnItemAfterDelayCoroutine;
+    // ЗАМЕНА: словарь для управления множественными корутинами
+    private Dictionary<Item, Coroutine> _activeRespawnCoroutines = new Dictionary<Item, Coroutine>();
 
     public event Action<Item> ItemSpawned;
 
@@ -36,8 +38,13 @@ public class ItemSpawner : ZoneVisualizer
 
     private void OnDestroy()
     {
-        if (_respawnItemAfterDelayCoroutine != null)
-            StopCoroutine(_respawnItemAfterDelayCoroutine);
+        foreach (var coroutinePair in _activeRespawnCoroutines)
+            if (coroutinePair.Value != null)
+                StopCoroutine(coroutinePair.Value);
+
+        _activeRespawnCoroutines.Clear();
+        //if (_respawnItemAfterDelayCoroutine != null)
+        //    StopCoroutine(_respawnItemAfterDelayCoroutine);
     }
 
     public void ReturnItemToPool(Item item)
@@ -45,14 +52,26 @@ public class ItemSpawner : ZoneVisualizer
         if (item == null)
             return;
 
+        if (_activeRespawnCoroutines.ContainsKey(item))
+        {
+            StopCoroutine(_activeRespawnCoroutines[item]);
+            _activeRespawnCoroutines.Remove(item);
+        }
+
         item.gameObject.SetActive(false);
         _activeItems.Remove(item);
-        _respawnItemAfterDelayCoroutine = StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
+
+        var coroutine = StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
+        _activeRespawnCoroutines[item] = coroutine;
+        //_respawnItemAfterDelayCoroutine = StartCoroutine(RespawnItemAfterDelay(item, _respawnDelay));
     }
 
     private IEnumerator RespawnItemAfterDelay(Item item, float delay)
     {
         yield return new WaitForSeconds(delay);
+
+        if (_activeRespawnCoroutines.ContainsKey(item))
+            _activeRespawnCoroutines.Remove(item);
 
         if (item != null && _itemPool != null && _activeItems.Count < MaxActiveItems)
         {

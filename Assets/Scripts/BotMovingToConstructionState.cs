@@ -19,10 +19,6 @@ public class BotMovingToConstructionState : BotState
 
     public override void Update(Bot bot)
     {
-        //if (bot.HasReachedDestination())
-        //{
-        //    Debug.Log($"[BotMovingToConstruction] Bot arrived at construction site");
-        //    // Состояние изменится в ConstructionManager когда бот достигнет места
-        //}
+
     }
 }

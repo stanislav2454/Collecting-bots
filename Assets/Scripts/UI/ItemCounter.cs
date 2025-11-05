@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class ItemCounter : Counter
 {
-    public event Action<int> ResourceSpent; // Событие при трате ресурсов
+    public event Action<int> ResourceSpent; 
 
     public bool TrySubtract(int value)
     {
@@ -30,10 +30,5 @@ public class ItemCounter : Counter
     public bool CanAfford(int cost)
     {
         return CurrentValue >= cost;
-    }
-
-    public int GetMissingAmount(int cost)
-    {
-        return Mathf.Max(0, cost - CurrentValue);
     }
 }

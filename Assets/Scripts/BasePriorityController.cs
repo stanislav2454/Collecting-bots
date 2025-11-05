@@ -12,7 +12,7 @@ public class BasePriorityController : MonoBehaviour
     [SerializeField] private int _resourcesForBot = 3;
     [SerializeField] private int _resourcesForNewBase = 5;
 
-    // ДОБАВИТЬ поле для защиты от рекурсии
+    // для защиты от рекурсии
     private bool _isProcessingConstruction = false;
     private BasePriority _currentPriority = BasePriority.CollectForBots;
 

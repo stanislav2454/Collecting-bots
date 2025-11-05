@@ -17,7 +17,10 @@ public class BotManager : MonoBehaviour
     private List<Bot> _bots = new List<Bot>();
     private Dictionary<Item, Bot> _resourceAssignments = new Dictionary<Item, Bot>();
     private BotFactory _botFactory;
-    private Coroutine _resourceAssignment;
+
+    //private Coroutine _resourceAssignment;
+    // ЗАМЕНА: словарь для управления корутинами назначения ботов
+    private Dictionary<Bot, Coroutine> _botAssignmentCoroutines = new Dictionary<Bot, Coroutine>();
 
     public Vector3 BasePosition => _baseController != null ? _baseController.transform.position : transform.position;
     public float UnloadZoneRadius => _baseController != null ? _baseController.UnloadZoneRadius : 1.5f;
@@ -33,6 +36,35 @@ public class BotManager : MonoBehaviour
     {
         ValidateDependencies();
         SpawnInitialBots();
+    }
+
+    private void OnDestroy()
+    {
+        foreach (var coroutinePair in _botAssignmentCoroutines)
+            if (coroutinePair.Value != null)
+                StopCoroutine(coroutinePair.Value);
+
+        _botAssignmentCoroutines.Clear();
+    }
+
+    public void HandleBotMissionCompleted(Bot bot, bool success)
+    {
+        CompleteAssignment(bot, success);
+
+        if (success && _baseController != null)
+            _baseController.CollectResourceFromBot(bot);
+
+        // Останавливаем предыдущую корутину для этого бота
+        if (_botAssignmentCoroutines.ContainsKey(bot))
+        {
+            StopCoroutine(_botAssignmentCoroutines[bot]);
+            _botAssignmentCoroutines.Remove(bot);
+        }
+
+        // Запускаем новую корутину и сохраняем ссылку
+        var coroutine = StartCoroutine(AssignNewResourceAfterDelay(bot, 0.5f));
+        _botAssignmentCoroutines[bot] = coroutine;
+        //_resourceAssignment = StartCoroutine(AssignNewResourceAfterDelay(bot, 0.5f));
     }
 
     public void AssignResourceToBot(Bot bot)
@@ -95,10 +127,8 @@ public class BotManager : MonoBehaviour
 
     public Bot GetAvailableBotForConstruction()
     {
-        // ПРОСТОЙ поиск - любого бота в состоянии Idle
-        var availableBot = _bots.FirstOrDefault(b =>
-            b != null &&
-            b.CurrentStateType == BotStateType.Idle);
+        var availableBot = _bots.FirstOrDefault
+                (b => b != null && b.CurrentStateType == BotStateType.Idle);
 
         if (availableBot != null)
         {
@@ -125,13 +155,11 @@ public class BotManager : MonoBehaviour
 
     public Bot ForceGetBotForConstruction()
     {
-        // Берем первого попавшегося бота и принудительно освобождаем его
         var bot = _bots.FirstOrDefault();
         if (bot != null)
         {
             Debug.Log($"[BotManager] Force using bot for construction: {bot.name}");
 
-            // Принудительно завершаем текущую миссию
             if (IsBotAssigned(bot))
             {
                 var assignment = _resourceAssignments.FirstOrDefault(x => x.Value == bot);
@@ -210,16 +238,6 @@ public class BotManager : MonoBehaviour
 
         if (_resourceManager != null && _resourceManager.HasAvailableResources)
             AssignResourceToBot(bot);
-    }
-
-    public void HandleBotMissionCompleted(Bot bot, bool success)
-    {
-        CompleteAssignment(bot, success);
-
-        if (success && _baseController != null)
-            _baseController.CollectResourceFromBot(bot);
-
-        _resourceAssignment = StartCoroutine(AssignNewResourceAfterDelay(bot, 0.5f));
     }
 
     private IEnumerator AssignNewResourceAfterDelay(Bot bot, float delay)

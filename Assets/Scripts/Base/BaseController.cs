@@ -17,6 +17,9 @@ public class BaseController : MonoBehaviour
     [SerializeField] private float _selectedScaleMultiplier = 1.1f;
     [SerializeField] private Transform _viewTransform;
 
+    [Header("Selection Dependencies")]
+    [SerializeField] private BaseSelectionManager _selectionManager;
+
     private Vector3 _originalViewScale;
     private bool _isSelected = false;
 
@@ -28,9 +31,9 @@ public class BaseController : MonoBehaviour
     public float UnloadZoneRadius => _zoneVisualizer ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
     public float SpawnZoneRadius => _zoneVisualizer ? _zoneVisualizer.SpawnZoneRadius : 3f;
 
-    public bool CanAffordBot => _priorityController?.CanAffordBot ?? false;
-    public bool CanAffordNewBase => _priorityController?.CanAffordNewBase ?? false;
-    public bool HasActiveFlag => _flagController?.HasActiveFlag ?? false;
+    public bool CanAffordBot => _priorityController?.CanAffordBot ?? false;// ? 0 references !
+    public bool CanAffordNewBase => _priorityController?.CanAffordNewBase ?? false;// ? 0 references !
+    public bool HasActiveFlag => _flagController?.HasActiveFlag ?? false;// ? 0 references !
     public bool CanBuildNewBase => _botManager != null && _botManager.BotCount > 1;
     public BasePriority CurrentPriority => _priorityController?.CurrentPriority ?? BasePriority.CollectForBots;
 
@@ -55,7 +58,13 @@ public class BaseController : MonoBehaviour
     private void Start()
     {
         InitializeSelection();
-        RegisterWithSelectionManager();
+
+        //RegisterWithSelectionManager();
+        if (_selectionManager != null)
+            _selectionManager.RegisterBase(this);
+        else
+            Debug.LogWarning($"BaseSelectionManager not assigned for {name}");
+
         InitializeAndValidateDependencies();
     }
 
@@ -81,8 +90,10 @@ public class BaseController : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (BaseSelectionManager.Instance != null)
-            BaseSelectionManager.Instance.UnregisterBase(this);
+        if (_selectionManager != null)
+            _selectionManager.UnregisterBase(this);
+        //if (BaseSelectionManager.Instance != null)
+        //    BaseSelectionManager.Instance.UnregisterBase(this);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -159,11 +170,11 @@ public class BaseController : MonoBehaviour
     private void ToggleSelection() =>
         SetSelected(IsSelected ? false : true);
 
-    private void RegisterWithSelectionManager()
-    {
-        if (BaseSelectionManager.Instance != null)
-            BaseSelectionManager.Instance.RegisterBase(this);
-    }
+    //private void RegisterWithSelectionManager()
+    //{
+    //    if (BaseSelectionManager.Instance != null)
+    //        BaseSelectionManager.Instance.RegisterBase(this);
+    //}
 
     private void OnItemCounterChanged()
     {

@@ -9,7 +9,6 @@ public class CounterView : MonoBehaviour
 
     private void Start()
     {
-        // Инициализируем начальное значение
         ShowCounterValue();
     }
 
