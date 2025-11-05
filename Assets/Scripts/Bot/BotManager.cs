@@ -63,11 +63,8 @@ public class BotManager : MonoBehaviour
 
     public void AssignResourceToBot(Bot bot)
     {
-        if (bot == null || bot.IsAvailable == false)
-        {
-            Debug.Log($"[BotManager] Cannot assign resource - bot is null or not available");
-            return;
-        }
+        if (bot == null || bot.IsAvailable == false)        
+            return;        
 
         if (IsBotAssigned(bot))
             return;

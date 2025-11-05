@@ -12,24 +12,19 @@ public class BasePriorityController : MonoBehaviour
     [SerializeField] private int _resourcesForBot = 3;
     [SerializeField] private int _resourcesForNewBase = 5;
 
-    // для защиты от рекурсии
     private bool _isProcessingConstruction = false;
-    private BasePriority _currentPriority = BasePriority.CollectForBots;
 
     public event Action<BasePriority> PriorityChanged;
 
-    public BasePriority CurrentPriority => _currentPriority;// переделать на автосвойство
+    public BasePriority CurrentPriority { get; private set; } = BasePriority.CollectForBots;
     public bool CanAffordBot => _itemCounter.CanAfford(_resourcesForBot);
     public bool CanAffordNewBase => _itemCounter.CanAfford(_resourcesForNewBase);
 
-
     public void SetPriority(BasePriority newPriority)
     {
-        if (_currentPriority != newPriority)
+        if (CurrentPriority != newPriority)
         {
-            Debug.Log($"[PriorityController] Priority changing from {_currentPriority} to {newPriority}");
-
-            _currentPriority = newPriority;
+            CurrentPriority = newPriority;
             PriorityChanged?.Invoke(newPriority);
             CheckResourceSpending();
         }
@@ -37,33 +32,28 @@ public class BasePriorityController : MonoBehaviour
 
     public void OnResourcesChanged()
     {
-        // ЗАЩИТА: не обрабатываем изменения во время строительства
         if (_isProcessingConstruction)
             return;
 
         CheckResourceSpending();
     }
 
-    public void ResetConstructionFlag()
-    {
+    public void ResetConstructionFlag() =>
         _isProcessingConstruction = false;
-        Debug.Log("[PriorityController] Construction flag reset");
-    }
 
     private void CheckResourceSpending()
     {
-        // ЗАЩИТА: не обрабатываем если уже в процессе строительства
         if (_isProcessingConstruction)
             return;
 
-        switch (_currentPriority)
+        switch (CurrentPriority)
         {
             case BasePriority.CollectForBots when CanAffordBot:
                 CreateBotFromResources();
                 break;
 
             case BasePriority.CollectForNewBase when CanAffordNewBase:
-                _isProcessingConstruction = true; // Блокируем повторные вызовы
+                _isProcessingConstruction = true;
                 StartBaseConstruction();
                 break;
         }
@@ -71,7 +61,7 @@ public class BasePriorityController : MonoBehaviour
 
     private void CreateBotFromResources()
     {
-        if (_botManager == null || _currentPriority != BasePriority.CollectForBots)
+        if (_botManager == null || CurrentPriority != BasePriority.CollectForBots)
             return;
 
         if (_itemCounter.TrySubtract(_resourcesForBot))
@@ -105,13 +95,11 @@ public class BasePriorityController : MonoBehaviour
                 }
                 else
                 {
-                    // Возвращаем ресурсы если что-то пошло не так
                     _itemCounter.Add(_resourcesForNewBase);
                 }
             }
             else
             {
-                // Возвращаем ресурсы если нет доступного бота
                 _itemCounter.Add(_resourcesForNewBase);
             }
         }

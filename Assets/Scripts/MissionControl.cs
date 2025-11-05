@@ -28,14 +28,11 @@ public class MissionControl : MonoBehaviour
         _botManager = botManager;
         _resourceManager = resourceManager;
 
-        // Переподписываем события
         if (_resourceManager != null)
         {
             _resourceManager.ResourceBecameAvailable -= OnResourceBecameAvailable;
             _resourceManager.ResourceBecameAvailable += OnResourceBecameAvailable;
         }
-
-        Debug.Log($"[MissionControl] Dependencies set: BotManager={_botManager != null}, ResourceManager={_resourceManager != null}");
     }
 
     private void Initialize()

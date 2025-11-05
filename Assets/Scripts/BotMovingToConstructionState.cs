@@ -13,7 +13,6 @@ public class BotMovingToConstructionState : BotState
 
     public override void Enter(Bot bot)
     {
-        Debug.Log($"[BotMovingToConstruction] Bot {bot.name} moving to construction site at {_constructionSitePosition}");
         bot.MoveToPosition(_constructionSitePosition);
     }
 

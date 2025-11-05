@@ -73,7 +73,6 @@ public class Bot : MonoBehaviour
     {
         bool shouldRespawnResource = success == false;
         Inventory.ClearInventory(prepareForRespawn: shouldRespawnResource);
-
         AssignedResource = null;
         ChangeState(new BotIdleState());
         MissionCompleted?.Invoke(this, success);
@@ -97,8 +96,6 @@ public class Bot : MonoBehaviour
                 MissionCompleted -= oldManager.HandleBotMissionCompleted;
 
             MissionCompleted += newManager.HandleBotMissionCompleted;
-
-            Debug.Log($"[Bot] Reassigned from {(oldManager != null ? oldManager.name : "null")} to {newManager.name}");
         }
         catch (System.Exception e)
         {
