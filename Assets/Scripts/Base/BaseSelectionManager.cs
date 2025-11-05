@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class BaseSelectionManager : MonoBehaviour
 {
-    private static BaseSelectionManager _instance;// оптимизировать
-    public static BaseSelectionManager Instance => _instance;// оптимизировать
+    private static BaseSelectionManager _instance;//TODO: убрать static !!!
+    public static BaseSelectionManager Instance => _instance;//TODO: убрать static !!!
 
     private BaseController _currentlySelectedBase;
     private List<BaseController> _allBases = new List<BaseController>();
@@ -27,18 +27,8 @@ public class BaseSelectionManager : MonoBehaviour
         if (_allBases.Contains(baseController) == false)
         {
             _allBases.Add(baseController);
-
-            var selectionController = baseController.GetComponent<BaseSelectionController>();
-            if (selectionController != null)
-            {
-                selectionController.SelectionChanged += (isSelected) =>
-                {
-                    if (isSelected)
-                        OnBaseSelected(baseController);
-                    else
-                        OnBaseDeselected(baseController);
-                };
-            }
+            baseController.BaseSelected += OnBaseSelected;
+            baseController.BaseDeselected += OnBaseDeselected;
         }
     }
 
@@ -47,6 +37,8 @@ public class BaseSelectionManager : MonoBehaviour
         if (_allBases.Contains(baseController))
         {
             _allBases.Remove(baseController);
+            baseController.BaseSelected -= OnBaseSelected;
+            baseController.BaseDeselected -= OnBaseDeselected;
 
             if (_currentlySelectedBase == baseController)
                 _currentlySelectedBase = null;
@@ -59,7 +51,7 @@ public class BaseSelectionManager : MonoBehaviour
             _currentlySelectedBase.DeselectBase();
 
         _currentlySelectedBase = selectedBase;
-        Debug.Log($"Base selected: {selectedBase.name}");
+        Debug.Log($"Base selected: {selectedBase.name}, Priority: {selectedBase.CurrentPriority}");
     }
 
     private void OnBaseDeselected(BaseController deselectedBase)
@@ -81,6 +73,13 @@ public class BaseSelectionManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        _allBases.Clear();
+        foreach (var baseController in _allBases)
+        {
+            if (baseController != null)
+            {
+                baseController.BaseSelected -= OnBaseSelected;
+                baseController.BaseDeselected -= OnBaseDeselected;
+            }
+        }
     }
 }

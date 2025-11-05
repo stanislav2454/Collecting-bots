@@ -28,7 +28,6 @@ public class BotFactory
         Bot newBot = UnityEngine.Object.Instantiate(_botPrefab, spawnPosition, Quaternion.identity, _spawnContainer);
 
         BotCreated?.Invoke(newBot);
-        Debug.Log($"Bot created at position: {spawnPosition}");
 
         return newBot;
     }
@@ -39,10 +38,5 @@ public class BotFactory
             UnityEngine.Random.Range(-_spawnRadius, _spawnRadius),
             0,
             UnityEngine.Random.Range(-_spawnRadius, _spawnRadius));
-    }
-
-    public void Dispose()
-    {
-        BotCreated = null;
     }
 }

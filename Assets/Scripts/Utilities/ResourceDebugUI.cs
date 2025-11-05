@@ -41,18 +41,6 @@ public class ResourceDebugUI : MonoBehaviour
         }
     }
 
-    public void LogCurrentState()
-    {
-        Debug.Log("=== ResourceDebugUI State ===");
-        Debug.Log($"Ресурсов на сцене: {CountActiveResourcesOnScene()}");
-
-        if (_resourceManager != null)
-            Debug.Log($"ResourceManager - Свободные: {_resourceManager.FreeResourcesCount}, Занятые: {_resourceManager.ReservedResourcesCount}");
-
-        if (_itemSpawner != null)
-            Debug.Log($"Спавнер - Активные: {_itemSpawner.SpawnedItemsCount}/{_itemSpawner.MaxActiveItems}");
-    }
-
     private void FindDependencies()
     {
         _itemSpawner = FindObjectOfType<ItemSpawner>();
@@ -152,6 +140,18 @@ public class ResourceDebugUI : MonoBehaviour
             return 0;
 
         return _itemPool.transform.childCount;
+    }
+
+    public void LogCurrentState()
+    {
+        Debug.Log("=== ResourceDebugUI State ===");
+        Debug.Log($"Ресурсов на сцене: {CountActiveResourcesOnScene()}");
+
+        if (_resourceManager != null)
+            Debug.Log($"ResourceManager - Свободные: {_resourceManager.FreeResourcesCount}, Занятые: {_resourceManager.ReservedResourcesCount}");
+
+        if (_itemSpawner != null)
+            Debug.Log($"Спавнер - Активные: {_itemSpawner.SpawnedItemsCount}/{_itemSpawner.MaxActiveItems}");
     }
 }
 #endif

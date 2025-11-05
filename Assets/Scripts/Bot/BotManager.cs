@@ -3,10 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class BotManager : MonoBehaviour, IBotManager// класс перегружен
+public class BotManager : MonoBehaviour
 {
     [Header("Bot Settings")]
-    [SerializeField] [Range(1, 10)] private int _initialBotsCount = 3;
+    [SerializeField] [Range(0, 10)] private int _initialBotsCount = 3;
     [SerializeField] private Bot _botPrefab;
     [SerializeField] private Transform _spawnContainer;
 
@@ -17,11 +17,12 @@ public class BotManager : MonoBehaviour, IBotManager// класс перегру
     private List<Bot> _bots = new List<Bot>();
     private Dictionary<Item, Bot> _resourceAssignments = new Dictionary<Item, Bot>();
     private BotFactory _botFactory;
+    private Coroutine _resourceAssignment;
 
     public Vector3 BasePosition => _baseController != null ? _baseController.transform.position : transform.position;
     public float UnloadZoneRadius => _baseController != null ? _baseController.UnloadZoneRadius : 1.5f;
     public int BotCount => _bots.Count;
-    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);
+    public int AvailableBotsCount => _bots.Count(b => b.IsAvailable);// Зачем ?
 
     private void Awake()
     {
@@ -30,53 +31,25 @@ public class BotManager : MonoBehaviour, IBotManager// класс перегру
 
     private void Start()
     {
-        if (_resourceManager == null)
-        {
-            var gameDependencies = GameDependencies.Instance;
-            if (gameDependencies != null)
-            {
-                _resourceManager = gameDependencies.ResourceManager;
-
-                if (_resourceManager != null)
-                    Debug.Log("ResourceManager successfully assigned to BotManager via GameDependencies");
-            }
-        }
-
-        if (_resourceManager == null)
-        {
-            Debug.LogError("ResourceManager not found and not assigned in BotManager!");
-            return;
-        }
-
         ValidateDependencies();
         SpawnInitialBots();
     }
 
-    public void SetBaseController(BaseController baseController)
-    {
-        _baseController = baseController;
-        if (_baseController == null)
-            Debug.LogWarning("BaseController set to null in BotManager!");
-    }
-
-    public void SetResourceManager(ResourceManager resourceManager)
-    {
-        _resourceManager = resourceManager;
-        if (_resourceManager == null)
-            Debug.LogWarning("ResourceManager set to null in BotManager!");
-        else
-            Debug.Log("ResourceManager successfully assigned to BotManager");
-    }
-
     public void AssignResourceToBot(Bot bot)
     {
-        if (bot.IsAvailable && IsBotAssigned(bot) == false)
+        if (bot == null || bot.IsAvailable == false)
         {
-            Item resource = _resourceManager?.GetNearestAvailableResource(bot.transform.position);
-
-            if (resource != null && TryAssignResourceToBot(resource, bot))
-                bot.AssignResource(resource, BasePosition, UnloadZoneRadius);
+            Debug.Log($"[BotManager] Cannot assign resource - bot is null or not available");
+            return;
         }
+
+        if (IsBotAssigned(bot))
+            return;
+
+        Item resource = _resourceManager?.GetNearestAvailableResource(bot.transform.position);
+
+        if (resource != null && TryAssignResourceToBot(resource, bot))
+            bot.AssignResource(resource, BasePosition, UnloadZoneRadius);
     }
 
     public void AssignBotToResource(Item resource)
@@ -119,55 +92,69 @@ public class BotManager : MonoBehaviour, IBotManager// класс перегру
     public bool IsResourceAssigned(Item resource) =>
         _resourceAssignments.ContainsKey(resource);
 
-    public Bot GetAvailableBotForTransfer()
-    {
-        return _bots
-            .Where(b => b.IsAvailable && !IsBotAssigned(b))
-            .OrderBy(b => (b.transform.position - transform.position).sqrMagnitude)
-            .FirstOrDefault();
-    }
 
-    public bool TransferBotToNewBase(Bot bot, BaseController newBase)
+    public Bot GetAvailableBotForConstruction()
     {
-        if (bot == null || newBase == null)
+        // ПРОСТОЙ поиск - любого бота в состоянии Idle
+        var availableBot = _bots.FirstOrDefault(b =>
+            b != null &&
+            b.CurrentStateType == BotStateType.Idle);
+
+        if (availableBot != null)
         {
-            Debug.LogError("Cannot transfer bot: bot or newBase is null");
-            return false;
+            Debug.Log($"[BotManager] Found builder bot: {availableBot.name}, State: {availableBot.CurrentStateType}");
+            return availableBot;
         }
 
-        if (_bots.Contains(bot) == false)
+        // Если нет Idle ботов, ищем любого не занятого сбором
+        availableBot = _bots.FirstOrDefault(b =>
+            b != null &&
+            IsBotAssigned(b) == false &&
+            b.CurrentStateType != BotStateType.Collecting &&
+            b.CurrentStateType != BotStateType.ReturningToBase);
+
+        if (availableBot != null)
         {
-            Debug.LogError($"Cannot transfer bot: bot {bot.name} not found in this manager");
-            return false;
+            Debug.Log($"[BotManager] Found alternative builder: {availableBot.name}, State: {availableBot.CurrentStateType}");
+            return availableBot;
         }
 
-        var assignment = _resourceAssignments.FirstOrDefault(x => x.Value == bot);
-        if (assignment.Key != null)
-        {
-            _resourceAssignments.Remove(assignment.Key);
-            _resourceManager?.ReleaseResource(assignment.Key);
-        }
-
-        _bots.Remove(bot);
-        bot.MissionCompleted -= HandleBotMissionCompleted;
-        bot.SetWaiting();
-
-        Debug.Log($"Bot {bot.name} transferred to new base");
-        return true;
+        Debug.LogWarning($"[BotManager] No available bot for construction! Total bots: {_bots.Count}");
+        return null;
     }
 
-    public void AddExistingBot(Bot bot)
+    public Bot ForceGetBotForConstruction()
     {
-        if (bot == null || _bots.Contains(bot))
-            return;
+        // Берем первого попавшегося бота и принудительно освобождаем его
+        var bot = _bots.FirstOrDefault();
+        if (bot != null)
+        {
+            Debug.Log($"[BotManager] Force using bot for construction: {bot.name}");
 
-        _bots.Add(bot);
-        bot.MissionCompleted += HandleBotMissionCompleted;
+            // Принудительно завершаем текущую миссию
+            if (IsBotAssigned(bot))
+            {
+                var assignment = _resourceAssignments.FirstOrDefault(x => x.Value == bot);
+                if (assignment.Key != null)
+                {
+                    _resourceAssignments.Remove(assignment.Key);
+                    _resourceManager?.ReleaseResource(assignment.Key);
+                }
+            }
 
-        bot.transform.SetParent(_spawnContainer);
+            bot.ChangeState(new BotIdleState());
+            return bot;
+        }
 
-        Debug.Log($"Bot {bot.name} added to base manager");
+        return null;
     }
+
+    public void SetResourceManager(ResourceManager resourceManager)
+    {
+        _resourceManager = resourceManager;
+        Debug.Log($"[BotManager] ResourceManager set: {_resourceManager != null}");
+    }
+
 
     private void InitializeBotFactory()
     {
@@ -225,14 +212,14 @@ public class BotManager : MonoBehaviour, IBotManager// класс перегру
             AssignResourceToBot(bot);
     }
 
-    private void HandleBotMissionCompleted(Bot bot, bool success)
+    public void HandleBotMissionCompleted(Bot bot, bool success)
     {
         CompleteAssignment(bot, success);
 
         if (success && _baseController != null)
             _baseController.CollectResourceFromBot(bot);
 
-        StartCoroutine(AssignNewResourceAfterDelay(bot, 0.5f));
+        _resourceAssignment = StartCoroutine(AssignNewResourceAfterDelay(bot, 0.5f));
     }
 
     private IEnumerator AssignNewResourceAfterDelay(Bot bot, float delay)
@@ -243,28 +230,5 @@ public class BotManager : MonoBehaviour, IBotManager// класс перегру
             AssignResourceToBot(bot);
         else
             bot.SetWaiting();
-    }
-
-    private void OnDestroy()
-    {
-        if (_botFactory != null)
-            _botFactory.BotCreated -= OnBotCreated;
-
-        foreach (var bot in _bots)
-            if (bot != null)
-                bot.MissionCompleted -= HandleBotMissionCompleted;
-    }
-
-    public void SetBaseController(IBaseController baseController)// todo: зачем, может удалить ?
-    {
-        //_baseController = baseController;
-    }
-
-    bool IBotManager.TransferBotToNewBase(Bot bot, IBaseController newBase)// todo: модификатор доступа ?
-    {
-        if (newBase is BaseController concreteBase)
-            return TransferBotToNewBase(bot, concreteBase);
-
-        return false;
     }
 }

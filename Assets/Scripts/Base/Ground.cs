@@ -1,3 +1,3 @@
 ﻿using UnityEngine;
 
-public class Ground : MonoBehaviour { }// компонент маркер
+public class Ground : MonoBehaviour { }// класс маркер

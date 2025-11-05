@@ -4,6 +4,6 @@
     MovingToResource,
     Collecting,
     ReturningToBase,
-    MovingToFlag,
-    BuildingBase
+    MovingToConstruction,
+    Building
 }

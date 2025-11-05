@@ -5,12 +5,13 @@ public class Counter : MonoBehaviour
 {
     public int CurrentValue { get; protected set; }
 
-    public event Action Changed; 
+    //public event Action<int> Changed;
+    public event Action CounterChanged; // Изменяем сигнатуру события!
 
     public virtual void Reset()
     {
         CurrentValue = 0;
-        Changed?.Invoke();
+        CounterChanged?.Invoke();
         Debug.Log("Counter reset to 0");
     }
 
@@ -23,10 +24,49 @@ public class Counter : MonoBehaviour
         }
 
         CurrentValue += increment;
-        Changed?.Invoke();
-        Debug.Log($"Resources added: {increment}. Total: {CurrentValue}");
+        CounterChanged?.Invoke();
+       // Debug.Log($"Resources added: {increment}. Total: {CurrentValue}");
     }
 
-    protected void OnChanged() =>
-        Changed?.Invoke();
+    // Новый метод для удобства
+    public void AddOne()
+    {
+        Add(1);
+    }
+
+    // Защищенный метод для вызова события из наследников
+    protected void OnChanged()
+    {
+        CounterChanged?.Invoke();
+    }
 }
+//using System;
+//using UnityEngine;
+
+//public class Counter : MonoBehaviour
+//{
+//    [Header("Dependencies")]
+//    [SerializeField] private BaseController _baseController;
+
+//    public event Action CounterChanged;
+
+//    public int CurrentValue { get; private set; } = 0;
+
+//    private void OnEnable()
+//    {
+//        if (_baseController != null)
+//            _baseController.AmountResourcesChanged += IncreaseCounter;
+//    }
+
+//    private void OnDisable()
+//    {
+//        if (_baseController != null)
+//            _baseController.AmountResourcesChanged -= IncreaseCounter;
+//    }
+
+//    private void IncreaseCounter(int totalResources)
+//    {
+//        CurrentValue = totalResources;
+//        CounterChanged?.Invoke();
+//    }
+//}

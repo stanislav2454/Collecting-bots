@@ -1,7 +1,7 @@
 ﻿public enum FlagState
 {
     Hide,
-    Move,
-    Setted,
-    DeliveryResourcesToFlag
+    Move,                    // Перемещение за курсором
+    Setted,                  // Установлен
+    DeliveryResourcesToFlag  // Ожидание доставки ресурсов
 }

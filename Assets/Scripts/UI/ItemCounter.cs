@@ -3,21 +3,7 @@ using UnityEngine;
 
 public class ItemCounter : Counter
 {
-    public event Action<int> ResourceSpent;
-    public event Action<int> ResourceAdded;
-
-    public override void Add(int increment)
-    {
-        if (increment <= 0)
-        {
-            Debug.LogWarning($"Attempt to add non-positive value: {increment}");
-            return;
-        }
-
-        CurrentValue += increment;
-        OnChanged();
-        ResourceAdded?.Invoke(increment);
-    }
+    public event Action<int> ResourceSpent; // Событие при трате ресурсов
 
     public bool TrySubtract(int value)
     {
@@ -30,7 +16,8 @@ public class ItemCounter : Counter
         if (CurrentValue >= value)
         {
             CurrentValue -= value;
-            OnChanged();
+            OnChanged(); // Вызываем метод вместо прямого вызова события
+            //Changed?.Invoke(CurrentValue);
             ResourceSpent?.Invoke(value);
             Debug.Log($"Resources subtracted: {value}. Remaining: {CurrentValue}");
             return true;
@@ -40,9 +27,13 @@ public class ItemCounter : Counter
         return false;
     }
 
-    public bool CanAfford(int cost) =>
-         CurrentValue >= cost;
+    public bool CanAfford(int cost)
+    {
+        return CurrentValue >= cost;
+    }
 
-    public int GetMissingAmount(int cost) =>
-         Mathf.Max(0, cost - CurrentValue);
+    public int GetMissingAmount(int cost)
+    {
+        return Mathf.Max(0, cost - CurrentValue);
+    }
 }

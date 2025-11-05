@@ -65,6 +65,7 @@ public class ItemSpawner : ZoneVisualizer
 
             item.transform.position = spawnPosition;
             item.transform.rotation = Quaternion.identity;
+            //item.PrepareForRespawn();
 
             _activeItems.Add(item);
             _resourceManager?.RegisterResource(item);

@@ -88,12 +88,22 @@ public class Bot : MonoBehaviour
     public bool HasReachedDestination() =>
          _movement?.HasReachedDestination() ?? false;
 
-    public void BuildBase(Vector3 flagPosition, BaseController newBase)
-    {
-        if (IsAvailable == false)
-            return;
 
-        ChangeState(new BotMovingToFlagState(flagPosition, newBase));
+    public void ReassignToNewManager(BotManager newManager, BotManager oldManager = null)
+    {
+        try
+        {
+            if (oldManager != null)
+                MissionCompleted -= oldManager.HandleBotMissionCompleted;
+
+            MissionCompleted += newManager.HandleBotMissionCompleted;
+
+            Debug.Log($"[Bot] Reassigned from {(oldManager != null ? oldManager.name : "null")} to {newManager.name}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[Bot] Failed to reassign to new manager: {e.Message}");
+        }
     }
 
     private void InitializeComponents()
@@ -117,6 +127,22 @@ public class Bot : MonoBehaviour
 
         foreach (var data in _stateVisualData)
             _stateVisualMap[data.StateType] = data;
+
+        if (_stateVisualMap.ContainsKey(BotStateType.MovingToConstruction) == false)
+            _stateVisualMap[BotStateType.MovingToConstruction] = new StateVisualData
+            {
+                StateType = BotStateType.MovingToConstruction,
+                Color = Color.blue,
+                IconName = "sv_icon_dot8_pix16_gizmo"
+            };
+
+        if (_stateVisualMap.ContainsKey(BotStateType.Building) == false)
+            _stateVisualMap[BotStateType.Building] = new StateVisualData
+            {
+                StateType = BotStateType.Building,
+                Color = Color.red,
+                IconName = "sv_icon_dot6_pix16_gizmo"
+            };
     }
 
     private void UpdateVisualizationCache()
