@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class BaseController : MonoBehaviour
 {
+    public static readonly string LebelItemSpawner = nameof(_itemSpawner);
+
     [Header("Dependencies")]
     [SerializeField] private BaseZoneVisualizer _zoneVisualizer;
     [SerializeField] private BotManager _botManager;
@@ -148,6 +150,9 @@ public class BaseController : MonoBehaviour
 
     public bool TrySetFlag(Vector3 worldPosition) =>
         _flagController?.TrySetFlag(worldPosition) ?? false;
+
+    public void SetSelectionManager(BaseSelectionManager selectionManager) =>
+        _selectionManager = selectionManager;
 
     private void InitializeSelection() =>
         SetSelected(false, false);

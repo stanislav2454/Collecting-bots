@@ -7,6 +7,7 @@ public class BasePriorityController : MonoBehaviour
     [SerializeField] private BaseController _baseController;
     [SerializeField] private ItemCounter _itemCounter;
     [SerializeField] private BotManager _botManager;
+    [SerializeField] private BaseConstructionManager _сonstructionManager;
 
     [Header("Price Settings")]
     [SerializeField] private int _resourcesForBot = 3;
@@ -41,6 +42,9 @@ public class BasePriorityController : MonoBehaviour
     public void ResetConstructionFlag() =>
         _isProcessingConstruction = false;
 
+    public void SetConstructionManager(BaseConstructionManager constructionManager) =>
+        _сonstructionManager = constructionManager;
+
     private void CheckResourceSpending()
     {
         if (_isProcessingConstruction)
@@ -70,23 +74,17 @@ public class BasePriorityController : MonoBehaviour
 
     private void StartBaseConstruction()
     {
-        // 1. Списываем ресурсы
         if (_itemCounter.TrySubtract(_resourcesForNewBase))
         {
-            // 2. Находим строителя
             var builderBot = _botManager.GetAvailableBotForConstruction() ?? _botManager.ForceGetBotForConstruction();
 
             if (builderBot != null)
             {
-                // 3. Запускаем строительство
-                var constructionManager = FindAnyObjectByType<BaseConstructionManager>();//TODO:переделать на прямую ссылку !!! Как вариант в фабрике
                 TryGetComponent(out FlagController flagController);
 
-                if (constructionManager != null && flagController != null)
+                if (_сonstructionManager != null && flagController != null)
                 {
-                    Debug.Log($"[PriorityController] Starting construction process at {flagController.FlagPosition}");
-
-                    constructionManager.StartBaseConstruction(
+                    _сonstructionManager.StartBaseConstruction(
                         _baseController,
                         flagController.FlagPosition,
                         builderBot);

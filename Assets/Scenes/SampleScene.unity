@@ -1277,6 +1277,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1677253470}
     m_Modifications:
+    - target: {fileID: 1132989788088155557, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: "_\u0441onstructionManager"
+      value: 
+      objectReference: {fileID: 900999532}
     - target: {fileID: 1414698160392226585, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: _resourceManager
       value: 

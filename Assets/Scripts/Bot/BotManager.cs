@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class BotManager : MonoBehaviour//TODO: класс перегружен !
+public class BotManager : MonoBehaviour
 {
     [Header("Bot Settings")]
     [SerializeField] [Range(0, 10)] private int _initialBotsCount = 3;

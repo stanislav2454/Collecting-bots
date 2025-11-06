@@ -29,7 +29,7 @@ public class BotInventory : MonoBehaviour
             if (prepareForRespawn)
                 CarriedItem.PrepareForRespawn();
 
-            CarriedItem.transform.SetParent(null);//из-за этого рес может спавнится в корне сцены
+            CarriedItem.transform.SetParent(null);
             CarriedItem = null;
             InventoryCleared?.Invoke();
         }

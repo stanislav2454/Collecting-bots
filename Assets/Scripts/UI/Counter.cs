@@ -5,8 +5,7 @@ public class Counter : MonoBehaviour
 {
     public int CurrentValue { get; protected set; }
 
-    //public event Action<int> Changed;
-    public event Action CounterChanged; // Изменяем сигнатуру события!
+    public event Action CounterChanged; 
 
     public virtual void Reset()
     {

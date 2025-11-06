@@ -20,6 +20,5 @@ public class BotBuildingState : BotState
 
     public override void Update(Bot bot)
     {
-        //_constructionTimer += Time.deltaTime;
     }
 }

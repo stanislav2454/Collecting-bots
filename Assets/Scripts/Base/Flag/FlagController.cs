@@ -21,7 +21,7 @@ public class FlagController : MonoBehaviour
         if (_priorityController != null)
             _priorityController.PriorityChanged += OnPriorityChanged;
         else
-            Debug.LogError("❌ FlagController: PriorityController not assigned!");
+            Debug.LogError("FlagController: PriorityController not assigned!");
     }
 
     private void OnDestroy()
@@ -38,24 +38,9 @@ public class FlagController : MonoBehaviour
 
     public bool TrySetFlag(Vector3 worldPosition)
     {
-        if (_baseController == null)
-        {
-            Debug.LogError("❌ FlagController: BaseController is null!");
+        if (_baseController == null || _baseController.CanBuildNewBase == false ||
+                IsValidFlagPosition(worldPosition) == false)
             return false;
-        }
-
-        if (_baseController.CanBuildNewBase == false)
-        {
-            Debug.Log($"[FlagController] ❌ Cannot build new base - not enough bots");
-            return false;
-        }
-
-        if (IsValidFlagPosition(worldPosition) == false)
-        {
-            Debug.Log($"[FlagController] ❌ Invalid flag position");
-            return false;
-        }
-
 
         if (_currentFlag == null)
         {

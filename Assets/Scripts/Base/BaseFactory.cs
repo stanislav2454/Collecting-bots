@@ -66,7 +66,11 @@ public class BaseFactory : MonoBehaviour
 
         var baseController = newBase.GetComponent<BaseController>();
         if (baseController != null)
-            SetupBaseController(baseController, _itemSpawner);
+            SetupBaseController(baseController, _itemSpawner,_selectionManager);
+
+        var priorityController = newBase.GetComponent<BasePriorityController>();
+        if (priorityController != null)
+            priorityController.SetConstructionManager(_constructionManager);
 
         var botManager = newBase.GetComponentInChildren<BotManager>();
         if (botManager != null)
@@ -84,16 +88,19 @@ public class BaseFactory : MonoBehaviour
             canvasLookAt.SetTargetCamera(_mainCamera);
     }
 
-    private void SetupBaseController(BaseController baseController, ItemSpawner itemSpawner)
+    private void SetupBaseController(BaseController baseController, ItemSpawner itemSpawner, BaseSelectionManager selectionManager)
     {
         if (baseController == null || itemSpawner == null)
             return;
 
-        var itemSpawnerField = typeof(BaseController).GetField("_itemSpawner",
+        var itemSpawnerField = typeof(BaseController).GetField(BaseController.LebelItemSpawner,
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
         if (itemSpawnerField != null)
             itemSpawnerField.SetValue(baseController, itemSpawner);
+
+        if (baseController != null)
+            baseController.SetSelectionManager(selectionManager);
     }
 
     private void SetupMissionControl
@@ -102,7 +109,7 @@ public class BaseFactory : MonoBehaviour
         if (missionControl == null)
             return;
 
-        var setDependenciesMethod = typeof(MissionControl).GetMethod("SetDependencies");
+        var setDependenciesMethod = typeof(MissionControl).GetMethod(MissionControl.LebelSetDependencies);
 
         if (setDependenciesMethod != null)
         {
@@ -110,10 +117,10 @@ public class BaseFactory : MonoBehaviour
         }
         else
         {
-            var resourceManagerField = typeof(MissionControl).GetField("_resourceManager",
+            var resourceManagerField = typeof(MissionControl).GetField(MissionControl.LebelResourceManager,
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
-            var botManagerField = typeof(MissionControl).GetField("_botManager",
+            var botManagerField = typeof(MissionControl).GetField(MissionControl.LebelBotManager,
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
             if (resourceManagerField != null)
