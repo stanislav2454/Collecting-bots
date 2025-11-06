@@ -4,11 +4,11 @@ using System;
 public class FlagController : MonoBehaviour
 {
     [Header("Flag System")]
-    [SerializeField] private SimpleFlag _flagPrefab;
+    [SerializeField] private Flag _flagPrefab;
     [SerializeField] private BaseController _baseController;
     [SerializeField] private BasePriorityController _priorityController;
 
-    private SimpleFlag _currentFlag;
+    private Flag _currentFlag;
 
     public event Action<Vector3> FlagPlaced;
     public event Action FlagRemoved;

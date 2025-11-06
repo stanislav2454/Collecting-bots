@@ -79,8 +79,8 @@ public class BasePriorityController : MonoBehaviour
             if (builderBot != null)
             {
                 // 3. Запускаем строительство
-                var constructionManager = FindAnyObjectByType<BaseConstructionManager>();//TODO: прямую ссылку
-                var flagController = GetComponent<FlagController>();//TODO: TryGetComponent
+                var constructionManager = FindAnyObjectByType<BaseConstructionManager>();//TODO:переделать на прямую ссылку !!! Как вариант в фабрике
+                TryGetComponent(out FlagController flagController);
 
                 if (constructionManager != null && flagController != null)
                 {

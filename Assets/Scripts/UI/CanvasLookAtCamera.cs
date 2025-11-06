@@ -20,14 +20,6 @@ public class CanvasLookAtCamera : MonoBehaviour
 
     private void InitializeCamera()
     {
-        //if (_targetCamera == null)
-        //{
-        //    _targetCamera = Camera.main;
-        //    if (_targetCamera == null)
-        //        _targetCamera = FindAnyObjectByType<Camera>();
-        //}
-
-
         if (_targetCamera != null)
             _cameraTransform = _targetCamera.transform;
 
@@ -35,14 +27,11 @@ public class CanvasLookAtCamera : MonoBehaviour
             Debug.LogWarning("CanvasLookAtCamera: Камера не найдена!");
     }
 
-    // ДОБАВЛЯЕМ публичный метод для установки камеры
     public void SetTargetCamera(Camera camera)
     {
         _targetCamera = camera;
         if (_targetCamera != null)
-        {
             _cameraTransform = _targetCamera.transform;
-        }
     }
 
     private void RotateTowardsCamera()

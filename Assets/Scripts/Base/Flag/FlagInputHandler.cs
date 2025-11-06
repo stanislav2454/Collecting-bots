@@ -1,7 +1,13 @@
 ﻿using UnityEngine;
 
-public class SimpleFlagInputHandler : MonoBehaviour
+public class FlagInputHandler : MonoBehaviour
 {
+    [Header("InputKeys")]
+    [SerializeField] private KeyCode _selectBase = KeyCode.Mouse0;
+    [SerializeField] private KeyCode _flagPlacement = KeyCode.Mouse1;
+    [SerializeField] private KeyCode _baseDeselection = KeyCode.Escape;
+
+    [Space(5)]
     [Header("Input Settings")]
     [SerializeField] private float _maxRaycastDistance = 100f;
     [SerializeField] private LayerMask _groundLayerMask;
@@ -28,27 +34,20 @@ public class SimpleFlagInputHandler : MonoBehaviour
 
     private void HandleBaseSelection()
     {
-        if (Input.GetMouseButtonDown(0)) // ЛКМ // todo => move to field
+        if (Input.GetKeyDown(_selectBase))
         {
             Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
 
-            // if (Physics.Raycast(ray, out RaycastHit hit, _maxRaycastDistance))
             if (Physics.Raycast(ray, out var hit, _maxRaycastDistance) &&
-                             hit.collider.TryGetComponent<BaseController>(out var baseController))
-            {
-                // if (hit.collider.TryGetComponent<BaseController>(out var baseController))
-                //{
+                                hit.collider.TryGetComponent<BaseController>(out var baseController))
                 SelectBase(baseController);
-                // return;
-                // }
-            }
         }
     }
 
     private void HandleFlagPlacement()
     {
-        if (_selectedBase == null || Input.GetMouseButtonDown(1) == false)// todo => move to field
-            return;                 // ПКМ для установки флага
+        if (_selectedBase == null || Input.GetKeyDown(_flagPlacement) == false)
+            return;
 
         Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
 
@@ -59,7 +58,7 @@ public class SimpleFlagInputHandler : MonoBehaviour
 
     private void HandleBaseDeselection()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))// todo => move to field
+        if (Input.GetKeyDown(_baseDeselection))
             DeselectBase();
     }
 

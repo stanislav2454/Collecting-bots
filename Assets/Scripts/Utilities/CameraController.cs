@@ -9,8 +9,6 @@ public class CameraController : MonoBehaviour
     private const string VerticalAxis = "Vertical";
     private const int RightMouseButton = 1;
 
-    [SerializeField] private KeyCode mouse1 = KeyCode.Mouse1;
-
     [Header("InputKeys Settings")]
     [SerializeField] private KeyCode _cameraRaiseKey = KeyCode.E;
     [SerializeField] private KeyCode _cameraLowerKey = KeyCode.Q;

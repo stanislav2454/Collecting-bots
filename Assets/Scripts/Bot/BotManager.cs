@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class BotManager : MonoBehaviour
+public class BotManager : MonoBehaviour//TODO: класс перегружен !
 {
     [Header("Bot Settings")]
     [SerializeField] [Range(0, 10)] private int _initialBotsCount = 3;
@@ -63,8 +63,8 @@ public class BotManager : MonoBehaviour
 
     public void AssignResourceToBot(Bot bot)
     {
-        if (bot == null || bot.IsAvailable == false)        
-            return;        
+        if (bot == null || bot.IsAvailable == false)
+            return;
 
         if (IsBotAssigned(bot))
             return;

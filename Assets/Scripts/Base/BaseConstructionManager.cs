@@ -11,7 +11,7 @@ public class BaseConstructionManager : MonoBehaviour
 
     [Header("Construction Settings")]
     [SerializeField] private float _constructionTime = 3f;
-    [SerializeField] private GameObject _constructionSitePrefab;// TODO: на конкретный тип 1/2
+    [SerializeField] private ConstructionSite _constructionSitePrefab;
 
     private Coroutine _currentConstructionCoroutine;
     private Coroutine _activateBotCoroutine;
@@ -44,7 +44,7 @@ public class BaseConstructionManager : MonoBehaviour
 
     private IEnumerator ConstructionProcess(BaseController parentBase, Vector3 flagPosition, Bot builderBot)
     {
-        GameObject constructionSite = null;// TODO: на конкретный тип
+        GameObject constructionSite = null;
         BaseController newBase = null;
 
         constructionSite = CreateConstructionSite(flagPosition);
@@ -70,10 +70,10 @@ public class BaseConstructionManager : MonoBehaviour
         _currentConstructionCoroutine = null;
     }
 
-    private GameObject CreateConstructionSite(Vector3 position)// TODO: на конкретный тип 2/2
+    private GameObject CreateConstructionSite(Vector3 position)
     {
         if (_constructionSitePrefab != null)
-            return Instantiate(_constructionSitePrefab, position, Quaternion.identity);
+            return Instantiate(_constructionSitePrefab.gameObject, position, Quaternion.identity);
 
         var site = GameObject.CreatePrimitive(PrimitiveType.Cube);
         site.transform.position = position;

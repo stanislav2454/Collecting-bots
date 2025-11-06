@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System;
 
-public class SimpleFlag : MonoBehaviour
+public class Flag : MonoBehaviour
 {
     [Header("Flag References")]
     [SerializeField] private MeshRenderer _flagRenderer;
@@ -12,14 +12,13 @@ public class SimpleFlag : MonoBehaviour
     [SerializeField] private Material _validMaterial;
     [SerializeField] private Material _invalidMaterial;
 
-    private FlagState _currentState = FlagState.Hide;// todo
     private BaseController _ownerBase;
 
     public event Action<Vector3> FlagPositionChanged;
     public event Action<Vector3> FlagSettled;
     public event Action FlagRemoved;
 
-    public FlagState CurrentState => _currentState;// todo
+    public FlagState CurrentState { get; private set; } = FlagState.Hide;
     public Vector3 Position => transform.position;
 
     private void Awake()
@@ -34,7 +33,7 @@ public class SimpleFlag : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (_currentState == FlagState.Setted)
+        if (CurrentState == FlagState.Setted)
             StartMoving();
     }
 
@@ -43,7 +42,7 @@ public class SimpleFlag : MonoBehaviour
 
     public void StartMoving()
     {
-        if (_currentState == FlagState.Move)
+        if (CurrentState == FlagState.Move)
             return;
 
         SetState(FlagState.Move);
@@ -55,7 +54,7 @@ public class SimpleFlag : MonoBehaviour
     {
         transform.position = position;
 
-        if (_currentState == FlagState.Move)
+        if (CurrentState == FlagState.Move)
         {
             UpdateVisuals(isValidPosition);
             FlagPositionChanged?.Invoke(position);
@@ -64,7 +63,7 @@ public class SimpleFlag : MonoBehaviour
 
     public void PlaceFlag()
     {
-        if (_currentState != FlagState.Move)
+        if (CurrentState != FlagState.Move)
             return;
 
         SetState(FlagState.Setted);
@@ -82,12 +81,6 @@ public class SimpleFlag : MonoBehaviour
         FlagSettled?.Invoke(position);
     }
 
-    public void SetDeliveryState()//?
-    {
-        SetState(FlagState.DeliveryResourcesToFlag);
-        UpdateVisuals(true);
-    }
-
     public void RemoveFlag()
     {
         SetState(FlagState.Hide);
@@ -96,7 +89,7 @@ public class SimpleFlag : MonoBehaviour
 
     private void SetState(FlagState newState)
     {
-        _currentState = newState;
+        CurrentState = newState;
         gameObject.SetActive(newState != FlagState.Hide);
     }
 
@@ -105,7 +98,7 @@ public class SimpleFlag : MonoBehaviour
         if (_flagRenderer == null)
             return;
 
-        switch (_currentState)
+        switch (CurrentState)
         {
             case FlagState.Move:
                 _flagRenderer.material = isValidPosition ? _previewMaterial : _invalidMaterial;
