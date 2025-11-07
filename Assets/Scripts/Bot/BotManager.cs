@@ -47,9 +47,6 @@ public class BotManager : MonoBehaviour
     {
         CompleteAssignment(bot, success);
 
-        if (success && _baseController != null)
-            _baseController.CollectResourceFromBot(bot);
-
         if (_botAssignmentCoroutines.ContainsKey(bot))
         {
             StopCoroutine(_botAssignmentCoroutines[bot]);

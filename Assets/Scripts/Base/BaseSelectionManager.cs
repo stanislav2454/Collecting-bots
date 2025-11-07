@@ -3,29 +3,31 @@ using UnityEngine;
 
 public class BaseSelectionManager : MonoBehaviour
 {
+    [Header("InputKeys")]
+    [SerializeField] private KeyCode _selectBase = KeyCode.Mouse0;
+
+    [Header("Dependencies")]
+    [SerializeField] private Raycaster _raycaster;
+
     private List<BaseController> _allBases = new List<BaseController>();
-    private BaseController _currentlySelectedBase;
+
+    public BaseController CurrentlySelectedBase { get; private set; }
+
+    private void Update()
+    {
+        HandleBaseSelection();
+    }
 
     private void OnDestroy()
     {
-        foreach (var baseController in _allBases)
-        {
-            if (baseController != null)
-            {
-                baseController.BaseSelected -= OnBaseSelected;
-                baseController.BaseDeselected -= OnBaseDeselected;
-            }
-        }
+        _allBases.Clear();
+        CurrentlySelectedBase = null;
     }
 
     public void RegisterBase(BaseController baseController)
     {
         if (_allBases.Contains(baseController) == false)
-        {
             _allBases.Add(baseController);
-            baseController.BaseSelected += OnBaseSelected;
-            baseController.BaseDeselected += OnBaseDeselected;
-        }
     }
 
     public void UnregisterBase(BaseController baseController)
@@ -33,25 +35,43 @@ public class BaseSelectionManager : MonoBehaviour
         if (_allBases.Contains(baseController))
         {
             _allBases.Remove(baseController);
-            baseController.BaseSelected -= OnBaseSelected;
-            baseController.BaseDeselected -= OnBaseDeselected;
 
-            if (_currentlySelectedBase == baseController)
-                _currentlySelectedBase = null;
+            if (CurrentlySelectedBase == baseController)
+            {
+                CurrentlySelectedBase.SetSelected(false);
+                CurrentlySelectedBase = null;
+            }
         }
     }
 
-    private void OnBaseSelected(BaseController selectedBase)
+    private void HandleBaseSelection()
     {
-        if (_currentlySelectedBase != null && _currentlySelectedBase != selectedBase)
-            _currentlySelectedBase.DeselectBase();
-
-        _currentlySelectedBase = selectedBase;
+        if (Input.GetKeyDown(_selectBase))
+        {
+            if (_raycaster.TryGetBaseUnderMouse(out var baseController))
+                SelectBase(baseController);
+            else
+                DeselectCurrentBase();
+        }
     }
 
-    private void OnBaseDeselected(BaseController deselectedBase)
+    private void SelectBase(BaseController baseController)
     {
-        if (_currentlySelectedBase == deselectedBase)
-            _currentlySelectedBase = null;
+        if (CurrentlySelectedBase == baseController)
+            return;
+
+        DeselectCurrentBase();
+
+        CurrentlySelectedBase = baseController;
+        CurrentlySelectedBase.SetSelected(true);
+    }
+
+    private void DeselectCurrentBase()
+    {
+        if (CurrentlySelectedBase != null)
+        {
+            CurrentlySelectedBase.SetSelected(false);
+            CurrentlySelectedBase = null;
+        }
     }
 }

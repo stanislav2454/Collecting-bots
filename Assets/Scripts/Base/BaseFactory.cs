@@ -66,7 +66,7 @@ public class BaseFactory : MonoBehaviour
 
         var baseController = newBase.GetComponent<BaseController>();
         if (baseController != null)
-            SetupBaseController(baseController, _itemSpawner,_selectionManager);
+            SetupBaseController(baseController, _itemSpawner);
 
         var priorityController = newBase.GetComponent<BasePriorityController>();
         if (priorityController != null)
@@ -88,7 +88,7 @@ public class BaseFactory : MonoBehaviour
             canvasLookAt.SetTargetCamera(_mainCamera);
     }
 
-    private void SetupBaseController(BaseController baseController, ItemSpawner itemSpawner, BaseSelectionManager selectionManager)
+    private void SetupBaseController(BaseController baseController, ItemSpawner itemSpawner)
     {
         if (baseController == null || itemSpawner == null)
             return;
@@ -98,9 +98,6 @@ public class BaseFactory : MonoBehaviour
 
         if (itemSpawnerField != null)
             itemSpawnerField.SetValue(baseController, itemSpawner);
-
-        if (baseController != null)
-            baseController.SetSelectionManager(selectionManager);
     }
 
     private void SetupMissionControl

@@ -12,7 +12,6 @@ public class BaseController : MonoBehaviour
     [SerializeField] private ItemCounter _itemCounter;
     [SerializeField] private BasePriorityController _priorityController;
     [SerializeField] private FlagController _flagController;
-    [SerializeField] private BaseSelectionManager _selectionManager;
 
     [Header("Selection Settings")]
     [SerializeField] private MaterialChanger _materialChanger;
@@ -21,9 +20,6 @@ public class BaseController : MonoBehaviour
 
     private Vector3 _originalViewScale;
     private bool _isSelected = false;
-
-    public event Action<BaseController> BaseSelected;
-    public event Action<BaseController> BaseDeselected;
 
     public bool IsSelected => _isSelected;
     public float UnloadZoneRadius => _zoneVisualizer ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
@@ -53,12 +49,6 @@ public class BaseController : MonoBehaviour
     private void Start()
     {
         InitializeSelection();
-
-        if (_selectionManager != null)
-            _selectionManager.RegisterBase(this);
-        else
-            Debug.LogWarning($"BaseSelectionManager not assigned for {name}");
-
         InitializeAndValidateDependencies();
     }
 
@@ -82,28 +72,16 @@ public class BaseController : MonoBehaviour
             _itemCounter.CounterChanged -= OnItemCounterChanged;
     }
 
-    private void OnDestroy()
-    {
-        if (_selectionManager != null)
-            _selectionManager.UnregisterBase(this);
-    }
-
     private void OnTriggerEnter(Collider other)
     {
-        if (other.TryGetComponent<Bot>(out var bot))
+        if (other.TryGetComponent<Bot>(out var bot) && bot.IsCarryingResource)
         {
-            if (bot.IsCarryingResource)
-            {
-                CollectResourceFromBot(bot);
-                bot.CompleteMission(true);
-            }
+            CollectResourceFromBot(bot);
+            bot.CompleteMission(true);
         }
     }
 
-    private void OnMouseDown() =>
-        ToggleSelection();
-
-    public void SetSelected(bool selected, bool notifyOthers = true)
+    public void SetSelected(bool selected)
     {
         if (_isSelected == selected)
             return;
@@ -114,25 +92,13 @@ public class BaseController : MonoBehaviour
         {
             _viewTransform.localScale = _originalViewScale * _selectedScaleMultiplier;
             _materialChanger?.SetSelected(true);
-
-            if (notifyOthers)
-                BaseSelected?.Invoke(this);
         }
         else
         {
             _viewTransform.localScale = _originalViewScale;
             _materialChanger?.SetSelected(false);
-
-            if (notifyOthers)
-                BaseDeselected?.Invoke(this);
         }
     }
-
-    public void SelectBase() =>
-        SetSelected(true);
-
-    public void DeselectBase() =>
-        SetSelected(false);
 
     public void CollectResourceFromBot(Bot bot)
     {
@@ -151,14 +117,8 @@ public class BaseController : MonoBehaviour
     public bool TrySetFlag(Vector3 worldPosition) =>
         _flagController?.TrySetFlag(worldPosition) ?? false;
 
-    public void SetSelectionManager(BaseSelectionManager selectionManager) =>
-        _selectionManager = selectionManager;
-
     private void InitializeSelection() =>
-        SetSelected(false, false);
-
-    private void ToggleSelection() =>
-        SetSelected(IsSelected ? false : true);
+        SetSelected(false);
 
     private void OnItemCounterChanged() =>
         _priorityController?.OnResourcesChanged();

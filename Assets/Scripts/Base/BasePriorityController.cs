@@ -8,6 +8,7 @@ public class BasePriorityController : MonoBehaviour
     [SerializeField] private ItemCounter _itemCounter;
     [SerializeField] private BotManager _botManager;
     [SerializeField] private BaseConstructionManager _сonstructionManager;
+    [SerializeField] private FlagController _flagController;
 
     [Header("Price Settings")]
     [SerializeField] private int _resourcesForBot = 3;
@@ -74,32 +75,40 @@ public class BasePriorityController : MonoBehaviour
 
     private void StartBaseConstruction()
     {
+        if (_flagController == null || _flagController.HasActiveFlag == false)
+        {
+            _isProcessingConstruction = false;
+            return;
+        }
+
+        var builderBot = _botManager.GetAvailableBotForConstruction() ?? _botManager.ForceGetBotForConstruction();
+
+        if (builderBot == null)
+        {
+            _isProcessingConstruction = false;
+            return;
+        }
+
         if (_itemCounter.TrySubtract(_resourcesForNewBase))
         {
-            var builderBot = _botManager.GetAvailableBotForConstruction() ?? _botManager.ForceGetBotForConstruction();
-
-            if (builderBot != null)
+            if (_сonstructionManager != null)
             {
-                TryGetComponent(out FlagController flagController);
+                _сonstructionManager.StartBaseConstruction(
+                    _baseController,
+                    _flagController.FlagPosition,
+                    builderBot);
 
-                if (_сonstructionManager != null && flagController != null)
-                {
-                    _сonstructionManager.StartBaseConstruction(
-                        _baseController,
-                        flagController.FlagPosition,
-                        builderBot);
-
-                    flagController.RemoveFlag();
-                }
-                else
-                {
-                    _itemCounter.Add(_resourcesForNewBase);
-                }
+                _flagController.RemoveFlag();
             }
             else
             {
                 _itemCounter.Add(_resourcesForNewBase);
+                _isProcessingConstruction = false;
             }
+        }
+        else
+        {
+            _isProcessingConstruction = false;
         }
     }
 }

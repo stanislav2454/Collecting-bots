@@ -26,6 +26,9 @@ public class BaseConstructionManager : MonoBehaviour
 
         if (_activateBotCoroutine != null)
             StopCoroutine(_activateBotCoroutine);
+
+        BaseConstructionStarted = null;
+        BaseConstructionCompleted = null;
     }
 
     public void StartBaseConstruction(BaseController parentBase, Vector3 flagPosition, Bot builderBot)

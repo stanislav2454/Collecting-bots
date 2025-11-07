@@ -151,6 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f98edf3fd0966fd468e7d47c72e5fc30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _raycaster: {fileID: 1406071456}
 --- !u!4 &17133662
 Transform:
   m_ObjectHideFlags: 0
@@ -424,13 +425,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5f249e84444ac0458d19228378896f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _selectBase: 323
   _flagPlacement: 324
-  _baseDeselection: 27
-  _maxRaycastDistance: 100
-  _groundLayerMask:
-    serializedVersion: 2
-    m_Bits: 8
+  _selectionManager: {fileID: 17133661}
+  _raycaster: {fileID: 1406071456}
 --- !u!1 &900999530
 GameObject:
   m_ObjectHideFlags: 0
@@ -497,6 +494,7 @@ GameObject:
   - component: {fileID: 1406071452}
   - component: {fileID: 1406071451}
   - component: {fileID: 1406071455}
+  - component: {fileID: 1406071456}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -599,6 +597,25 @@ MonoBehaviour:
   _verticalMoveSpeed: 5
   _minHeight: 2
   _maxHeight: 20
+--- !u!114 &1406071456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1406071450}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b64ab3dcd2772b1449938e9a7e36e515, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 8
+  _baseLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  _maxRaycastDistance: 100
 --- !u!1 &1490518497
 GameObject:
   m_ObjectHideFlags: 0
@@ -1277,6 +1294,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1677253470}
     m_Modifications:
+    - target: {fileID: 1024717663506451050, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1132989788088155557, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: _flagController
+      value: 
+      objectReference: {fileID: 4537584591107730672}
     - target: {fileID: 1132989788088155557, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: "_\u0441onstructionManager"
       value: 
@@ -1296,6 +1321,10 @@ PrefabInstance:
     - target: {fileID: 3214502395134051911, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: m_Name
       value: BASE
+      objectReference: {fileID: 0}
+    - target: {fileID: 3214502395134051911, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: m_Layer
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4824712683782098225, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: m_Camera
@@ -1349,15 +1378,38 @@ PrefabInstance:
       propertyPath: _selectionManager
       value: 
       objectReference: {fileID: 17133661}
+    - target: {fileID: 7543531885667058670, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: m_Layer
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7932974522014517014, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: _targetCamera
       value: 
       objectReference: {fileID: 1406071452}
+    - target: {fileID: 8881472398056705158, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: m_Size.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8881472398056705158, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: m_ExcludeLayers.m_Bits
+      value: 512
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+--- !u!114 &4537584591107730672 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1044019969596754093, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+  m_PrefabInstance: {fileID: 4537584591107730671}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9bb98b713114dba4fb05b8ba98acc756, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

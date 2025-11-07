@@ -23,6 +23,6 @@ public class BotReturningToBaseState : BotState
     public override void Update(Bot bot)
     {
         if (CheckDestinationReached(bot, ref _checkTimer) || IsAtBase(bot, _basePosition, _baseRadius))
-            bot.CompleteMission(true);
+            bot.ChangeState(new BotIdleState());
     }
 }
