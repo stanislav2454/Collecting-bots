@@ -26,19 +26,17 @@ public class Flag : MonoBehaviour
         InitializeAndValidateDependencies();
     }
 
-    private void OnValidate()
-    {
-        InitializeAndValidateDependencies();
-    }
-
-    private void OnMouseDown()
-    {
-        if (CurrentState == FlagState.Setted)
-            StartMoving();
-    }
-
     public void Initialize(BaseController ownerBase) =>
         _ownerBase = ownerBase;
+
+    public void HandleClickInteraction()
+    {
+        if (CurrentState == FlagState.Setted)
+        {
+            StartMoving();
+            Debug.Log($"Flag: Started moving from input");
+        }
+    }
 
     public void StartMoving()
     {

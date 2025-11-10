@@ -5,10 +5,11 @@ public class FlagController : MonoBehaviour
 {
     [Header("Flag System")]
     [SerializeField] private Flag _flagPrefab;
-    [SerializeField] private BaseController _baseController;
-    [SerializeField] private BasePriorityController _priorityController;
 
+    private BaseController _baseController;
+    private BasePriorityController _priorityController;
     private Flag _currentFlag;
+    private bool _isInitialized = false;
 
     public event Action<Vector3> FlagPlaced;
     public event Action FlagRemoved;
@@ -18,10 +19,8 @@ public class FlagController : MonoBehaviour
 
     private void Start()
     {
-        if (_priorityController != null)
-            _priorityController.PriorityChanged += OnPriorityChanged;
-        else
-            Debug.LogError("FlagController: PriorityController not assigned!");
+        if (Application.isPlaying == false)
+            return;
     }
 
     private void OnDestroy()
@@ -36,8 +35,31 @@ public class FlagController : MonoBehaviour
         }
     }
 
+    public void Initialize(BaseController baseController, BasePriorityController priorityController)
+    {
+        if (Application.isPlaying == false)
+            return;
+
+        _baseController = baseController;
+        _priorityController = priorityController;
+
+        if (_priorityController != null)
+            _priorityController.PriorityChanged += OnPriorityChanged;
+
+        _isInitialized = true;
+    }
+
     public bool TrySetFlag(Vector3 worldPosition)
     {
+        if (Application.isPlaying == false)
+            return false;
+
+        if (_isInitialized == false)
+        {
+            Debug.LogError("BotManager not initialized!");
+            return false;
+        }
+
         if (_baseController == null || _baseController.CanBuildNewBase == false ||
                 IsValidFlagPosition(worldPosition) == false)
             return false;

@@ -4,23 +4,38 @@ using System;
 public class BasePriorityController : MonoBehaviour
 {
     [Header("Dependencies")]
-    [SerializeField] private BaseController _baseController;
-    [SerializeField] private ItemCounter _itemCounter;
-    [SerializeField] private BotManager _botManager;
-    [SerializeField] private BaseConstructionManager _сonstructionManager;
-    [SerializeField] private FlagController _flagController;
+    [SerializeField] private BaseConstructor _baseConstructor;
 
     [Header("Price Settings")]
     [SerializeField] private int _resourcesForBot = 3;
     [SerializeField] private int _resourcesForNewBase = 5;
 
+    private BaseController _baseController;
+    private ItemCounter _itemCounter;
+    private BotController _botManager;
+    private FlagController _flagController;
+
     private bool _isProcessingConstruction = false;
+    private bool _isInitialized = false;
 
     public event Action<BasePriority> PriorityChanged;
 
     public BasePriority CurrentPriority { get; private set; } = BasePriority.CollectForBots;
     public bool CanAffordBot => _itemCounter.CanAfford(_resourcesForBot);
     public bool CanAffordNewBase => _itemCounter.CanAfford(_resourcesForNewBase);
+
+    public void Initialize(BaseController baseController, ItemCounter itemCounter,
+                BotController botManager, FlagController flagController)
+    {
+        if (Application.isPlaying == false)
+            return;
+
+        _baseController = baseController;
+        _itemCounter = itemCounter;
+        _botManager = botManager;
+        _flagController = flagController;
+        _isInitialized = true;
+    }
 
     public void SetPriority(BasePriority newPriority)
     {
@@ -34,6 +49,9 @@ public class BasePriorityController : MonoBehaviour
 
     public void OnResourcesChanged()
     {
+        if (Application.isPlaying == false)
+            return;
+
         if (_isProcessingConstruction)
             return;
 
@@ -43,8 +61,8 @@ public class BasePriorityController : MonoBehaviour
     public void ResetConstructionFlag() =>
         _isProcessingConstruction = false;
 
-    public void SetConstructionManager(BaseConstructionManager constructionManager) =>
-        _сonstructionManager = constructionManager;
+    public void SetConstructionManager(BaseConstructor constructionManager) =>
+        _baseConstructor = constructionManager;
 
     private void CheckResourceSpending()
     {
@@ -91,9 +109,9 @@ public class BasePriorityController : MonoBehaviour
 
         if (_itemCounter.TrySubtract(_resourcesForNewBase))
         {
-            if (_сonstructionManager != null)
+            if (_baseConstructor != null)
             {
-                _сonstructionManager.StartBaseConstruction(
+                _baseConstructor.StartBaseConstruction(
                     _baseController,
                     _flagController.FlagPosition,
                     builderBot);

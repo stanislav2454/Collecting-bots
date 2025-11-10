@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class ResourceDebugUI : MonoBehaviour
 {
-    [SerializeField] private ResourceManager _resourceManager;
+    [SerializeField] private ResourceAllocator _resourceManager;
 
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI _debugText;

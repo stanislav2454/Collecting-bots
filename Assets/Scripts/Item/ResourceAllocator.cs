@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class ResourceManager : MonoBehaviour
+public class ResourceAllocator : MonoBehaviour
 {
     private HashSet<Item> _allResources = new HashSet<Item>();
     private HashSet<Item> _freeResources = new HashSet<Item>();

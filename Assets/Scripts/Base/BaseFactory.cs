@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BaseFactory : MonoBehaviour
@@ -8,17 +9,21 @@ public class BaseFactory : MonoBehaviour
     [SerializeField] private Transform _basesContainer;
 
     [Header("Dependencies")]
-    [SerializeField] private ResourceManager _resourceManager;
+    [SerializeField] private ResourceAllocator _resourceAllocator;
     [SerializeField] private ItemSpawner _itemSpawner;
-    [SerializeField] private BaseSelectionManager _selectionManager;
-    [SerializeField] private BaseConstructionManager _constructionManager;
+    [SerializeField] private BaseSelector _baseSelector;
+    [SerializeField] private BaseConstructor _baseConstructor;
     [SerializeField] private Camera _mainCamera;
 
-    private Coroutine _botAssignment;
+    private List<Coroutine> _activeCoroutines = new List<Coroutine>();
 
     private void OnDestroy()
     {
-        StopCoroutine(_botAssignment);
+        foreach (var coroutine in _activeCoroutines)
+            if (coroutine != null)
+                StopCoroutine(coroutine);
+
+        _activeCoroutines.Clear();
     }
 
     public BaseController CreateBase(Vector3 position)
@@ -41,7 +46,7 @@ public class BaseFactory : MonoBehaviour
     {
         const float Delay = 1f;
 
-        if (_resourceManager == null)
+        if (_resourceAllocator == null)
         {
             Debug.LogError("ResourceManager not assigned in BaseFactory!");
             return;
@@ -54,97 +59,39 @@ public class BaseFactory : MonoBehaviour
         }
 
         if (_mainCamera == null)
-        {
-            Debug.LogWarning("Main camera not assigned in BaseFactory, using Camera.main");
             _mainCamera = Camera.main;
-        }
 
-        if (_selectionManager != null)
-            _selectionManager.RegisterBase(newBase);
-        else
-            Debug.LogWarning("BaseSelectionManager not assigned in BaseFactory!");
+        // if (_selectionManager != null)
+        _baseSelector.RegisterBase(newBase);
 
-        var baseController = newBase.GetComponent<BaseController>();
-        if (baseController != null)
-            SetupBaseController(baseController, _itemSpawner);
+        newBase.Initialize(_itemSpawner, _resourceAllocator);
 
         var priorityController = newBase.GetComponent<BasePriorityController>();
         if (priorityController != null)
-            priorityController.SetConstructionManager(_constructionManager);
-
-        var botManager = newBase.GetComponentInChildren<BotManager>();
-        if (botManager != null)
-        {
-            botManager.SetResourceManager(_resourceManager);
-            _botAssignment = StartCoroutine(StartBotAssignmentsAfterDelay(botManager, Delay));
-        }
+            priorityController.SetConstructionManager(_baseConstructor);
 
         var missionControl = newBase.GetComponent<MissionControl>();
-        if (missionControl != null)
-            SetupMissionControl(missionControl, _resourceManager, botManager);
+        var botManager = newBase.GetComponentInChildren<BotController>();
+
+        if (missionControl != null && botManager != null)
+            missionControl.SetDependencies(botManager, _resourceAllocator);
 
         var canvasLookAt = newBase.GetComponentInChildren<CanvasLookAtCamera>();
         if (canvasLookAt != null && _mainCamera != null)
             canvasLookAt.SetTargetCamera(_mainCamera);
-    }
 
-    private void SetupBaseController(BaseController baseController, ItemSpawner itemSpawner)
-    {
-        if (baseController == null || itemSpawner == null)
-            return;
-
-        var itemSpawnerField = typeof(BaseController).GetField(BaseController.LebelItemSpawner,
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        if (itemSpawnerField != null)
-            itemSpawnerField.SetValue(baseController, itemSpawner);
-    }
-
-    private void SetupMissionControl
-        (MissionControl missionControl, ResourceManager resourceManager, BotManager botManager)
-    {
-        if (missionControl == null)
-            return;
-
-        var setDependenciesMethod = typeof(MissionControl).GetMethod(MissionControl.LebelSetDependencies);
-
-        if (setDependenciesMethod != null)
+        if (botManager != null)
         {
-            setDependenciesMethod.Invoke(missionControl, new object[] { botManager, resourceManager });
-        }
-        else
-        {
-            var resourceManagerField = typeof(MissionControl).GetField(MissionControl.LebelResourceManager,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            var botManagerField = typeof(MissionControl).GetField(MissionControl.LebelBotManager,
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (resourceManagerField != null)
-                resourceManagerField.SetValue(missionControl, resourceManager);
-
-            if (botManagerField != null)
-                botManagerField.SetValue(missionControl, botManager);
+            var coroutine = StartCoroutine(StartBotAssignmentsAfterDelay(botManager, Delay));
+            _activeCoroutines.Add(coroutine);
         }
     }
 
-    private IEnumerator StartBotAssignmentsAfterDelay(BotManager botManager, float delay)
+    private IEnumerator StartBotAssignmentsAfterDelay(BotController botManager, float delay)
     {
         yield return new WaitForSeconds(delay);
 
         if (botManager != null)
-        {
-            var botsField = typeof(BotManager).GetField("_bots",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (botsField != null)
-            {
-                var botsList = (System.Collections.Generic.List<Bot>)botsField.GetValue(botManager);
-                if (botsList != null)
-                    foreach (var bot in botsList)
-                        if (bot != null && bot.IsAvailable)
-                            botManager.AssignResourceToBot(bot);
-            }
-        }
+            botManager.AssignResourcesToAllBots();
     }
 }

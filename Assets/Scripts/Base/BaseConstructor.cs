@@ -2,12 +2,12 @@
 using System;
 using System.Collections;
 
-public class BaseConstructionManager : MonoBehaviour
+public class BaseConstructor : MonoBehaviour
 {
     [Header("Dependencies")]
     [SerializeField] private BaseFactory _baseFactory;
-    [SerializeField] private ResourceManager _resourceManager;
-    [SerializeField] private BaseSelectionManager _selectionManager;
+    [SerializeField] private ResourceAllocator _resourceAllocator;
+    [SerializeField] private BaseSelector _baseSelector;
 
     [Header("Construction Settings")]
     [SerializeField] private float _constructionTime = 3f;
@@ -94,8 +94,8 @@ public class BaseConstructionManager : MonoBehaviour
 
         try
         {
-            var toBotManager = toBase.GetComponentInChildren<BotManager>();
-            var fromBotManager = fromBase.GetComponentInChildren<BotManager>();
+            var toBotManager = toBase.GetComponentInChildren<BotController>();
+            var fromBotManager = fromBase.GetComponentInChildren<BotController>();
 
             if (toBotManager == null)
                 return;
@@ -104,7 +104,7 @@ public class BaseConstructionManager : MonoBehaviour
 
             if (fromBotManager != null)
             {
-                var botsField = typeof(BotManager).GetField("_bots",
+                var botsField = typeof(BotController).GetField("_bots",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (botsField != null)
                 {
@@ -113,7 +113,7 @@ public class BaseConstructionManager : MonoBehaviour
                 }
             }
 
-            var toBotsField = typeof(BotManager).GetField("_bots",
+            var toBotsField = typeof(BotController).GetField("_bots",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
             if (toBotsField != null)
@@ -136,7 +136,7 @@ public class BaseConstructionManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ActivateBotAfterDelay(Bot bot, BotManager targetBotManager, float delay)
+    private IEnumerator ActivateBotAfterDelay(Bot bot, BotController targetBotManager, float delay)
     {
         yield return new WaitForSeconds(delay);
 

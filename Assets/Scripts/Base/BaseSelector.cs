@@ -1,22 +1,14 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class BaseSelectionManager : MonoBehaviour
+public class BaseSelector : MonoBehaviour
 {
-    [Header("InputKeys")]
-    [SerializeField] private KeyCode _selectBase = KeyCode.Mouse0;
-
     [Header("Dependencies")]
     [SerializeField] private Raycaster _raycaster;
 
     private List<BaseController> _allBases = new List<BaseController>();
 
     public BaseController CurrentlySelectedBase { get; private set; }
-
-    private void Update()
-    {
-        HandleBaseSelection();
-    }
 
     private void OnDestroy()
     {
@@ -44,18 +36,7 @@ public class BaseSelectionManager : MonoBehaviour
         }
     }
 
-    private void HandleBaseSelection()
-    {
-        if (Input.GetKeyDown(_selectBase))
-        {
-            if (_raycaster.TryGetBaseUnderMouse(out var baseController))
-                SelectBase(baseController);
-            else
-                DeselectCurrentBase();
-        }
-    }
-
-    private void SelectBase(BaseController baseController)
+    public void SelectBase(BaseController baseController)
     {
         if (CurrentlySelectedBase == baseController)
             return;
@@ -64,14 +45,17 @@ public class BaseSelectionManager : MonoBehaviour
 
         CurrentlySelectedBase = baseController;
         CurrentlySelectedBase.SetSelected(true);
+
+        Debug.Log($"BaseSelector: Selected {baseController.name}");
     }
 
-    private void DeselectCurrentBase()
+    public void DeselectCurrentBase()
     {
         if (CurrentlySelectedBase != null)
         {
             CurrentlySelectedBase.SetSelected(false);
             CurrentlySelectedBase = null;
+            Debug.Log("BaseSelector: Deselected all bases");
         }
     }
 }

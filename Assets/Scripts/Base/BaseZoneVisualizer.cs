@@ -14,7 +14,6 @@ public class BaseZoneVisualizer : MonoBehaviour
     [field: SerializeField] public float SpawnZoneRadius { get; private set; } = 3f;
     [field: SerializeField] public float UnloadZoneRadius { get; private set; } = 1.5f;
 
-
     private void Start()
     {
         CreateZoneVisuals();

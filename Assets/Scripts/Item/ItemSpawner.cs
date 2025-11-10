@@ -16,7 +16,7 @@ public class ItemSpawner : ZoneVisualizer
 
     [Header("Dependencies")]
     [SerializeField] private ItemPool _itemPool;
-    [SerializeField] private ResourceManager _resourceManager;
+    [SerializeField] private ResourceAllocator _resourceAllocator;
 
     private int _maxSize = 50;
     private List<Item> _activeItems = new List<Item>();
@@ -81,7 +81,7 @@ public class ItemSpawner : ZoneVisualizer
             item.transform.rotation = Quaternion.identity;
 
             _activeItems.Add(item);
-            _resourceManager?.RegisterResource(item);
+            _resourceAllocator?.RegisterResource(item);
         }
         else if (item != null && _itemPool != null)
         {
@@ -100,7 +100,7 @@ public class ItemSpawner : ZoneVisualizer
         if (item.gameObject.activeInHierarchy == false)
             item.gameObject.SetActive(true);
 
-        _resourceManager?.RegisterResource(item);
+        _resourceAllocator?.RegisterResource(item);
     }
 
     private void SpawnInitialItems()
@@ -129,7 +129,7 @@ public class ItemSpawner : ZoneVisualizer
             item.transform.rotation = Quaternion.identity;
             item.PrepareForRespawn();
             _activeItems.Add(item);
-            _resourceManager?.RegisterResource(item);
+            _resourceAllocator?.RegisterResource(item);
             ItemSpawned?.Invoke(item);
         }
     }

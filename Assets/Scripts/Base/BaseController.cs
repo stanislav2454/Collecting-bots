@@ -1,14 +1,10 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class BaseController : MonoBehaviour
 {
-    public static readonly string LebelItemSpawner = nameof(_itemSpawner);
-
     [Header("Dependencies")]
     [SerializeField] private BaseZoneVisualizer _zoneVisualizer;
-    [SerializeField] private BotManager _botManager;
-    [SerializeField] private ItemSpawner _itemSpawner;
+    [SerializeField] private BotController _botManager;
     [SerializeField] private ItemCounter _itemCounter;
     [SerializeField] private BasePriorityController _priorityController;
     [SerializeField] private FlagController _flagController;
@@ -20,6 +16,8 @@ public class BaseController : MonoBehaviour
 
     private Vector3 _originalViewScale;
     private bool _isSelected = false;
+    private ItemSpawner _itemSpawner;
+    private bool _isInitialized = false;
 
     public bool IsSelected => _isSelected;
     public float UnloadZoneRadius => _zoneVisualizer ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
@@ -37,7 +35,7 @@ public class BaseController : MonoBehaviour
             _flagController = GetComponent<FlagController>();
 
         if (_botManager == null)
-            _botManager = GetComponentInChildren<BotManager>();
+            _botManager = GetComponentInChildren<BotController>();
 
         if (_itemCounter == null)
             _itemCounter = GetComponentInChildren<ItemCounter>();
@@ -50,6 +48,9 @@ public class BaseController : MonoBehaviour
     {
         InitializeSelection();
         InitializeAndValidateDependencies();
+
+        if (_isInitialized == false)
+            Debug.LogWarning("BaseController not initialized! Call Initialize() method.");
     }
 
     private void OnValidate()
@@ -74,11 +75,36 @@ public class BaseController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (_isInitialized == false)
+            return;
+
         if (other.TryGetComponent<Bot>(out var bot) && bot.IsCarryingResource)
         {
             CollectResourceFromBot(bot);
             bot.CompleteMission(true);
         }
+    }
+
+    public void Initialize(ItemSpawner itemSpawner, ResourceAllocator resourceManager)
+    {
+        _itemSpawner = itemSpawner;
+
+        if (_priorityController != null)
+            _priorityController.Initialize(this, _itemCounter, _botManager, _flagController);
+        else
+            Debug.LogError(" PriorityController not found!");
+
+        if (_botManager != null)
+            _botManager.Initialize(this, resourceManager);
+        else
+            Debug.LogError("   BotManager not found!");
+
+        if (_flagController != null)
+            _flagController.Initialize(this, _priorityController);
+        else
+            Debug.LogError(" FlagController not found!");
+
+        _isInitialized = true;
     }
 
     public void SetSelected(bool selected)
@@ -102,6 +128,12 @@ public class BaseController : MonoBehaviour
 
     public void CollectResourceFromBot(Bot bot)
     {
+        if (_isInitialized == false)
+        {
+            Debug.LogError("BaseController not initialized!");
+            return;
+        }
+
         if (bot.IsCarryingResource == false)
             return;
 
@@ -114,8 +146,16 @@ public class BaseController : MonoBehaviour
         _itemSpawner?.ReturnItemToPool(item);
     }
 
-    public bool TrySetFlag(Vector3 worldPosition) =>
-        _flagController?.TrySetFlag(worldPosition) ?? false;
+    public bool TrySetFlag(Vector3 worldPosition)
+    {
+        if (_isInitialized == false)
+        {
+            Debug.LogError("BaseController not initialized!");
+            return false;
+        }
+
+        return _flagController?.TrySetFlag(worldPosition) ?? false;
+    }
 
     private void InitializeSelection() =>
         SetSelected(false);
@@ -132,10 +172,10 @@ public class BaseController : MonoBehaviour
             Debug.LogError("BotManager not found in BaseController!");
 
         if (_itemCounter == null)
-            Debug.LogError("ItemCounter not assigned in BotManager!");
+            Debug.LogError("ItemCounter not found in BaseController!");
 
         if (_materialChanger == null)
-            Debug.LogError("MaterialChanger not assigned in BotManager!");
+            Debug.LogError("MaterialChanger not found in BaseController!");
 
         if (_viewTransform == null)
             Debug.LogError("ViewTransform not assigned in BaseController!");
@@ -143,9 +183,9 @@ public class BaseController : MonoBehaviour
             _originalViewScale = _viewTransform.localScale;
 
         if (_priorityController == null)
-            Debug.LogError("_PriorityController not assigned in BaseController!");
+            Debug.LogError("BasePriorityController not found in BaseController!");
 
         if (_flagController == null)
-            Debug.LogError("FlagController not assigned in BaseController!");
+            Debug.LogError("FlagController not found in BaseController!");
     }
 }

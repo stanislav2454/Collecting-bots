@@ -2,13 +2,9 @@
 
 public class MissionControl : MonoBehaviour
 {
-    public static readonly string LebelSetDependencies = nameof(SetDependencies);
-    public static readonly string LebelBotManager = nameof(_botManager);
-    public static readonly string LebelResourceManager = nameof(_resourceManager);
-
     [Header("Dependencies")]
-    [SerializeField] private BotManager _botManager;
-    [SerializeField] private ResourceManager _resourceManager;
+    [SerializeField] private BotController _botManager;
+    [SerializeField] private ResourceAllocator _resourceAllocator;
 
     private void Start()
     {
@@ -17,8 +13,8 @@ public class MissionControl : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (_resourceManager != null)
-            _resourceManager.ResourceBecameAvailable -= OnResourceBecameAvailable;
+        if (_resourceAllocator != null)
+            _resourceAllocator.ResourceBecameAvailable -= OnResourceBecameAvailable;
     }
 
     public void OnResourceBecameAvailable(Item resource)
@@ -27,21 +23,21 @@ public class MissionControl : MonoBehaviour
             _botManager.AssignBotToResource(resource);
     }
 
-    public void SetDependencies(BotManager botManager, ResourceManager resourceManager)
+    public void SetDependencies(BotController botManager, ResourceAllocator resourceManager)
     {
         _botManager = botManager;
-        _resourceManager = resourceManager;
+        _resourceAllocator = resourceManager;
 
-        if (_resourceManager != null)
+        if (_resourceAllocator != null)
         {
-            _resourceManager.ResourceBecameAvailable -= OnResourceBecameAvailable;
-            _resourceManager.ResourceBecameAvailable += OnResourceBecameAvailable;
+            _resourceAllocator.ResourceBecameAvailable -= OnResourceBecameAvailable;
+            _resourceAllocator.ResourceBecameAvailable += OnResourceBecameAvailable;
         }
     }
 
     private void Initialize()
     {
-        if (_resourceManager != null)
-            _resourceManager.ResourceBecameAvailable += OnResourceBecameAvailable;
+        if (_resourceAllocator != null)
+            _resourceAllocator.ResourceBecameAvailable += OnResourceBecameAvailable;
     }
 }

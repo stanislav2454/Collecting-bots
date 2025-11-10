@@ -20,23 +20,27 @@ public class BotFactory
     {
         if (_botPrefab == null)
         {
-            Debug.LogError("Bot prefab is not assigned in BotFactory!");
+            Debug.LogError(" Bot prefab is not assigned in BotFactory!");
             return null;
         }
 
         Vector3 spawnPosition = GetSpawnPosition(basePosition);
+
         Bot newBot = UnityEngine.Object.Instantiate(_botPrefab, spawnPosition, Quaternion.identity, _spawnContainer);
 
-        BotCreated?.Invoke(newBot);
+        if (newBot != null)
+            BotCreated?.Invoke(newBot);
 
         return newBot;
     }
 
     private Vector3 GetSpawnPosition(Vector3 basePosition)
     {
-        return basePosition + new Vector3(
+        Vector3 spawnPos = basePosition + new Vector3(
             UnityEngine.Random.Range(-_spawnRadius, _spawnRadius),
             0,
             UnityEngine.Random.Range(-_spawnRadius, _spawnRadius));
+
+        return spawnPos;
     }
 }

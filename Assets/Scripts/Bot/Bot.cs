@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.AI;
 using System;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(NavMeshAgent), typeof(BotInventory), typeof(BotVisualizer))]
+[RequireComponent(typeof(BotInventory), typeof(BotVisualizer))]
 public class Bot : MonoBehaviour
 {
     [Header("State Visualization")]
@@ -88,7 +87,7 @@ public class Bot : MonoBehaviour
          _movement?.HasReachedDestination() ?? false;
 
 
-    public void ReassignToNewManager(BotManager newManager, BotManager oldManager = null)
+    public void ReassignToNewManager(BotController newManager, BotController oldManager = null)
     {
         try
         {

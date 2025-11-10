@@ -16,7 +16,7 @@ public class BotMovementController : MonoBehaviour
 
     private void Awake()
     {
-        TryGetComponent(out _navMeshAgent);
+        _navMeshAgent = GetComponent<NavMeshAgent>();
         _sqrTargetChangeThreshold = _targetChangeThreshold * _targetChangeThreshold;
     }
 
