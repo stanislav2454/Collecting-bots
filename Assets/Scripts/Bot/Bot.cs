@@ -121,19 +121,17 @@ public class Bot : MonoBehaviour
         foreach (var data in _stateVisualData)
             _stateVisualMap[data.StateType] = data;
 
-        if (_stateVisualMap.ContainsKey(BotStateType.MovingToConstruction) == false)
-            _stateVisualMap[BotStateType.MovingToConstruction] = new StateVisualData
-            {
-                StateType = BotStateType.MovingToConstruction,
-                Color = Color.blue,
-                IconName = "sv_icon_dot8_pix16_gizmo"
-            };
+        SetVisualData(BotStateType.MovingToConstruction, Color.blue, "sv_icon_dot8_pix16_gizmo");
+        SetVisualData(BotStateType.Building, Color.red, "sv_icon_dot6_pix16_gizmo");
+    }
 
+    private void SetVisualData(BotStateType stateType, Color color, string iconName)
+    {
         if (_stateVisualMap.ContainsKey(BotStateType.Building) == false)
             _stateVisualMap[BotStateType.Building] = new StateVisualData
             {
-                StateType = BotStateType.Building,
-                Color = Color.red,
+                StateType = stateType,
+                Color = color,
                 IconName = "sv_icon_dot6_pix16_gizmo"
             };
     }
