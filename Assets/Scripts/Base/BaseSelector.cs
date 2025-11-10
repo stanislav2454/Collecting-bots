@@ -45,8 +45,6 @@ public class BaseSelector : MonoBehaviour
 
         CurrentlySelectedBase = baseController;
         CurrentlySelectedBase.SetSelected(true);
-
-        Debug.Log($"BaseSelector: Selected {baseController.name}");
     }
 
     public void DeselectCurrentBase()
@@ -55,7 +53,6 @@ public class BaseSelector : MonoBehaviour
         {
             CurrentlySelectedBase.SetSelected(false);
             CurrentlySelectedBase = null;
-            Debug.Log("BaseSelector: Deselected all bases");
         }
     }
 }

@@ -14,9 +14,7 @@ public class BasePriorityController : MonoBehaviour
     private ItemCounter _itemCounter;
     private BotController _botManager;
     private FlagController _flagController;
-
     private bool _isProcessingConstruction = false;
-    private bool _isInitialized = false;
 
     public event Action<BasePriority> PriorityChanged;
 
@@ -27,14 +25,10 @@ public class BasePriorityController : MonoBehaviour
     public void Initialize(BaseController baseController, ItemCounter itemCounter,
                 BotController botManager, FlagController flagController)
     {
-        if (Application.isPlaying == false)
-            return;
-
         _baseController = baseController;
         _itemCounter = itemCounter;
         _botManager = botManager;
         _flagController = flagController;
-        _isInitialized = true;
     }
 
     public void SetPriority(BasePriority newPriority)
@@ -49,9 +43,6 @@ public class BasePriorityController : MonoBehaviour
 
     public void OnResourcesChanged()
     {
-        if (Application.isPlaying == false)
-            return;
-
         if (_isProcessingConstruction)
             return;
 
@@ -94,18 +85,12 @@ public class BasePriorityController : MonoBehaviour
     private void StartBaseConstruction()
     {
         if (_flagController == null || _flagController.HasActiveFlag == false)
-        {
-            _isProcessingConstruction = false;
             return;
-        }
 
         var builderBot = _botManager.GetAvailableBotForConstruction() ?? _botManager.ForceGetBotForConstruction();
 
         if (builderBot == null)
-        {
-            _isProcessingConstruction = false;
             return;
-        }
 
         if (_itemCounter.TrySubtract(_resourcesForNewBase))
         {
@@ -123,10 +108,6 @@ public class BasePriorityController : MonoBehaviour
                 _itemCounter.Add(_resourcesForNewBase);
                 _isProcessingConstruction = false;
             }
-        }
-        else
-        {
-            _isProcessingConstruction = false;
         }
     }
 }

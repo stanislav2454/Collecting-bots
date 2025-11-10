@@ -10,9 +10,7 @@ public class SelectableVisual : MonoBehaviour
     [SerializeField] private float _selectedScaleMultiplier = 1.1f;
 
     private Vector3 _originalViewScale;
-    private bool _isSelected = false;
-
-    public bool IsSelected => _isSelected;
+    public bool IsSelected { get; private set; } = false;
 
     private void Start()
     {
@@ -29,10 +27,10 @@ public class SelectableVisual : MonoBehaviour
 
     public void SetSelected(bool selected)
     {
-        if (_isSelected == selected)
+        if (IsSelected == selected)
             return;
 
-        _isSelected = selected;
+        IsSelected = selected;
 
         if (selected)
         {
@@ -46,8 +44,6 @@ public class SelectableVisual : MonoBehaviour
                 _viewTransform.localScale = _originalViewScale;
             _materialChanger?.SetSelected(false);
         }
-
-        Debug.Log($"[SelectableVisual] Selection state: {selected}");
     }
 
     private void OnValidate()

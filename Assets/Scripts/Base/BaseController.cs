@@ -1,23 +1,23 @@
 ﻿using UnityEngine;
 
+[RequireComponent(typeof(BasePriorityController), typeof(ItemCounter), typeof(FlagController))]
+[RequireComponent(typeof(SelectableVisual))]
 public class BaseController : MonoBehaviour
 {
     [Header("Dependencies")]
-    [SerializeField] private BaseZoneVisualizer _zoneVisualizer;
-    [SerializeField] private BotController _botController;
-    [SerializeField] private ItemCounter _itemCounter;
     [SerializeField] private BasePriorityController _priorityController;
+    [SerializeField] private ItemCounter _itemCounter;
     [SerializeField] private FlagController _flagController;
     [SerializeField] private SelectableVisual _selectableVisual;
+    [SerializeField] private BaseZoneVisualizer _zoneVisualizer;
+    [SerializeField] private BotController _botController;
 
     private ItemSpawner _itemSpawner;
     private bool _isInitialized = false;
 
-    public bool IsSelected => _selectableVisual != null ? _selectableVisual.IsSelected : false;
     public float UnloadZoneRadius => _zoneVisualizer ? _zoneVisualizer.UnloadZoneRadius : 1.5f;
     public float SpawnZoneRadius => _zoneVisualizer ? _zoneVisualizer.SpawnZoneRadius : 3f;
     public bool CanBuildNewBase => _botController != null && _botController.BotCount > 1;// Проверка "_botController != null" т.к _botController дочерний объект
-    public BasePriority CurrentPriority => _priorityController?.CurrentPriority ?? BasePriority.CollectForBots;
 
     private void Awake()
     {
@@ -65,11 +65,6 @@ public class BaseController : MonoBehaviour
         _isInitialized = true;
     }
 
-    public void SetSelected(bool selected)
-    {
-        _selectableVisual?.SetSelected(selected);
-    }
-
     public void CollectResourceFromBot(Bot bot)
     {
         if (bot.IsCarryingResource == false)
@@ -83,35 +78,26 @@ public class BaseController : MonoBehaviour
         _itemSpawner.ReturnItemToPool(item);
     }
 
-    public bool TrySetFlag(Vector3 worldPosition)
-    {
-        return _flagController?.TrySetFlag(worldPosition) ?? false;
-    }
+    public void SetSelected(bool selected) =>
+        _selectableVisual.SetSelected(selected);
+
+    public void SetFlag(Vector3 worldPosition) =>
+        _flagController.TrySetFlag(worldPosition);
 
     private void InitializeComponents()
     {
-        if (_priorityController == null)// TODO:
-            _priorityController = GetComponent<BasePriorityController>();
+        _priorityController = GetComponent<BasePriorityController>();
+        _flagController = GetComponent<FlagController>();
+        _itemCounter = GetComponent<ItemCounter>();
+        _selectableVisual = GetComponent<SelectableVisual>();
 
-        if (_flagController == null)// TODO:
-            _flagController = GetComponent<FlagController>();
-
-        if (_botController == null)// TODO:
+        if (_botController == null)
             _botController = GetComponentInChildren<BotController>();
 
-        if (_itemCounter == null)// TODO:
-            _itemCounter = GetComponentInChildren<ItemCounter>();
-
-        if (_zoneVisualizer == null)// TODO:
+        if (_zoneVisualizer == null)
             _zoneVisualizer = GetComponentInChildren<BaseZoneVisualizer>();
-
-        if (_selectableVisual == null)// TODO:
-            _selectableVisual = GetComponent<SelectableVisual>();
     }
 
-    private void OnItemCounterChanged()
-    {
+    private void OnItemCounterChanged() =>
         _priorityController?.OnResourcesChanged();
-    }
 }
-

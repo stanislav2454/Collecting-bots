@@ -32,18 +32,15 @@ public class InputController : MonoBehaviour
     {
         if (_raycaster.TryGetFlagUnderMouse(out Flag flag))
         {
-            Debug.Log($"InputController: Flag clicked - {flag.name}");
             FlagInteracted?.Invoke(flag);
         }
         else if (_raycaster.TryGetBaseUnderMouse(out BaseController baseController))
         {
-            Debug.Log($"InputController: Base selected - {baseController.name}");
             BaseSelected?.Invoke(baseController);
             _baseSelector.SelectBase(baseController);
         }
         else
         {
-            Debug.Log("InputController: Deselecting all");
             _baseSelector.DeselectCurrentBase();
         }
     }
@@ -51,10 +48,7 @@ public class InputController : MonoBehaviour
     private void HandleInteractionClick()
     {
         if (_raycaster.TryGetGroundUnderMouse(out Vector3 groundPoint))
-        {
-            Debug.Log($"InputController: Ground interaction at {groundPoint}");
             GroundInteracted?.Invoke(groundPoint);
-        }
     }
 
     public void SetDependencies(Raycaster raycaster, BaseSelector baseSelector)

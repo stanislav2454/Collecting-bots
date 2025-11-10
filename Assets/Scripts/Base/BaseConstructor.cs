@@ -15,7 +15,6 @@ public class BaseConstructor : MonoBehaviour
 
     private Coroutine _currentConstructionCoroutine;
 
-    public event Action<BaseController> BaseConstructionStarted;
     public event Action<BaseController> BaseConstructionCompleted;
 
     private void OnDestroy()
@@ -23,7 +22,6 @@ public class BaseConstructor : MonoBehaviour
         if (_currentConstructionCoroutine != null)
             StopCoroutine(_currentConstructionCoroutine);
 
-        BaseConstructionStarted = null;
         BaseConstructionCompleted = null;
     }
 

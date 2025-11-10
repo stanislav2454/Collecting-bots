@@ -58,25 +58,19 @@ public class GameController : MonoBehaviour
 
         _initialBase.Initialize(_itemSpawner, _resourceAllocator);
         _baseSelector.RegisterBase(_initialBase);
-
-        Debug.Log("GameController: Game initialized successfully!");
     }
 
     private void SetupInputHandlers()
     {
         _inputController.GroundInteracted += OnGroundInteracted;
         _inputController.FlagInteracted += OnFlagInteracted;
-
-        Debug.Log("GameController: Input handlers setup completed");
     }
 
     private void OnGroundInteracted(Vector3 groundPoint)
     {
         var selectedBase = _baseSelector.CurrentlySelectedBase;
         if (selectedBase != null && selectedBase.CanBuildNewBase)
-        {
-            selectedBase.TrySetFlag(groundPoint);
-        }
+            selectedBase.SetFlag(groundPoint);
     }
 
     private void OnFlagInteracted(Flag flag)

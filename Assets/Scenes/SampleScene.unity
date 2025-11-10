@@ -376,6 +376,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6084678715314758968, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
   m_PrefabInstance: {fileID: 4537584591107730671}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1264113050 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1414698160392226585, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+  m_PrefabInstance: {fileID: 4537584591107730671}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 874154adeeda7d5458b8cfabe02e48b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1406071450
 GameObject:
   m_ObjectHideFlags: 0
@@ -1196,6 +1207,10 @@ PrefabInstance:
       propertyPath: _itemSpawner
       value: 
       objectReference: {fileID: 2122070370}
+    - target: {fileID: 6111019587113685739, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: _botController
+      value: 
+      objectReference: {fileID: 1264113050}
     - target: {fileID: 6111019587113685739, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: _selectionManager
       value: 
