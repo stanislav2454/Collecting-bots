@@ -114,11 +114,12 @@ GameObject:
   - component: {fileID: 7747648430048083854}
   - component: {fileID: 8881472398056705158}
   - component: {fileID: 6111019587113685739}
+  - component: {fileID: 1132989788088155557}
   - component: {fileID: 2940151522742244056}
   - component: {fileID: 6561893782352010467}
   - component: {fileID: 3082486729635762187}
-  - component: {fileID: 1132989788088155557}
   - component: {fileID: 1044019969596754093}
+  - component: {fileID: 6615390077421812807}
   m_Layer: 0
   m_Name: BASE
   m_TagString: Untagged
@@ -199,13 +200,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _zoneVisualizer: {fileID: 9158873742515013742}
-  _botManager: {fileID: 1414698160392226585}
+  _botController: {fileID: 0}
   _itemCounter: {fileID: 6561893782352010467}
   _priorityController: {fileID: 1132989788088155557}
   _flagController: {fileID: 1044019969596754093}
-  _materialChanger: {fileID: 3082486729635762187}
-  _viewTransform: {fileID: 2469320382112154312}
-  _selectedScaleMultiplier: 1.1
+  _selectableVisual: {fileID: 6615390077421812807}
+--- !u!114 &1132989788088155557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3214502395134051911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8da128ad96c0e1f48a246ce3a087b3f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _baseConstructor: {fileID: 0}
+  _resourcesForBot: 3
+  _resourcesForNewBase: 5
 --- !u!114 &2940151522742244056
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -248,21 +262,6 @@ MonoBehaviour:
   _selectedMaterial: {fileID: 2100000, guid: c55b85dbc88e0aa46a611ce225fe6dcc, type: 2}
   _meshRenderers:
   - {fileID: 198762539946298600}
---- !u!114 &1132989788088155557
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3214502395134051911}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8da128ad96c0e1f48a246ce3a087b3f1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _baseConstructor: {fileID: 0}
-  _resourcesForBot: 3
-  _resourcesForNewBase: 5
 --- !u!114 &1044019969596754093
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -276,6 +275,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _flagPrefab: {fileID: 8782693539927774351, guid: 49f8d19d75389524ab58c9e97c803b45, type: 3}
+--- !u!114 &6615390077421812807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3214502395134051911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a47e145e24c75a14ab31c04ba7db1460, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _viewTransform: {fileID: 2469320382112154312}
+  _materialChanger: {fileID: 3082486729635762187}
+  _selectedScaleMultiplier: 1.1
 --- !u!1 &4955147370905627631
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,6 +454,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab7b252ac8882f144b65570e57194e37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _resourceAllocator: {fileID: 0}
 --- !u!1 &7543531885667058670
 GameObject:
   m_ObjectHideFlags: 0
