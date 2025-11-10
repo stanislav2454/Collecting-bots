@@ -1200,6 +1200,10 @@ PrefabInstance:
       propertyPath: _selectionManager
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 6777941197417886465, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
+      propertyPath: _resourceAllocator
+      value: 
+      objectReference: {fileID: 587868907}
     - target: {fileID: 7543531885667058670, guid: 456a12cc952786a4abcfd93f203833c7, type: 3}
       propertyPath: m_Layer
       value: 0

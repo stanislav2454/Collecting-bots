@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class BaseFactory : MonoBehaviour
 {
@@ -14,17 +12,6 @@ public class BaseFactory : MonoBehaviour
     [SerializeField] private BaseSelector _baseSelector;
     [SerializeField] private BaseConstructor _baseConstructor;
     [SerializeField] private Camera _mainCamera;
-
-    private List<Coroutine> _activeCoroutines = new List<Coroutine>();
-
-    private void OnDestroy()
-    {
-        foreach (var coroutine in _activeCoroutines)
-            if (coroutine != null)
-                StopCoroutine(coroutine);
-
-        _activeCoroutines.Clear();
-    }
 
     public BaseController CreateBase(Vector3 position)
     {
@@ -44,8 +31,6 @@ public class BaseFactory : MonoBehaviour
 
     private void SetupNewBaseDependencies(BaseController newBase)
     {
-        const float Delay = 1f;
-
         if (_resourceAllocator == null)
         {
             Debug.LogError("ResourceManager not assigned in BaseFactory!");
@@ -61,7 +46,6 @@ public class BaseFactory : MonoBehaviour
         if (_mainCamera == null)
             _mainCamera = Camera.main;
 
-        // if (_selectionManager != null)
         _baseSelector.RegisterBase(newBase);
 
         newBase.Initialize(_itemSpawner, _resourceAllocator);
@@ -79,19 +63,5 @@ public class BaseFactory : MonoBehaviour
         var canvasLookAt = newBase.GetComponentInChildren<CanvasLookAtCamera>();
         if (canvasLookAt != null && _mainCamera != null)
             canvasLookAt.SetTargetCamera(_mainCamera);
-
-        if (botManager != null)
-        {
-            var coroutine = StartCoroutine(StartBotAssignmentsAfterDelay(botManager, Delay));
-            _activeCoroutines.Add(coroutine);
-        }
-    }
-
-    private IEnumerator StartBotAssignmentsAfterDelay(BotController botManager, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (botManager != null)
-            botManager.AssignResourcesToAllBots();
     }
 }

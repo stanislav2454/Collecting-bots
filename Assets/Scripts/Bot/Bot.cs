@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(BotInventory), typeof(BotVisualizer))]
+[RequireComponent(typeof(BotMovementController), typeof(BotInventory), typeof(BotVisualizer))]
 public class Bot : MonoBehaviour
 {
     [Header("State Visualization")]
@@ -27,7 +27,7 @@ public class Bot : MonoBehaviour
     public BotInventory Inventory { get; private set; }
     public Item AssignedResource { get; private set; }
     public bool IsAvailable => _stateMachine.CurrentStateType == BotStateType.Idle;
-    public bool IsCarryingResource => Inventory != null && Inventory.HasItem;
+    public bool IsCarryingResource => Inventory.HasItem;
     public BotStateType CurrentStateType => _stateMachine.CurrentStateType;
 
     private void Awake()
@@ -53,13 +53,24 @@ public class Bot : MonoBehaviour
         _stateMachine.StateChanged -= UpdateVisualizationCache;
     }
 
-    public void AssignResource(Item resource, Vector3 basePosition, float baseRadius)
+    public void AssignResource(Item resource)
     {
         if (IsAvailable == false)
             return;
 
         AssignedResource = resource;
-        ChangeState(new BotMovingToResourceState(resource, basePosition, baseRadius));
+
+        var botController = GetComponentInParent<BotController>();
+        if (botController != null)
+        {
+            Vector3 basePosition = botController.BasePosition;
+            float baseRadius = botController.UnloadZoneRadius;
+            ChangeState(new BotMovingToResourceState(resource, basePosition, baseRadius));
+        }
+        else
+        {
+            Debug.LogError("Bot: Cannot find BotController parent!");
+        }
     }
 
     public void SetWaiting() =>
@@ -86,33 +97,19 @@ public class Bot : MonoBehaviour
     public bool HasReachedDestination() =>
          _movement?.HasReachedDestination() ?? false;
 
-
-    public void ReassignToNewManager(BotController newManager, BotController oldManager = null)
+    public void TransferToNewParent(Transform newParent)
     {
-        try
-        {
-            if (oldManager != null)
-                MissionCompleted -= oldManager.HandleBotMissionCompleted;
-
-            MissionCompleted += newManager.HandleBotMissionCompleted;
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"[Bot] Failed to reassign to new manager: {e.Message}");
-        }
+        if (newParent != null)
+            transform.SetParent(newParent);
     }
 
     private void InitializeComponents()
     {
-        TryGetComponent(out _movement);
+        Inventory = GetComponent<BotInventory>();
+        _movement = GetComponent<BotMovementController>();
+        _visualizer = GetComponent<BotVisualizer>();
 
-        BotInventory inventory;
-        if (TryGetComponent(out inventory))
-            Inventory = inventory;
-
-        TryGetComponent(out _visualizer);
         _visualizer.Initialize(this, _movement);
-
         _stateMachine = new BotStateMachine();
         ChangeState(new BotIdleState());
     }

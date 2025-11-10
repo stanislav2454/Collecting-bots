@@ -389,6 +389,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5430859190681631010}
   - component: {fileID: 1414698160392226585}
+  - component: {fileID: 6777941197417886465}
   m_Layer: 0
   m_Name: BotController
   m_TagString: Untagged
@@ -427,6 +428,18 @@ MonoBehaviour:
   _botPrefab: {fileID: 357538259168064287, guid: 5d0b0d834525a224c83acf4854c91ec6, type: 3}
   _spawnContainer: {fileID: 5430859190681631010}
   _resourceAllocator: {fileID: 0}
+--- !u!114 &6777941197417886465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5437430209926727975}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab7b252ac8882f144b65570e57194e37, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7543531885667058670
 GameObject:
   m_ObjectHideFlags: 0

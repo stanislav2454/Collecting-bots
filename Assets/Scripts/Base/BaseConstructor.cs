@@ -14,7 +14,6 @@ public class BaseConstructor : MonoBehaviour
     [SerializeField] private ConstructionSite _constructionSitePrefab;
 
     private Coroutine _currentConstructionCoroutine;
-    private Coroutine _activateBotCoroutine;
 
     public event Action<BaseController> BaseConstructionStarted;
     public event Action<BaseController> BaseConstructionCompleted;
@@ -23,9 +22,6 @@ public class BaseConstructor : MonoBehaviour
     {
         if (_currentConstructionCoroutine != null)
             StopCoroutine(_currentConstructionCoroutine);
-
-        if (_activateBotCoroutine != null)
-            StopCoroutine(_activateBotCoroutine);
 
         BaseConstructionStarted = null;
         BaseConstructionCompleted = null;
@@ -87,60 +83,25 @@ public class BaseConstructor : MonoBehaviour
 
     private void TransferBotToNewBase(Bot bot, BaseController fromBase, BaseController toBase)
     {
-        const float Delay = 0.5f;
-
         if (bot == null || toBase == null)
             return;
 
         try
         {
-            var toBotManager = toBase.GetComponentInChildren<BotController>();
-            var fromBotManager = fromBase.GetComponentInChildren<BotController>();
+            var toBotController = toBase.GetComponentInChildren<BotController>();
+            var fromBotController = fromBase.GetComponentInChildren<BotController>();
 
-            if (toBotManager == null)
-                return;
-
-            bot.ReassignToNewManager(toBotManager, fromBotManager);
-
-            if (fromBotManager != null)
+            if (toBotController != null)
             {
-                var botsField = typeof(BotController).GetField("_bots",
-                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-                if (botsField != null)
-                {
-                    var botsList = (System.Collections.Generic.List<Bot>)botsField.GetValue(fromBotManager);
-                    botsList?.Remove(bot);
-                }
+                fromBotController.TransferBotToNewController(bot, toBotController);
+                bot.TransferToNewParent(toBotController.transform);
+                bot.ChangeState(new BotIdleState());
             }
-
-            var toBotsField = typeof(BotController).GetField("_bots",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (toBotsField != null)
-            {
-                var toBotsList = (System.Collections.Generic.List<Bot>)toBotsField.GetValue(toBotManager);
-                toBotsList?.Add(bot);
-            }
-
-            if (toBotManager.transform != null)
-                bot.transform.SetParent(toBotManager.transform);
-
-            bot.ChangeState(new BotIdleState());
-
-            _activateBotCoroutine = StartCoroutine(ActivateBotAfterDelay(bot, toBotManager, Delay));
         }
         catch (System.Exception e)
         {
             Debug.LogError($"[Construction] Bot transfer failed: {e.Message}");
             bot.ChangeState(new BotIdleState());
         }
-    }
-
-    private IEnumerator ActivateBotAfterDelay(Bot bot, BotController targetBotManager, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (bot != null && targetBotManager != null)
-            targetBotManager.AssignResourceToBot(bot);
     }
 }

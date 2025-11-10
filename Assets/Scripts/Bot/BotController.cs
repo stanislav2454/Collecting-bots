@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
+[RequireComponent(typeof(BotDispatcher))]
 public class BotController : MonoBehaviour
 {
     [Header("Bot Settings")]
@@ -15,33 +14,31 @@ public class BotController : MonoBehaviour
 
     private BaseController _baseController;
     private BotFactory _botFactory;
-    private List<Bot> _bots = new List<Bot>();
-    private Dictionary<Item, Bot> _resourceAssignments = new Dictionary<Item, Bot>();
-    private Dictionary<Bot, Coroutine> _botAssignmentCoroutines = new Dictionary<Bot, Coroutine>();
+    private BotDispatcher _botDispatcher;
+    private List<Bot> _allBots = new List<Bot>();
     private bool _isInitialized = false;
 
     public Vector3 BasePosition => _baseController != null ? _baseController.transform.position : transform.position;
     public float UnloadZoneRadius => _baseController != null ? _baseController.UnloadZoneRadius : 1.5f;
-    public int BotCount => _bots.Count;
+    public int BotCount => _allBots.Count;
 
     private void OnDestroy()
     {
-        foreach (var coroutinePair in _botAssignmentCoroutines)
-            if (coroutinePair.Value != null)
-                StopCoroutine(coroutinePair.Value);
-
-        _botAssignmentCoroutines.Clear();
+        if (_botFactory != null)
+            _botFactory.BotCreated -= OnBotCreated;
     }
 
-    public void Initialize(BaseController baseController, ResourceAllocator resourceManager)
+    public void Initialize(BaseController baseController, ResourceAllocator resourceAllocator)
     {
         _baseController = baseController;
-        _resourceAllocator = resourceManager;
+        _resourceAllocator = resourceAllocator;
 
         InitializeBotFactory();
+        InitializeBotDispatcher();
+
         _isInitialized = true;
 
-        if (_bots.Count == 0 && _initialBotsCount > 0)
+        if (_allBots.Count == 0 && _initialBotsCount > 0)
             SpawnInitialBots();
     }
 
@@ -53,185 +50,78 @@ public class BotController : MonoBehaviour
         _botFactory?.CreateBot(BasePosition);
     }
 
-    public void HandleBotMissionCompleted(Bot bot, bool success)
-    {
-        if (Application.isPlaying == false || _isInitialized == false)
-            return;
-
-        CompleteAssignment(bot, success);
-
-        if (_botAssignmentCoroutines.ContainsKey(bot))
-        {
-            StopCoroutine(_botAssignmentCoroutines[bot]);
-            _botAssignmentCoroutines.Remove(bot);
-        }
-
-        const float Delay = 0.5f;
-        var coroutine = StartCoroutine(AssignNewResourceAfterDelay(bot, Delay));
-        _botAssignmentCoroutines[bot] = coroutine;
-    }
-
-    public void AssignResourceToBot(Bot bot)
-    {
-        if (Application.isPlaying == false || _isInitialized == false)
-            return;
-
-        if (bot == null || bot.IsAvailable == false)
-            return;
-
-        if (IsBotAssigned(bot))
-            return;
-
-        Item resource = _resourceAllocator?.GetNearestAvailableResource(bot.transform.position);
-
-        if (resource != null && TryAssignResourceToBot(resource, bot))
-            bot.AssignResource(resource, BasePosition, UnloadZoneRadius);
-    }
-
-    public void AssignBotToResource(Item resource)
-    {
-        if (Application.isPlaying == false || _isInitialized == false)
-            return;
-
-        if (resource == null || IsResourceAssigned(resource))
-            return;
-
-        var nearestBot = _bots
-            .Where(b => b.IsAvailable && IsBotAssigned(b) == false)
-            .OrderBy(b => (b.transform.position - resource.transform.position).sqrMagnitude)
-            .FirstOrDefault();
-
-        if (nearestBot != null && TryAssignResourceToBot(resource, nearestBot))
-            nearestBot.AssignResource(resource, BasePosition, UnloadZoneRadius);
-    }
-
-    public void CompleteAssignment(Bot bot, bool success)
-    {
-        if (Application.isPlaying == false || gameObject.scene.name == null || _isInitialized == false)
-            return;
-
-        var assignment = _resourceAssignments.FirstOrDefault(x => x.Value == bot);
-        if (assignment.Key != null)
-        {
-            _resourceAssignments.Remove(assignment.Key);
-
-            if (success)
-                _resourceAllocator?.MarkAsCollected(assignment.Key);
-            else
-                _resourceAllocator?.ReleaseResource(assignment.Key);
-        }
-    }
-
-    public bool IsBotAssigned(Bot bot) =>
-        _resourceAssignments.Values.Contains(bot);
-
-    public bool IsResourceAssigned(Item resource) =>
-        _resourceAssignments.ContainsKey(resource);
-
     public Bot GetAvailableBotForConstruction()
     {
-        var availableBot = _bots.FirstOrDefault
-                (b => b != null && b.CurrentStateType == BotStateType.Idle);
-
-        if (availableBot != null)
-            return availableBot;
-
-        availableBot = _bots.FirstOrDefault(b =>
-                b != null &&
-                IsBotAssigned(b) == false &&
-                b.CurrentStateType != BotStateType.Collecting &&
-                b.CurrentStateType != BotStateType.ReturningToBase);
-
-        if (availableBot != null)
-            return availableBot;
-
-        return null;
+        return _botDispatcher.GetAvailableBotForConstruction();
     }
 
     public Bot ForceGetBotForConstruction()
     {
-        if (_bots.Count > 0)
+        if (_allBots.Count > 0)
         {
-            var bot = _bots[0];
-
-            if (IsBotAssigned(bot))
-            {
-                var assignment = _resourceAssignments.FirstOrDefault(x => x.Value == bot);
-                if (assignment.Key != null)
-                {
-                    _resourceAssignments.Remove(assignment.Key);
-                    _resourceAllocator?.ReleaseResource(assignment.Key);
-                }
-            }
-
-            bot.ChangeState(new BotIdleState());
-            return bot;
+            var bot = _allBots[0];
+            return _botDispatcher.GetAvailableBotForConstruction() ?? bot;
         }
 
         return null;
     }
 
-    public void AssignResourcesToAllBots()
+    public void TransferBotToNewController(Bot bot, BotController newController)
     {
-        if (Application.isPlaying == false || gameObject.scene.name == null || _isInitialized == false)
+        if (bot == null || newController == null)
             return;
 
-        foreach (var bot in _bots)
-            if (bot != null && bot.IsAvailable)
-                AssignResourceToBot(bot);
-    }
-
-    private bool TryAssignResourceToBot(Item resource, Bot bot)
-    {
-        if (resource == null || bot == null || _resourceAllocator == null)
-            return false;
-
-        if (_resourceAssignments.ContainsKey(resource) || IsBotAssigned(bot))
-            return false;
-
-        if (_resourceAllocator.TryReserveResource(resource))
+        if (_allBots.Contains(bot))
         {
-            _resourceAssignments[resource] = bot;
-            return true;
+            _allBots.Remove(bot);
+            _botDispatcher.UnregisterBot(bot);
+            newController.ReceiveTransferredBot(bot);
         }
-
-        return false;
     }
 
-    private IEnumerator AssignNewResourceAfterDelay(Bot bot, float delay)
+    public void ReceiveTransferredBot(Bot bot)
     {
-        yield return new WaitForSeconds(delay);
-
-        if (_resourceAllocator?.FreeResourcesCount > 0)
-            AssignResourceToBot(bot);
-        else
-            bot.SetWaiting();
+        if (bot != null && !_allBots.Contains(bot))
+        {
+            _allBots.Add(bot);
+            bot.transform.SetParent(_spawnContainer ?? transform);
+            _botDispatcher.RegisterBot(bot);
+        }
     }
 
-    private void InitializeBot(Bot bot)
+    public void AssignBotToResource(Item resource)
     {
-        if (bot == null)
-            return;
-
-        bot.MissionCompleted += HandleBotMissionCompleted;
-        _bots.Add(bot);
-
-        if (_isInitialized && _resourceAllocator != null && _resourceAllocator.HasAvailableResources)
-            AssignResourceToBot(bot);
+        if (resource != null && _botDispatcher != null)
+        {
+            var availableBot = _botDispatcher.GetAvailableBotForConstruction();
+            if (availableBot != null)
+                _botDispatcher.RegisterBot(availableBot);
+        }
     }
 
     private void InitializeBotFactory()
     {
         if (_baseController == null)
-        {
-            Debug.LogError("BaseController not set in BotManager!");
             return;
-        }
 
         float spawnRadius = _baseController.SpawnZoneRadius;
-
         _botFactory = new BotFactory(_botPrefab, _spawnContainer, spawnRadius);
-        _botFactory.BotCreated += InitializeBot;
+        _botFactory.BotCreated += OnBotCreated;
+    }
+
+    private void InitializeBotDispatcher()
+    {
+        _botDispatcher = gameObject.AddComponent<BotDispatcher>();
+        _botDispatcher.Initialize(_resourceAllocator);
+    }
+
+    private void OnBotCreated(Bot bot)
+    {
+        if (bot != null)
+        {
+            _allBots.Add(bot);
+            _botDispatcher.RegisterBot(bot);
+        }
     }
 
     private void SpawnInitialBots()
